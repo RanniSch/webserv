@@ -2,3 +2,4 @@ Proposals:
 - When working in same files, then not at the same time -> Discord communication
 - Coding Norminette likewise
 - Switch Case commands instead of if else
+- working with exceptions, bools, (switsch/case) instead of returning different number values; are exceptions fast enougth
