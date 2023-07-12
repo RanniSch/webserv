@@ -1,0 +1,117 @@
+1.	### execve()	executes the program referred to by pathname.
+		This causes the program that is currently being run by the calling
+       process to be replaced with a new program, with newly initialized
+       stack, heap, and (initialized and uninitialized) data segments.
+	#include <unistd.h>
+
+    int execve(const char *pathname, char *const _Nullable argv[],
+                char *const _Nullable envp[]);
+
+2.	### dup()	The dup() system call allocates a new file descriptor that refers
+       to the same open file description as the descriptor oldfd.  (For
+       an explanation of open file descriptions, see open(2).)  The new
+       file descriptor number is guaranteed to be the lowest-numbered
+       file descriptor that was unused in the calling process.
+	#include <unistd.h>
+
+    int dup(int oldfd);
+
+3.	### dup2()	The dup2() system call performs the same task as dup(), but
+       instead of using the lowest-numbered unused file descriptor, it
+       uses the file descriptor number specified in newfd.
+		Note the following points:
+       •  If oldfd is not a valid file descriptor, then the call fails,
+          and newfd is not closed.
+
+       •  If oldfd is a valid file descriptor, and newfd has the same
+          value as oldfd, then dup2() does nothing, and returns newfd.
+	#include <unistd.h>
+
+	 int dup2(int oldfd, int newfd);
+
+5.	### strerror()	The strerror() function returns a pointer to a string that
+       describes the error code passed in the argument errnum.
+	    #include <string.h>
+
+       char *strerror(int errnum);
+
+
+// Network address and service translation
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+6.	gai_strerror()
+
+7.	###	freeaddrinfo()	function frees the memory that was allocated for the dynamically allocated linked list res.
+
+8.	###	getaddrinfo()	
+
+
+// ----------------------------
+8.	fork()
+
+37. waitpid()
+
+// ----------------------------
+4.	pipe()
+
+34.	close()
+
+// ----------------------------
+39.	signal()
+40.	access()
+38.	kill()
+
+7.	errno()
+9.	htons()
+10.	htonl()
+11.	ntohns()
+12.	ntohl()
+13.	select()
+14.	poll()
+15.	epoll()
+16.	epoll_create()	
+17.	epoll_ctl()
+18.	epoll_wait()
+19.	kqueue()
+20.	kevevnt()
+21.	socket()
+22.	accept()
+23.	listen()
+24.	send()
+25.	recv()
+26.	bind()
+27.	connect()
+30.	setsockopt()
+31.	getsockname()
+32.	getprotobyname()
+33.	fcntl()
+35.	read()
+36. write()
+
+
+42.	opendir()
+43.	readdir()
+44.	closedir()
+41. ###	stat()	get the status about the file. returns 0  if file excists and -1 if it doesnt.
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <unistd.h>
+
+	int stat(const char *path, struct stat *buf);
+	struct stat {
+		dev_t     st_dev;     /* ID of device containing file */
+		ino_t     st_ino;     /* inode number */
+		mode_t    st_mode;    /* protection */
+		nlink_t   st_nlink;   /* number of hard links */
+		uid_t     st_uid;     /* user ID of owner */
+		gid_t     st_gid;     /* group ID of owner */
+		dev_t     st_rdev;    /* device ID (if special file) */
+		off_t     st_size;    /* total size, in bytes */
+		blksize_t st_blksize; /* blocksize for file system I/O */
+		blkcnt_t  st_blocks;  /* number of 512B blocks allocated */
+		time_t    st_atime;   /* time of last access */
+		time_t    st_mtime;   /* time of last modification */
+		time_t    st_ctime;   /* time of last status change */
+	};
