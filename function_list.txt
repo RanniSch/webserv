@@ -91,9 +91,24 @@
 36. write()
 
 
-42.	opendir()
-43.	readdir()
+42.	opendir()	function opens a directory stream corresponding to
+       the directory name, and returns a pointer to the directory
+       stream.  The stream is positioned at the first entry in the
+       directory.
+	#include <sys/types.h>
+     #include <dirent.h>
+
+       DIR *opendir(const char *name);
+
+43.	### readdir()	The readdir() function returns a pointer to a dirent structure
+       representing the next directory entry in the directory stream
+       pointed to by dirp.
+	#include <dirent.h>
+
+       struct dirent *readdir(DIR *dirp);
+
 44.	closedir()
+
 41. ###	stat()	get the status about the file. returns 0  if file excists and -1 if it doesnt.
 	#include <sys/types.h>
 	#include <sys/stat.h>
