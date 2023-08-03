@@ -61,15 +61,15 @@
 14. write()
 
 
-####################################################################################
-##########		NEW FUNCTIONS								########################
-####################################################################################
+################################################################################
+##########		NEW FUNCTIONS			########################
+################################################################################
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	FUNCTIONS TO DEAL WITH DIRECTORIES								++++*/
+/*++++	FUNCTIONS TO DEAL WITH DIRECTORIES				++++*/
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
-15.	###	opendir()	function opens a directory stream corresponding to
+15.	### opendir()	function opens a directory stream corresponding to
        the directory name, and returns a pointer to the directory
        stream.  The stream is positioned at the first entry in the
        directory.
@@ -79,7 +79,7 @@
 	|	#include <sys/types.h>
 	|	#include <dirent.h>
 	|
-    |	DIR *opendir(const char *name);
+    	|	DIR *opendir(const char *name);
 	|
 	____LINK TO THE MANUAL:
 		https://man7.org/linux/man-pages/man3/opendir.3.html
@@ -90,32 +90,32 @@
        pointed to by dirp.
 
 	SIMPLE_DUMB_EXPLANATION:
-		It is used to read the contents of a directory (also known as a folder) on a file system.
-		The name "readdir()" stands for "read directory".
+	It is used to read the contents of a directory (also known as a folder) on a file system.
+	The name "readdir()" stands for "read directory".
 	____FUNCTION PROTOTYPE:
 	|
 	|	#include <dirent.h>
 	|
-    |	struct dirent *readdir(DIR *dirp);
+    	|	struct dirent *readdir(DIR *dirp);
 	|
 	|	In the glibc implementation, the dirent structure is defined as
-    |	follows:
+    	|	follows:
 	|
-    |	struct dirent {
-    |		ino_t          d_ino;       /* Inode number */
-    |		off_t          d_off;       /* Not an offset; see below */
-    |		unsigned short d_reclen;    /* Length of this record */
-    |		unsigned char  d_type;      /* Type of file; not supported
-    |                                          by all filesystem types */
-    |        char           d_name[256]; /* Null-terminated filename */
-    |    };
+    	|	struct dirent {
+    	|		ino_t          d_ino;       /* Inode number */
+    	|		off_t          d_off;       /* Not an offset; see below */
+    	|		unsigned short d_reclen;    /* Length of this record */
+    	|		unsigned char  d_type;      /* Type of file; not supported
+    	|                                          by all filesystem types */
+    	|        char           d_name[256]; /* Null-terminated filename */
+    	|    };
 	|
 	____RETURN	VALUE:
 		1.[SUCCESS]	On success, readdir() returns a pointer to a dirent structure.
     		(This structure may be statically allocated; do not attempt to
     		free(3) it.)
 
-    	2.[END_OF_DIRECTORY STREAM]	If the end of the directory stream is reached, NULL is returned
+    		2.[END_OF_DIRECTORY STREAM]	If the end of the directory stream is reached, NULL is returned
     		and errno is not changed.
 		
 		3.[ERROR]	If an error occurs, NULL is returned
@@ -127,10 +127,10 @@
 		https://man7.org/linux/man-pages/man3/readdir.3.html
 
 
-17.	###	closedir()	function closes the directory stream associated
-       with dirp.  A successful call to closedir() also closes the
-       underlying file descriptor associated with dirp.  The directory
-       stream descriptor dirp is not available after this call.
+17.	### closedir()	function closes the directory stream associated
+		with dirp. A successful call to closedir() also closes the
+		underlying file descriptor associated with dirp.  The directory
+       		stream descriptor dirp is not available after this call.
 	
 	SIMPLE_DUMB_EXPLANATION:
 		It is a function used to close a directory stream that was previously opened using the opendir() function.
@@ -138,15 +138,15 @@
 		to free up system resources associated with the open directory stream.
 	____FUNCTION PROTOTYPE:
 	|	#include <sys/types.h>
-    |	#include <dirent.h>
+    	|	#include <dirent.h>
 	|
-    |	int closedir(DIR *dirp);
+    	|	int closedir(DIR *dirp);
 	|
 	____RETURN VALUE:
-	    1.[SUCCESS]	returns 0 on success.
-		
-		2.[ERROR]	On error, -1 is returned, 
-			and errno is set to indicate the error.
+	1.[SUCCESS]	returns 0 on success.
+
+	2.[ERROR]	On error, -1 is returned, 
+		and errno is set to indicate the error.
 	
 	____LINK TO THE MANUAL:
 		https://man7.org/linux/man-pages/man3/closedir.3.html
@@ -234,14 +234,14 @@
 		corresponding I/O operation (e.g., read(2), or a sufficiently
 		small write(2)) without blocking.
 
-		____FUNCTION PROTOTYPE:
-		|	#include <sys/select.h>
-		|
+	____FUNCTION PROTOTYPE:
+	|	#include <sys/select.h>
+	|
     	|	int select(int nfds, fd_set *_Nullable restrict readfds,
-        |          fd_set *_Nullable restrict writefds,
+        |         fd_set *_Nullable restrict writefds,
         |         fd_set *_Nullable restrict exceptfds,
         |         struct timeval *_Nullable restrict timeout);
-		|
+	|
        	!!!	WARNING: select() can monitor only file descriptors numbers that
        	are less than FD_SETSIZE (1024)—an unreasonably low limit for
        	many modern applications—and this limitation will not change.
@@ -268,15 +268,15 @@
     	Linux-specific epoll(7) API performs a similar task, but offers
     	features beyond those found in poll().
 	____FUNCTION_PROTOTYPE:
-    |	#include <poll.h>
+    	|	#include <poll.h>
 	|
-    |	int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+    	|	int poll(struct pollfd *fds, nfds_t nfds, int timeout);
 	|
-	|   struct pollfd {
-    |    	int   fd;         /* file descriptor */
-    |		short events;     /* requested events */
+	|	struct pollfd {
+    	|		int   fd;         /* file descriptor */
+    	|		short events;     /* requested events */
 	|		short revents;    /* returned events */
-    |	};
+    	|	};
 	____RETURN VALUE:
 	1.[SUCCESS]	returns a nonnegative value which is the
     	number of elements in the pollfds whose revents fields have been
@@ -303,7 +303,7 @@
     	level-triggered interface and scales well to large numbers of
     	watched file descriptors.
 
-		The central concept of the epoll API is the epoll instance, an
+	The central concept of the epoll API is the epoll instance, an
     	in-kernel data structure which, from a user-space perspective,
     	can be considered as a container for two lists:
 
@@ -340,26 +340,26 @@
 
 	In simpler terms:
 
-    1. I/O Operations Handling: Imagine you have a server that needs to handle multiple clients simultaneously.
+    	1. I/O Operations Handling: Imagine you have a server that needs to handle multiple clients simultaneously.
 		Each client communication involves reading from or writing to sockets (network connections).
 		Handling these I/O operations efficiently is crucial for performance.
 
-    2. Traditional Approach: In traditional programming, you might use a loop to poll (check) all the sockets for activity.
+    	2. Traditional Approach: In traditional programming, you might use a loop to poll (check) all the sockets for activity.
 		This can be inefficient and wasteful, especially if there are many sockets because the program 
 		spends a lot of time just checking.
 
-    3. Epoll Solution: epoll_create() provides a better solution.
+    	3. Epoll Solution: epoll_create() provides a better solution.
 		It creates an epoll instance, which is like a "watchlist" where you can register multiple sockets.
 		The Linux kernel then efficiently monitors these sockets and alerts your program when there's
 		activity (data to read or write) on any of them.
 
-    4. Scalability: Epoll is designed to handle a large number of sockets with much lower overhead.
+    	4. Scalability: Epoll is designed to handle a large number of sockets with much lower overhead.
 		It's highly scalable because it uses kernel data structures to track and manage sockets efficiently.
 
 	____FUNCTION_PROTOTYPE:
-    |	#include <sys/epoll.h>
+    	|	#include <sys/epoll.h>
 	|
-    |	int epoll_create(int size);
+    	|	int epoll_create(int size);
 	|
 	____RETURN VALUE:
 	1.[SUCCESS]	this system call returnw a file descriptor (a
@@ -380,9 +380,9 @@
 	or removing file descriptors (sockets) that the instance should monitor for events.
 	It is an important part of the epoll I/O event notification mechanism in Linux.
 	____FUNCTION_PROTOTYPE:
-    |	#include <sys/epoll.h>
+    	|	#include <sys/epoll.h>
 	|
-    |	int epoll_create(int size);
+   	|	int epoll_create(int size);
 	|
 	____RETURN VALUE:
 	1.[SUCCESS]	this system call returnw a file descriptor (a
@@ -405,9 +405,9 @@
 	It's a core part of the epoll I/O event notification mechanism on Linux.
 
 	____FUNCTION_PROTOTYPE:
-    |	#include <sys/epoll.h>
+    	|	#include <sys/epoll.h>
 	|
-    |	int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
+    	|	int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
 	|
 	____RETURN VALUE:
 	1.[SUCCESS]	returns the number of file descriptors
@@ -437,9 +437,9 @@
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	kernel event notification mechanism			MAC(OS)			++++*/
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	kernel event notification mechanism		MAC(OS)	++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 !!! SIMMILAR TO select() poll() epoll() but for macOS and BSD.
 
@@ -460,7 +460,7 @@ ____LINK:
 	https://man.openbsd.org/kqueue.2
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	FUNCTIONS FOR NETWORK ADDRESS AND SERVICE TRANSLATION			++++*/
+/*++++	FUNCTIONS FOR NETWORK ADDRESS AND SERVICE TRANSLATION		++++*/
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 28.	###	getaddrinfo()
@@ -472,16 +472,16 @@ ____LINK:
 
 	Here's a simple explanation of getaddrinfo():
 
-    1. Hostname or Service Name: When you want to communicate over a network,
+    	1. Hostname or Service Name: When you want to communicate over a network,
 		you often need to know the IP address and port number of the remote host.
 		getaddrinfo() helps you convert either a hostname (like "www.example.com") or a
 		service name (like "http" for HTTP) into a set of socket addresses.
 
-    2.	Address Information: The function returns a linked list of struct addrinfo structures,
+    	2.	Address Information: The function returns a linked list of struct addrinfo structures,
 		each containing details about a specific address that can be used for communication.
 		These details include the IP version (IPv4 or IPv6), the IP address itself, and the port number.
 
-    3.	Usage Flexibility: getaddrinfo() allows you to retrieve multiple potential addresses, which is useful
+    	3.	Usage Flexibility: getaddrinfo() allows you to retrieve multiple potential addresses, which is useful
 		for handling cases where the target host has multiple IP addresses, 
 		or when you want to support both IPv4 and IPv6.
 	
@@ -492,9 +492,9 @@ ____LINK:
 	|	#include <netdb.h>
 	|	
 	|	int getaddrinfo(const char *restrict node,
-    |                  const char *restrict service,
-    |                  const struct addrinfo *restrict hints,
-    |                  struct addrinfo **restrict res);
+    	|                  const char *restrict service,
+    	|                  const struct addrinfo *restrict hints,
+    	|                  struct addrinfo **restrict res);
 	|
 	____RETURN VALUES:
 	1.[SUCCESS]	returns 0 if it succeeds.
@@ -571,7 +571,7 @@ ____LINK:
 		https://linux.die.net/man/3/gai_strerror
 
 
-30.	###	freeaddrinfo()	 is a function used to release the memory allocated by the getaddrinfo()
+30.	### freeaddrinfo()	 is a function used to release the memory allocated by the getaddrinfo()
 			function when you're done using the address information obtained from hostname or service name lookups.
 
 	____FUNCTION_PROTOTYPE:
@@ -603,10 +603,10 @@ ____LINK:
 31.	### htons()	function converts the unsigned short integer hostshort
 		from host byte order to network byte order.
 
-32.	###	htonl()	function converts the unsigned integer hostlong
+32.	### htonl()	function converts the unsigned integer hostlong
 		from host byte order to network byte order.
 
-33.	###	ntohs()	 function converts the unsigned short integer 
+33.	### ntohs()	 function converts the unsigned short integer 
 		netshort from network byte order to host byte order. 
 
 34.	### ntohl()	function converts the unsigned integer netlong
@@ -616,15 +616,15 @@ ____LINK:
 		https://linux.die.net/man/3/htons
 
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	FUNCTION manipulate file descriptor							++++*/
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	FUNCTION manipulate file descriptor			++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 35.	fcntl()
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	FUNCTION create an endpoint for communication				++++*/
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	FUNCTION create an endpoint for communication		++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 36.	### socket()	creates an endpoint for communication and returns a file
       descriptor that refers to that endpoint.  The file descriptor
@@ -635,9 +635,9 @@ ____LINK:
 
        int socket(int domain, int type, int protocol);
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	FUNCTION create an endpoint for communication				++++*/
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	FUNCTION create an endpoint for communication		++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 37.	### listen()      marks the socket referred to by sockfd as a passive
        socket, that is, as a socket that will be used to accept incoming
