@@ -1,3 +1,7 @@
+####################################################################################
+##########		FUNCTIONS THAT ALREADY HAVE BEEN USED		########################
+####################################################################################
+
 1.	### execve()	executes the program referred to by pathname.
 		This causes the program that is currently being run by the calling
        process to be replaced with a new program, with newly initialized
@@ -12,9 +16,9 @@
        an explanation of open file descriptions, see open(2).)  The new
        file descriptor number is guaranteed to be the lowest-numbered
        file descriptor that was unused in the calling process.
-	#include <unistd.h>
+	       #include <unistd.h>
 
-    int dup(int oldfd);
+              int dup(int oldfd);
 
 3.	### dup2()	The dup2() system call performs the same task as dup(), but
        instead of using the lowest-numbered unused file descriptor, it
@@ -25,108 +29,702 @@
 
        •  If oldfd is a valid file descriptor, and newfd has the same
           value as oldfd, then dup2() does nothing, and returns newfd.
-	#include <unistd.h>
+	       #include <unistd.h>
 
-	 int dup2(int oldfd, int newfd);
+	       int dup2(int oldfd, int newfd);
 
-5.	### strerror()	The strerror() function returns a pointer to a string that
+4.	### strerror()	The strerror() function returns a pointer to a string that
        describes the error code passed in the argument errnum.
-	    #include <string.h>
+	       #include <string.h>
 
-       char *strerror(int errnum);
-
-
-// Network address and service translation
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-
-6.	gai_strerror()
-
-7.	###	freeaddrinfo()	function frees the memory that was allocated for the dynamically allocated linked list res.
-
-8.	###	getaddrinfo()	
-
+              char *strerror(int errnum);
 
 // ----------------------------
-8.	fork()
+5.	fork()
 
-37. waitpid()
-
-// ----------------------------
-4.	pipe()
-
-34.	close()
+6. waitpid()
 
 // ----------------------------
-39.	signal()
-40.	access()
-38.	kill()
+7.	pipe()
 
-7.	errno()
-9.	htons()
-10.	htonl()
-11.	ntohns()
-12.	ntohl()
-13.	select()
-14.	poll()
-15.	epoll()
-16.	epoll_create()	
-17.	epoll_ctl()
-18.	epoll_wait()
-19.	kqueue()
-20.	kevevnt()
-21.	socket()
-22.	accept()
-23.	listen()
-24.	send()
-25.	recv()
-26.	bind()
-27.	connect()
-30.	setsockopt()
-31.	getsockname()
-32.	getprotobyname()
-33.	fcntl()
-35.	read()
-36. write()
+8.	close()
+
+// ----------------------------
+9.	signal()
+10.	access()
+11.	kill()
+
+12.	errno()
+
+13.	read()
+
+14. write()
 
 
-42.	opendir()	function opens a directory stream corresponding to
+################################################################################
+##########		NEW FUNCTIONS			########################
+################################################################################
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	FUNCTIONS TO DEAL WITH DIRECTORIES				++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+15.	### opendir()	function opens a directory stream corresponding to
        the directory name, and returns a pointer to the directory
        stream.  The stream is positioned at the first entry in the
        directory.
-	#include <sys/types.h>
-     #include <dirent.h>
 
-       DIR *opendir(const char *name);
+	____FUNCTION PROTOTYPE:
+	|
+	|	#include <sys/types.h>
+	|	#include <dirent.h>
+	|
+    	|	DIR *opendir(const char *name);
+	|
+	____LINK TO THE MANUAL:
+		https://man7.org/linux/man-pages/man3/opendir.3.html
 
-43.	### readdir()	The readdir() function returns a pointer to a dirent structure
+
+16.	### readdir() function returns a pointer to a dirent structure
        representing the next directory entry in the directory stream
        pointed to by dirp.
-	#include <dirent.h>
 
-       struct dirent *readdir(DIR *dirp);
+	SIMPLE_DUMB_EXPLANATION:
+	It is used to read the contents of a directory (also known as a folder) on a file system.
+	The name "readdir()" stands for "read directory".
+	____FUNCTION PROTOTYPE:
+	|
+	|	#include <dirent.h>
+	|
+    	|	struct dirent *readdir(DIR *dirp);
+	|
+	|	In the glibc implementation, the dirent structure is defined as
+    	|	follows:
+	|
+    	|	struct dirent {
+    	|		ino_t          d_ino;       /* Inode number */
+    	|		off_t          d_off;       /* Not an offset; see below */
+    	|		unsigned short d_reclen;    /* Length of this record */
+    	|		unsigned char  d_type;      /* Type of file; not supported
+    	|                                          by all filesystem types */
+    	|        char           d_name[256]; /* Null-terminated filename */
+    	|    };
+	|
+	____RETURN	VALUE:
+		1.[SUCCESS]	On success, readdir() returns a pointer to a dirent structure.
+    		(This structure may be statically allocated; do not attempt to
+    		free(3) it.)
 
-44.	closedir()
+    		2.[END_OF_DIRECTORY STREAM]	If the end of the directory stream is reached, NULL is returned
+    		and errno is not changed.
+		
+		3.[ERROR]	If an error occurs, NULL is returned
+       		and errno is set to indicate the error.  To distinguish end of
+       		stream from an error, set errno to zero before calling readdir()
+       		and then check the value of errno if NULL is returned.
+	
+	____LINK TO THE MANUAL:
+		https://man7.org/linux/man-pages/man3/readdir.3.html
 
-41. ###	stat()	get the status about the file. returns 0  if file excists and -1 if it doesnt.
-	#include <sys/types.h>
-	#include <sys/stat.h>
-	#include <unistd.h>
 
-	int stat(const char *path, struct stat *buf);
-	struct stat {
-		dev_t     st_dev;     /* ID of device containing file */
-		ino_t     st_ino;     /* inode number */
-		mode_t    st_mode;    /* protection */
-		nlink_t   st_nlink;   /* number of hard links */
-		uid_t     st_uid;     /* user ID of owner */
-		gid_t     st_gid;     /* group ID of owner */
-		dev_t     st_rdev;    /* device ID (if special file) */
-		off_t     st_size;    /* total size, in bytes */
-		blksize_t st_blksize; /* blocksize for file system I/O */
-		blkcnt_t  st_blocks;  /* number of 512B blocks allocated */
-		time_t    st_atime;   /* time of last access */
-		time_t    st_mtime;   /* time of last modification */
-		time_t    st_ctime;   /* time of last status change */
-	};
+17.	### closedir()	function closes the directory stream associated
+		with dirp. A successful call to closedir() also closes the
+		underlying file descriptor associated with dirp.  The directory
+       		stream descriptor dirp is not available after this call.
+	
+	SIMPLE_DUMB_EXPLANATION:
+		It is a function used to close a directory stream that was previously opened using the opendir() function.
+		It is part of the POSIX standard and is commonly used when working with directories 
+		to free up system resources associated with the open directory stream.
+	____FUNCTION PROTOTYPE:
+	|	#include <sys/types.h>
+    	|	#include <dirent.h>
+	|
+    	|	int closedir(DIR *dirp);
+	|
+	____RETURN VALUE:
+	1.[SUCCESS]	returns 0 on success.
+
+	2.[ERROR]	On error, -1 is returned, 
+		and errno is set to indicate the error.
+	
+	____LINK TO THE MANUAL:
+		https://man7.org/linux/man-pages/man3/closedir.3.html
+
+
+18. ###	chdir() changes the current working directory of the calling
+    	process to the directory specified in path.
+	
+	____FUNCTION PROTOTYPE:
+	|	#include <unistd.h>
+	|
+	|	int chdir(const char *path);
+	|
+	____RETURN VALUE:
+	    1.[SUCCESS]	returns 0 on success.
+		
+		2.[ERROR]	On error, -1 is returned, 
+			and errno is set to indicate the error.
+	
+	____LINK TO THE MANUAL:
+		https://man7.org/linux/man-pages/man2/chdir.2.html
+
+###	SIMPLE_DUMB_EXPLANATION
+    1.	Opening a Directory Stream: When you want to access the contents of a directory in C,
+		you use the opendir() function. This function returns a pointer to a directory stream,
+		which is an internal data structure used by the operating system to
+		keep track of the directory being accessed.
+
+    2.	Iterating Through Directory Entries: After you have a directory stream,
+		you can use functions like readdir() to iterate through the entries (files and subdirectories)
+		within the directory.
+
+    3.	Closing the Directory Stream: Once you are done working with the directory and its contents,
+		it's important to release the resources associated with the directory stream.
+		This is where the closedir() function comes in. Calling closedir() tells the operating
+		system that you are done with the directory, and it can release any resources
+		that were allocated to manage the stream.
+
+
+19. ###	stat()	get the status about the file. returns 0  if file excists and -1 if it doesnt.
+	____FUNCTION PROTOTYPE:
+	|
+	|	#include <sys/types.h>
+	|	#include <sys/stat.h>
+	|	#include <unistd.h>
+	|
+	|	int stat(const char *path, struct stat *buf);
+	|
+	|	struct stat {
+	|		dev_t     st_dev;     /* ID of device containing file */
+	|		ino_t     st_ino;     /* inode number */
+	|		mode_t    st_mode;    /* protection */
+	|		nlink_t   st_nlink;   /* number of hard links */
+	|		uid_t     st_uid;     /* user ID of owner */
+	|		gid_t     st_gid;     /* group ID of owner */
+	|		dev_t     st_rdev;    /* device ID (if special file) */
+	|		off_t     st_size;    /* total size, in bytes */
+	|		blksize_t st_blksize; /* blocksize for file system I/O */
+	|		blkcnt_t  st_blocks;  /* number of 512B blocks allocated */
+	|		time_t    st_atime;   /* time of last access */
+	|		time_t    st_mtime;   /* time of last modification */
+	|		time_t    st_ctime;   /* time of last status change */
+	|	};
+	|
+	____RETURN VALUE:
+		1.[SUCCESS]	returns 0.
+		
+		2.[ERROR]	On error, -1 is returned, 
+			and errno is set to indicate the error.
+	
+	____LINK TO THE MANUAL:
+		https://man7.org/linux/man-pages/man2/lstat.2.html
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	MONITORING CLIENTS ACTIVITY									++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+!!!	Better to use poll() or epoll() because select() is limited.
+
+20.	### select()      allows a program to monitor multiple file descriptors,
+       	waiting until one or more of the file descriptors become "ready"
+    	for some class of I/O operation (e.g., input possible).  A file
+    	descriptor is considered ready if it is possible to perform a
+		corresponding I/O operation (e.g., read(2), or a sufficiently
+		small write(2)) without blocking.
+
+	____FUNCTION PROTOTYPE:
+	|	#include <sys/select.h>
+	|
+    	|	int select(int nfds, fd_set *_Nullable restrict readfds,
+        |         fd_set *_Nullable restrict writefds,
+        |         fd_set *_Nullable restrict exceptfds,
+        |         struct timeval *_Nullable restrict timeout);
+	|
+       	!!!	WARNING: select() can monitor only file descriptors numbers that
+       	are less than FD_SETSIZE (1024)—an unreasonably low limit for
+       	many modern applications—and this limitation will not change.
+       	All modern applications should instead use poll(2) or epoll(7),
+       	which do not suffer this limitation.
+		____RETURN VALUE:
+		1.[SUCCESS]	return the number of file
+      		descriptors contained in the three returned descriptor sets (that
+    		is, the total number of bits that are set in readfds, writefds, exceptfds).
+
+		2.[ERROR]	On error, -1 is returned, and errno is set to indicate the error;
+       		the file descriptor sets are unmodified, and timeout becomes
+       		undefined.
+		
+		3.[TIMEOUT]	zero if the timeout expired
+       		before any file descriptors became ready.
+
+		____LINK:
+			https://man7.org/linux/man-pages/man2/select.2.html
+		
+
+21.	### poll() performs a similar task to select(2): it waits for one of
+    	a set of file descriptors to become ready to perform I/O.  The
+    	Linux-specific epoll(7) API performs a similar task, but offers
+    	features beyond those found in poll().
+	____FUNCTION_PROTOTYPE:
+    	|	#include <poll.h>
+	|
+    	|	int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+	|
+	|	struct pollfd {
+    	|		int   fd;         /* file descriptor */
+    	|		short events;     /* requested events */
+	|		short revents;    /* returned events */
+    	|	};
+	____RETURN VALUE:
+	1.[SUCCESS]	returns a nonnegative value which is the
+    	number of elements in the pollfds whose revents fields have been
+    	set to a nonzero value (indicating an event or an error).
+	
+	2.[ERROR]	-1 is returned, and errno is set to indicate the error.
+
+	3.[TIMEOUT]	A return value of zero indicates that the system call timed out
+    	before any file descriptors became ready.
+	
+	poll() is a relatively simpler and more portable mechanism available on various operating systems.
+	It allows you to monitor multiple file descriptors for events using a single system call.
+	However, poll() does not scale well with a large number of file descriptors, as it requires
+	iterating over the entire set of monitored file descriptors on each call.
+
+	____LINK:
+		https://man7.org/linux/man-pages/man2/poll.2.html
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+22.	### epoll()       API performs a similar task to poll(2): monitoring
+    	multiple file descriptors to see if I/O is possible on any of
+    	them.  The epoll API can be used either as an edge-triggered or a
+    	level-triggered interface and scales well to large numbers of
+    	watched file descriptors.
+
+	The central concept of the epoll API is the epoll instance, an
+    	in-kernel data structure which, from a user-space perspective,
+    	can be considered as a container for two lists:
+
+    	•	The interest list (sometimes also called the epoll set): the
+        	set of file descriptors that the process has registered an
+        	interest in monitoring.
+
+       	•	The ready list: the set of file descriptors that are "ready"
+        	for I/O.  The ready list is a subset of (or, more precisely, a
+        	set of references to) the file descriptors in the interest
+        	list.  The ready list is dynamically populated by the kernel
+        	as a result of I/O activity on those file descriptors.
+
+	____LINK:
+		https://man7.org/linux/man-pages/man7/epoll.7.html
+
+
+23.	### epoll_create()	creates a new epoll(7) instance.  Since Linux
+    	2.6.8, the size argument is ignored, but must be greater than
+    	zero; see HISTORY.
+
+    	epoll_create() returns a file descriptor referring to the new
+    	epoll instance.  This file descriptor is used for all the
+    	subsequent calls to the epoll interface.  When no longer
+    	required, the file descriptor returned by epoll_create() should
+    	be closed by using close(2).  When all file descriptors referring
+    	to an epoll instance have been closed, the kernel destroys the
+    	instance and releases the associated resources for reuse.
+	
+	SIMPLE_DUMB_EXPLANATION:
+	It is a function used for creating an epoll instance, which is a mechanism provided by the Linux kernel
+	for efficiently handling large numbers of file descriptors or sockets in a scalable manner.
+	It is often used in network programming to efficiently manage multiple I/O operations.
+
+	In simpler terms:
+
+    	1. I/O Operations Handling: Imagine you have a server that needs to handle multiple clients simultaneously.
+		Each client communication involves reading from or writing to sockets (network connections).
+		Handling these I/O operations efficiently is crucial for performance.
+
+    	2. Traditional Approach: In traditional programming, you might use a loop to poll (check) all the sockets for activity.
+		This can be inefficient and wasteful, especially if there are many sockets because the program 
+		spends a lot of time just checking.
+
+    	3. Epoll Solution: epoll_create() provides a better solution.
+		It creates an epoll instance, which is like a "watchlist" where you can register multiple sockets.
+		The Linux kernel then efficiently monitors these sockets and alerts your program when there's
+		activity (data to read or write) on any of them.
+
+    	4. Scalability: Epoll is designed to handle a large number of sockets with much lower overhead.
+		It's highly scalable because it uses kernel data structures to track and manage sockets efficiently.
+
+	____FUNCTION_PROTOTYPE:
+    	|	#include <sys/epoll.h>
+	|
+    	|	int epoll_create(int size);
+	|
+	____RETURN VALUE:
+	1.[SUCCESS]	this system call returnw a file descriptor (a
+       nonnegative integer).
+	
+	2.[ERROR]	-1 is returned, and errno is set
+       to indicate the error.
+	
+	____LINK:
+		https://man7.org/linux/man-pages/man2/epoll_create.2.html
+
+
+24.	### epoll_ctl()   Interest in particular file descriptors is then registered via
+       epoll_ctl(2), which adds items to the interest list.
+	
+	SIMPLE_DUMB_EXPLANATION:
+	is a function used to control and modify an epoll instance by adding, modifying,
+	or removing file descriptors (sockets) that the instance should monitor for events.
+	It is an important part of the epoll I/O event notification mechanism in Linux.
+	____FUNCTION_PROTOTYPE:
+    	|	#include <sys/epoll.h>
+	|
+   	|	int epoll_create(int size);
+	|
+	____RETURN VALUE:
+	1.[SUCCESS]	this system call returnw a file descriptor (a
+       nonnegative integer).
+	
+	2.[ERROR]	-1 is returned, and errno is set
+       to indicate the error.
+	
+	____LINK:
+		https://man7.org/linux/man-pages/man2/epoll_ctl.2.html
+
+
+25.	### epoll_wait()     waits for I/O events, blocking the calling
+       thread if no events are currently available.  (This system
+       call can be thought of as fetching items from the ready list
+       of the epoll instance.)
+	
+	SIMPLE_DUMB_EXPLANATION:
+	is a function used to wait for events on file descriptors that have been registered with an epoll instance using epoll_ctl().
+	It's a core part of the epoll I/O event notification mechanism on Linux.
+
+	____FUNCTION_PROTOTYPE:
+    	|	#include <sys/epoll.h>
+	|
+    	|	int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
+	|
+	____RETURN VALUE:
+	1.[SUCCESS]	returns the number of file descriptors
+       ready for the requested I/O.
+	
+	2.[ERROR]	-1 and errno is set to indicate the error.
+
+	3.[TIMEOUT]	zero if no file descriptor became
+    	ready during the requested timeout milliseconds.
+	
+	____LINK:
+		https://man7.org/linux/man-pages/man2/epoll_wait.2.html
+
+
+### SIMPLE_DUMB_EXPLANATION
+    1.	Create an epoll instance: First, you create an epoll instance using epoll_create()
+		which returns a file descriptor representing the instance.
+
+    2.	Register File Descriptors: Once you have an epoll instance, you use epoll_ctl()
+		to add or remove file descriptors to be monitored by the epoll instance.
+		This allows you to specify which sockets or file descriptors you're interested in for I/O events (such as read or write readiness).
+
+    3.	Monitor Events: After registering file descriptors with epoll_ctl(),
+		you use the epoll_wait() function to wait for events on those descriptors.
+		When an event occurs on one of the monitored descriptors, the epoll instance notifies your program,
+		allowing you to handle the I/O operation efficiently.
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	kernel event notification mechanism		MAC(OS)	++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+!!! SIMMILAR TO select() poll() epoll() but for macOS and BSD.
+
+26.	### kqueue()	creates a new kernel event queue and returns a descriptor.
+		The queue is not inherited by a child created with fork(2). Similarly, kqueues cannot be passed across UNIX-domain sockets.
+	SIMPLE_DUMB_EXPLANATION:
+
+27.	### kevevnt()	is used to register events with the queue, and return any pending events to the user. changelist is a pointer 
+		to an array of kevent structures, as defined in <sys/event.h>. 
+		All changes contained in the changelist are applied before any pending events are read from the queue. nchanges
+		gives the size of changelist. eventlist is a pointer to an array of kevent structures. nevents determines 
+		the size of eventlist. When nevents is zero, kevent() will return immediately even if there is a timeout specified, unlike select(2).
+		If timeout is not NULL, it specifies a maximum interval to wait for an event, which will be interpreted as a struct timespec.
+		If timeout is NULL, kevent() waits indefinitely. To effect a poll, the timeout argument should not be NULL,
+		pointing to a zero-valued struct timespec. The same array may be used for the changelist and eventlist.
+
+____LINK:
+	https://man.openbsd.org/kqueue.2
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	FUNCTIONS FOR NETWORK ADDRESS AND SERVICE TRANSLATION		++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+28.	###	getaddrinfo()
+
+	SIMPLE_DUMB_EXPLANATION:
+	Function used to convert a hostname or service name into a set of socket addresses
+	that can be used for network communication. It's a versatile and powerful function
+	commonly used when establishing network connections.
+
+	Here's a simple explanation of getaddrinfo():
+
+    	1. Hostname or Service Name: When you want to communicate over a network,
+		you often need to know the IP address and port number of the remote host.
+		getaddrinfo() helps you convert either a hostname (like "www.example.com") or a
+		service name (like "http" for HTTP) into a set of socket addresses.
+
+    	2.	Address Information: The function returns a linked list of struct addrinfo structures,
+		each containing details about a specific address that can be used for communication.
+		These details include the IP version (IPv4 or IPv6), the IP address itself, and the port number.
+
+    	3.	Usage Flexibility: getaddrinfo() allows you to retrieve multiple potential addresses, which is useful
+		for handling cases where the target host has multiple IP addresses, 
+		or when you want to support both IPv4 and IPv6.
+	
+	____FUNCTION PROTOTYPE:
+	|
+	|	#include <sys/types.h>
+	|	#include <sys/socket.h>
+	|	#include <netdb.h>
+	|	
+	|	int getaddrinfo(const char *restrict node,
+    	|                  const char *restrict service,
+    	|                  const struct addrinfo *restrict hints,
+    	|                  struct addrinfo **restrict res);
+	|
+	____RETURN VALUES:
+	1.[SUCCESS]	returns 0 if it succeeds.
+
+	2.[ERROR]	one of the following nonzero error codes:
+		EAI_ADDRFAMILY
+              The specified network host does not have any network
+              addresses in the requested address family.
+
+       EAI_AGAIN
+              The name server returned a temporary failure indication.
+              Try again later.
+
+       EAI_BADFLAGS
+              hints.ai_flags contains invalid flags; or, hints.ai_flags
+              included AI_CANONNAME and name was NULL.
+
+       EAI_FAIL
+              The name server returned a permanent failure indication.
+
+       EAI_FAMILY
+              The requested address family is not supported.
+
+       EAI_MEMORY
+              Out of memory.
+
+       EAI_NODATA
+              The specified network host exists, but does not have any
+              network addresses defined.
+
+       EAI_NONAME
+              The node or service is not known; or both node and service
+              are NULL; or AI_NUMERICSERV was specified in
+              hints.ai_flags and service was not a numeric port-number
+              string.
+
+       EAI_SERVICE
+              The requested service is not available for the requested
+              socket type.  It may be available through another socket
+              type.  For example, this error could occur if service was
+              "shell" (a service available only on stream sockets), and
+              either hints.ai_protocol was IPPROTO_UDP, or
+              hints.ai_socktype was SOCK_DGRAM; or the error could occur
+              if service was not NULL, and hints.ai_socktype was
+              SOCK_RAW (a socket type that does not support the concept
+              of services).
+
+       EAI_SOCKTYPE
+              The requested socket type is not supported.  This could
+              occur, for example, if hints.ai_socktype and
+              hints.ai_protocol are inconsistent (e.g., SOCK_DGRAM and
+              IPPROTO_TCP, respectively).
+
+       EAI_SYSTEM
+              Other system error; errno is set to indicate the error.
+
+	____LINK:
+		https://man7.org/linux/man-pages/man3/getaddrinfo.3.html
+
+
+29.	### gai_strerror()	function is used to convert error codes related to network-related operations,
+			such as hostname resolution and service name lookups, into human-readable error messages.
+			It's especially useful when dealing with functions like getaddrinfo().
+
+	____FUNCTION_PROTOTYPE:
+	|
+	|	#include <sys/types.h>
+	|	#include <sys/socket.h>
+	|	#include <netdb.h>
+	|
+	|	const char *gai_strerror(int errcode);
+	|
+	____LINK:
+		https://linux.die.net/man/3/gai_strerror
+
+
+30.	### freeaddrinfo()	 is a function used to release the memory allocated by the getaddrinfo()
+			function when you're done using the address information obtained from hostname or service name lookups.
+
+	____FUNCTION_PROTOTYPE:
+	|
+	|	#include <sys/types.h>
+	|	#include <sys/socket.h>
+	|	#include <netdb.h>
+	|
+	|	void freeaddrinfo(struct addrinfo *res);
+	|
+	____LINK:
+		https://linux.die.net/man/3/freeaddrinfo
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	FUNCTIONS to convert values between host and network byte order ++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+	____FUNCTION_PROTOTYPES:
+	|	#include <arpa/inet.h>
+	|
+	|	uint16_t htons(uint16_t hostshort);
+	|	uint32_t htonl(uint32_t hostlong);
+	|	uint32_t ntohl(uint32_t netlong);
+	|	uint16_t ntohs(uint16_t netshort);
+	|
+
+
+31.	### htons()	function converts the unsigned short integer hostshort
+		from host byte order to network byte order.
+
+32.	### htonl()	function converts the unsigned integer hostlong
+		from host byte order to network byte order.
+
+33.	### ntohs()	 function converts the unsigned short integer 
+		netshort from network byte order to host byte order. 
+
+34.	### ntohl()	function converts the unsigned integer netlong
+		from network byte order to host byte order.
+
+	____LINK:
+		https://linux.die.net/man/3/htons
+
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	FUNCTION manipulate file descriptor			++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+35.	fcntl()
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	FUNCTION create an endpoint for communication		++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+36.	### socket()	creates an endpoint for communication and returns a file
+      descriptor that refers to that endpoint.  The file descriptor
+       returned by a successful call will be the lowest-numbered file
+       descriptor not currently open for the process.
+
+	#include <sys/socket.h>
+
+       int socket(int domain, int type, int protocol);
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+/*++++	FUNCTION create an endpoint for communication		++++*/
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+37.	### listen()      marks the socket referred to by sockfd as a passive
+       socket, that is, as a socket that will be used to accept incoming
+       connection requests using accept(2).
+       #include <sys/socket.h>
+
+       int listen(int sockfd, int backlog);
+
+
+38.	### accept()	system call is used with connection-based socket
+       types (SOCK_STREAM, SOCK_SEQPACKET).  It extracts the first
+       connection request on the queue of pending connections for the
+       listening socket, sockfd, creates a new connected socket, and
+       returns a new file descriptor referring to that socket.  The
+       newly created socket is not in the listening state.  The original
+       socket sockfd is unaffected by this call.
+		#include <sys/socket.h>
+
+       int accept(int sockfd, struct sockaddr *_Nullable restrict addr,
+                  socklen_t *_Nullable restrict addrlen);
+
+/----------------------------------
+
+
+39.	### send() call may be used only when the socket is in a
+       connected state (so that the intended recipient is known).  The
+       only difference between send() and write(2) is the presence of
+       flags.  With a zero flags argument, send() is equivalent to
+       write(2).
+       #include <sys/socket.h>
+
+       ssize_t send(int sockfd, const void buf[.len], size_t len, int flags);
+
+40.	### recv()    calls are used to receive
+       messages from a socket.  They may be used to receive data on both
+       connectionless and connection-oriented sockets.  This page first
+       describes common features of all three system calls, and then
+       describes the differences between the calls.
+
+       The only difference between recv() and read(2) is the presence of
+       flags.  With a zero flags argument, recv() is generally
+       equivalent to read(2) (but see NOTES).
+       #include <sys/socket.h>
+
+       ssize_t recv(int sockfd, void buf[.len], size_t len,
+                        int flags);
+
+Here are some key differences between recv() and read():
+
+    1. Function Signature: The function signatures of recv() and read() differ slightly:
+        ssize_t recv(int sockfd, void *buf, size_t len, int flags); (for recv())
+        ssize_t read(int fd, void *buf, size_t count); (for read())
+
+              The parameters sockfd and fd represent
+              the socket descriptor and file descriptor, respectively.
+
+    2. Network-Specific Options: recv() provides additional flags
+              (such as MSG_PEEK, MSG_WAITALL, etc.) to control the behavior of
+              the receive operation, specifically for network sockets.
+              These flags allow you to modify how data is received, handle out-of-band data, or set timeouts.
+              read() does not have these network-specific flags.
+
+    3. Error Handling: recv() handles network-specific error conditions and sets
+              the appropriate error codes, such as EWOULDBLOCK or EAGAIN, when dealing with non-blocking sockets.
+              read() generally returns -1 on error, and you need to check the value of the
+              errno variable to determine the specific error.
+
+    4. Socket Specificity: While read() can operate on network sockets, it treats them as regular file descriptors,
+              lacking some of the specialized features and options available with recv().
+              If you're working specifically with network sockets, using recv() is often more appropriate.
+
+/----------------------------------
+
+41.	### bind()	When a socket is created with socket(2), it exists in a name
+       space (address family) but has no address assigned to it.  bind()
+       assigns the address specified by addr to the socket referred to
+       by the file descriptor sockfd.  addrlen specifies the size, in
+       bytes, of the address structure pointed to by addr.
+       Traditionally, this operation is called “assigning a name to a
+       socket”.
+
+       It is normally necessary to assign a local address using bind()
+       before a SOCK_STREAM socket may receive connections (see
+       accept(2)).
+
+42.	### connect()     is used by a client to initiate a connection to a server.
+
+43.	setsockopt()
+44.	getsockname()
+45.	getprotobyname()
