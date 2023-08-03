@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lkavalia <lkavalia@student.42wolfsburg.    +#+  +:+       +#+        */
+/*   By: rschlott <rschlott@student.42wolfsburg.de> +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/03 19:53:52 by lkavalia          #+#    #+#             */
-/*   Updated: 2023/07/03 20:02:25 by lkavalia         ###   ########.fr       */
+/*   Updated: 2023/08/03 21:38:48 by rschlott         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ int main(int argc, char **argv)
 		std::cout << "Error: incorrect ammount of arguments!" << std::endl;
 		return(-1);
 	}
+	(void)argv;
 	
 	return (0);
 }
