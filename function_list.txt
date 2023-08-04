@@ -62,11 +62,11 @@
 
 
 ################################################################################
-##########		NEW FUNCTIONS			########################
+##########		NEW FUNCTIONS							########################
 ################################################################################
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	FUNCTIONS TO DEAL WITH DIRECTORIES				++++*/
+/*++++	FUNCTIONS TO DEAL WITH DIRECTORIES								++++*/
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 15.	### opendir()	function opens a directory stream corresponding to
@@ -79,7 +79,7 @@
 	|	#include <sys/types.h>
 	|	#include <dirent.h>
 	|
-    	|	DIR *opendir(const char *name);
+    |	DIR *opendir(const char *name);
 	|
 	____LINK TO THE MANUAL:
 		https://man7.org/linux/man-pages/man3/opendir.3.html
@@ -96,19 +96,19 @@
 	|
 	|	#include <dirent.h>
 	|
-    	|	struct dirent *readdir(DIR *dirp);
+	|	struct dirent *readdir(DIR *dirp);
 	|
 	|	In the glibc implementation, the dirent structure is defined as
-    	|	follows:
+    |	follows:
 	|
-    	|	struct dirent {
-    	|		ino_t          d_ino;       /* Inode number */
-    	|		off_t          d_off;       /* Not an offset; see below */
-    	|		unsigned short d_reclen;    /* Length of this record */
-    	|		unsigned char  d_type;      /* Type of file; not supported
-    	|                                          by all filesystem types */
-    	|        char           d_name[256]; /* Null-terminated filename */
-    	|    };
+    |	struct dirent {
+    |		ino_t          d_ino;       /* Inode number */
+    |		off_t          d_off;       /* Not an offset; see below */
+    |		unsigned short d_reclen;    /* Length of this record */
+    |		unsigned char  d_type;      /* Type of file; not supported
+    |                                          by all filesystem types */
+    |        char           d_name[256]; /* Null-terminated filename */
+    |    };
 	|
 	____RETURN	VALUE:
 		1.[SUCCESS]	On success, readdir() returns a pointer to a dirent structure.
@@ -138,9 +138,9 @@
 		to free up system resources associated with the open directory stream.
 	____FUNCTION PROTOTYPE:
 	|	#include <sys/types.h>
-    	|	#include <dirent.h>
+    |	#include <dirent.h>
 	|
-    	|	int closedir(DIR *dirp);
+    |	int closedir(DIR *dirp);
 	|
 	____RETURN VALUE:
 	1.[SUCCESS]	returns 0 on success.
@@ -237,10 +237,10 @@
 	____FUNCTION PROTOTYPE:
 	|	#include <sys/select.h>
 	|
-    	|	int select(int nfds, fd_set *_Nullable restrict readfds,
-        |         fd_set *_Nullable restrict writefds,
-        |         fd_set *_Nullable restrict exceptfds,
-        |         struct timeval *_Nullable restrict timeout);
+    |	int select(int nfds, fd_set *_Nullable restrict readfds,
+    |         fd_set *_Nullable restrict writefds,
+    |         fd_set *_Nullable restrict exceptfds,
+	|         struct timeval *_Nullable restrict timeout);
 	|
        	!!!	WARNING: select() can monitor only file descriptors numbers that
        	are less than FD_SETSIZE (1024)—an unreasonably low limit for
@@ -268,15 +268,15 @@
     	Linux-specific epoll(7) API performs a similar task, but offers
     	features beyond those found in poll().
 	____FUNCTION_PROTOTYPE:
-    	|	#include <poll.h>
+    |	#include <poll.h>
 	|
-    	|	int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+    |	int poll(struct pollfd *fds, nfds_t nfds, int timeout);
 	|
 	|	struct pollfd {
-    	|		int   fd;         /* file descriptor */
-    	|		short events;     /* requested events */
+    |		int   fd;         /* file descriptor */
+    |		short events;     /* requested events */
 	|		short revents;    /* returned events */
-    	|	};
+    |	};
 	____RETURN VALUE:
 	1.[SUCCESS]	returns a nonnegative value which is the
     	number of elements in the pollfds whose revents fields have been
@@ -357,9 +357,9 @@
 		It's highly scalable because it uses kernel data structures to track and manage sockets efficiently.
 
 	____FUNCTION_PROTOTYPE:
-    	|	#include <sys/epoll.h>
+    |	#include <sys/epoll.h>
 	|
-    	|	int epoll_create(int size);
+    |	int epoll_create(int size);
 	|
 	____RETURN VALUE:
 	1.[SUCCESS]	this system call returnw a file descriptor (a
@@ -380,7 +380,7 @@
 	or removing file descriptors (sockets) that the instance should monitor for events.
 	It is an important part of the epoll I/O event notification mechanism in Linux.
 	____FUNCTION_PROTOTYPE:
-    	|	#include <sys/epoll.h>
+    |	#include <sys/epoll.h>
 	|
    	|	int epoll_create(int size);
 	|
@@ -405,9 +405,9 @@
 	It's a core part of the epoll I/O event notification mechanism on Linux.
 
 	____FUNCTION_PROTOTYPE:
-    	|	#include <sys/epoll.h>
+    |	#include <sys/epoll.h>
 	|
-    	|	int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
+    |	int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
 	|
 	____RETURN VALUE:
 	1.[SUCCESS]	returns the number of file descriptors
@@ -460,7 +460,7 @@ ____LINK:
 	https://man.openbsd.org/kqueue.2
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	FUNCTIONS FOR NETWORK ADDRESS AND SERVICE TRANSLATION		++++*/
+/*++++	FUNCTIONS FOR NETWORK ADDRESS AND SERVICE TRANSLATION			++++*/
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 28.	###	getaddrinfo()
@@ -492,9 +492,9 @@ ____LINK:
 	|	#include <netdb.h>
 	|	
 	|	int getaddrinfo(const char *restrict node,
-    	|                  const char *restrict service,
-    	|                  const struct addrinfo *restrict hints,
-    	|                  struct addrinfo **restrict res);
+    |                  const char *restrict service,
+    |                  const struct addrinfo *restrict hints,
+    |                  struct addrinfo **restrict res);
 	|
 	____RETURN VALUES:
 	1.[SUCCESS]	returns 0 if it succeeds.
@@ -617,13 +617,29 @@ ____LINK:
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	FUNCTION manipulate file descriptor			++++*/
+/*++++	FUNCTION manipulate file descriptor						++++*/
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
-35.	fcntl()
+35.	### fcntl()	is a function in the C programming language that stands for "file control."
+			It's used to perform various operations on file descriptors, which are small
+			integers that represent open files in your program.
+
+		Here's a simple explanation:
+
+		fcntl() allows you to do extra things with files that you've opened
+		using functions like open() or socket(). It can be used to change properties of a file
+		or to request information about it. For example, you can use fcntl() to:
+
+    	1.Change the file status flags, like making a file non-blocking.
+    	2.Duplicate an existing file descriptor.
+    	3.Get or set the file descriptor's properties, like setting a file's access mode.
+
+		In essence, fcntl() gives you more control over how your program interacts with
+		files beyond just reading from or writing to them. It's a versatile tool
+		for managing files and file descriptors in more advanced ways. 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	FUNCTION create an endpoint for communication		++++*/
+/*++++	FUNCTION create an endpoint for communication			++++*/
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 36.	### socket()	creates an endpoint for communication and returns a file
@@ -636,7 +652,7 @@ ____LINK:
        int socket(int domain, int type, int protocol);
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/*++++	FUNCTION create an endpoint for communication		++++*/
+/*++++	FUNCTION create an endpoint for communication			++++*/
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 37.	### listen()      marks the socket referred to by sockfd as a passive
