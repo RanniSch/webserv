@@ -24,7 +24,7 @@ UP			=	\033[A
 CUT			=	\033[K
 
 ### Source Files ###
-SRC_FILES	=	main.cpp Socket.cpp
+SRC_FILES	=	main.cpp SocketSimple.cpp
 
 OBJ_FILES	=	$(SRC_FILES:.cpp=.o)
 
