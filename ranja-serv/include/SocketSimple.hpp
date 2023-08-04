@@ -6,6 +6,7 @@
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <iostream>
+# include <cstdlib>
 
 class   SocketSimple {
         public:

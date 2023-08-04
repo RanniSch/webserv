@@ -2,7 +2,7 @@
 #include "SocketSimple.hpp"
 
 // Constructor
-Socket::SocketSimple(int domain, int service, int protocol, int port, u_long interface)
+SocketSimple::SocketSimple(int domain, int service, int protocol, int port, u_long interface)
 {
     std::cout << "SocketSimple parameterized constructor called!" << std::endl;
     
@@ -12,7 +12,7 @@ Socket::SocketSimple(int domain, int service, int protocol, int port, u_long int
     _address.sin_addr.s_addr = htonl(interface);
     
     // Establish socket
-    _sock = socket(domain, service, protocol)
+    _sock = socket(domain, service, protocol);
     testConnection(_sock);
 }
 
@@ -23,7 +23,7 @@ void    SocketSimple::testConnection(int testItem)
     if (testItem < 0)
     {
         perror("Failed to connect...");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 }
 

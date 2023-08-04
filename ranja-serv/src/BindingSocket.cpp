@@ -6,6 +6,7 @@ BindingSocket::BindingSocket(int domain, int service, int protocol,
     int port, u_long interface) : SocketSimple(domain, service, protocol,
     port, interface)
 {
+    std::cout << "BindingSocket constructor called!" << std::endl;
     // Establish the connection
     setConnection(connectToNetwork(getSock(), getAddress()));
     testConnection(getConnection());
