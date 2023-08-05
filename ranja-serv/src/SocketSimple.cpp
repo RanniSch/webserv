@@ -17,6 +17,13 @@ SocketSimple::SocketSimple(int domain, int service, int protocol, int port, u_lo
     testConnection(_sock);
 }
 
+// Destructor
+SocketSimple::~SocketSimple(void)
+{
+    std::cout << "Destructor for SocketSimple called!" << std::endl;
+    return;
+}
+
 // Test connection virtual function
 void    SocketSimple::testConnection(int testItem)
 {

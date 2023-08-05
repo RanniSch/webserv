@@ -10,9 +10,15 @@
 
 class ServerSimple {
         public:
+                // Constructor
                 ServerSimple(int domain, int service, int protocol,
                     int port, u_long interface, int backlog);
+
+                // Copy constructor + overloaded operator???
                 
+                // Destructor
+                ~ServerSimple (void);
+
                 virtual void            launch() = 0; // while loop in the child class to call infinitly accepter, handler, responder.
                 ListeningSocket*        getSocket();
 

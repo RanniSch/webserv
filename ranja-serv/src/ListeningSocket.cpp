@@ -5,12 +5,18 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol,
     int port, u_long interface, int backlog) : BindingSocket(domain,
     service, protocol, port, interface)
 {
-    //std::cout << "2" << std::endl;
-    //std::cout << "ListeningSocket constructor called!" << std::endl;
+    std::cout << "ListeningSocket constructor called!" << std::endl;
     this->_backlog = backlog;
     startListening();
     //std::cout << _listening << std::endl;
     testConnection(_listening);
+}
+
+// Destructor
+ListeningSocket::~ListeningSocket(void)
+{
+    std::cout << "Destructor for ListeningSocket called!" << std::endl;
+    return;
 }
 
 void    ListeningSocket::startListening()

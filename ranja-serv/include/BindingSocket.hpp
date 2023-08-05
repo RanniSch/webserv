@@ -11,6 +11,10 @@ class BindingSocket: public SocketSimple {
                 // Constructor
                 BindingSocket(int domain, int service, int protocol,
                     int port, u_long interface);
+                
+                // Destructor
+                ~BindingSocket (void);
+                
                 // Virtual function from parent
                 int connectToNetwork(int _sock, struct sockaddr_in _address);
 

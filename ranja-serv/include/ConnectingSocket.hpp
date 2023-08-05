@@ -11,6 +11,10 @@ class ConnectingSocket: public SocketSimple {
                 // Constructor
                 ConnectingSocket(int domain, int service, int protocol,
                     int port, u_long interface);
+
+                // Destructor
+                ~ConnectingSocket (void);
+
                 // Virtual function from parent
                 int connectToNetwork(int _sock, struct sockaddr_in _address);
 

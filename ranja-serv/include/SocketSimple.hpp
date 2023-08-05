@@ -13,6 +13,9 @@ class   SocketSimple {
                 // Constructor
                 SocketSimple(int domain, int service, int protocol, int port, u_long interface);
                 
+                // Destructor
+                ~SocketSimple (void);
+                
                 // Virtual function to connect to a network
                 virtual int         connectToNetwork(int sock, struct sockaddr_in _address) = 0;
                 

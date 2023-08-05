@@ -5,11 +5,18 @@
 # define TESTSERVER_HPP
 
 #include <iostream>
+#include <cstring>
+#include <unistd.h>
 #include "ServerSimple.hpp"
 
 class TestServer : public ServerSimple {
         public:
-                TestServer();
+                // Constructor
+                TestServer(int domain, int service, int protocol,
+                    int port, u_long interface, int backlog);
+
+                // Destructor
+                ~TestServer (void);
 
                 void    launch();
         
@@ -17,9 +24,9 @@ class TestServer : public ServerSimple {
                 char    buffer[30000];
                 int     _newSocket;
 
-                void    _accepterTest();
-                void    _handlerTest();
-                void    _responderTest();
+                void    _accepter();
+                void    _handler();
+                void    _responder();
 
 };
 
