@@ -22,6 +22,7 @@ ListeningSocket::~ListeningSocket(void)
 void    ListeningSocket::startListening()
 {
     // start listening from the network
+    // marks the socket referred to by sockfd as a passive socket, that is, as a socket that will be used to accept incoming connection requests using accept(2).
     //std::cout << "getSock" << getSock() << std::endl; 
     this->_listening = listen(getSock(), _backlog);
 }

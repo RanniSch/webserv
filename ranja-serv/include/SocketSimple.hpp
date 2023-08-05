@@ -3,7 +3,7 @@
 # define SOCKETSIMPLE_HPP
 
 # include <stdio.h>
-# include <sys/socket.h>
+# include <sys/socket.h> // for socket()
 # include <netinet/in.h>
 # include <iostream>
 # include <cstdlib>

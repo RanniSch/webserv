@@ -22,6 +22,10 @@ void    TestServer::_accepter()
     getSocket()->getAddress();
     int addrLen = sizeof(address);
     // loop waits here until something comes in to get accepted!
+    // system call is used with connection-based socket types (SOCK_STREAM, SOCK_SEQPACKET). It extracts the first connection request
+    // on the queue of pending connections for the listening socket, sockfd, creates a new connected socket, and returns a
+    // new file descriptor referring to that socket. The newly created socket is not in the listening state.  The original
+    // socket sockfd is unaffected by this call.
     _newSocket = accept(getSocket()->getSock(), (struct sockaddr *)&address, (socklen_t *)&addrLen);
     read(_newSocket, buffer, 30000);
 }

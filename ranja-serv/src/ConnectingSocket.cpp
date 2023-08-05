@@ -21,5 +21,6 @@ ConnectingSocket::~ConnectingSocket(void)
 // Definition of connectToNetwork virtual function
 int ConnectingSocket::connectToNetwork(int _sock, struct sockaddr_in _address)
 {
+    // connect() is used by a client to initiate a connection to a server.
     return (connect(_sock, (struct sockaddr *)&_address, sizeof(_address)));
 }

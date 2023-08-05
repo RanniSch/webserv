@@ -7,6 +7,10 @@
 #include "ConnectingSocket.hpp"
 #include "ListeningSocket.hpp"
 
+// Test with Tablet or so, if server is available on local network
+// delete the private _socket variable after server usage is over!!! Think about how to code that!
+// first time responding from browser prints out detail messages twice on terminal - shouldn't it be one?
+
 int main()
 {
     TestServer(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);

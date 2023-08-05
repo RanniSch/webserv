@@ -8,10 +8,12 @@ SocketSimple::SocketSimple(int domain, int service, int protocol, int port, u_lo
     
     // Define address struture
     _address.sin_family = domain;
-    _address.sin_port = htons(port);
-    _address.sin_addr.s_addr = htonl(interface);
+    _address.sin_port = htons(port); // htons() converts the unsigned short integer hostshort from host byte order to network byte order.
+    _address.sin_addr.s_addr = htonl(interface); // htonl() function converts the unsigned integer hostlong from host byte order to network byte order.
     
     // Establish socket
+    // socket() creates an endpoint for communication and returns a file descriptor that refers to that endpoint.
+    // The file descriptor returned by a successful call will be the lowest-numbered file descriptor not currently open for the process.
     this->_sock = socket(domain, service, protocol); // on success a file descriptor for the new socket is returned. On error -1.
     //std::cout << "sock" << _sock << std::endl;
     testConnection(_sock);
