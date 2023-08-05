@@ -12,7 +12,8 @@ SocketSimple::SocketSimple(int domain, int service, int protocol, int port, u_lo
     _address.sin_addr.s_addr = htonl(interface);
     
     // Establish socket
-    _sock = socket(domain, service, protocol);
+    this->_sock = socket(domain, service, protocol); // on success a file descriptor for the new socket is returned. On error -1.
+    //std::cout << "sock" << _sock << std::endl;
     testConnection(_sock);
 }
 
@@ -38,13 +39,15 @@ int SocketSimple::getSock()
     return (_sock);
 }
 
-int SocketSimple::getConnection()
+/*int SocketSimple::getConnection()
 {
     return (_connection);
-}
+}*/
 
 // Setter functions
 void    SocketSimple::setConnection(int con)
 {
-    _connection = con;
+    this->_connection = con;
+    testConnection(_connection); // zero on success
+    //std::cout << "_connection " << this->_connection << std::endl;
 }

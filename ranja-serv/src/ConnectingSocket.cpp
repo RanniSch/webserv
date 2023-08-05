@@ -6,8 +6,9 @@ ConnectingSocket::ConnectingSocket(int domain, int service, int protocol,
     int port, u_long interface) : SocketSimple(domain, service, protocol,
     port, interface)
 {
+    //std::cout << "ConnectingSocket constructor called!" << std::endl;
     setConnection(connectToNetwork(getSock(), getAddress()));
-    testConnection(getConnection());
+    //testConnection(getConnection());
 }
 
 // Definition of connectToNetwork virtual function
