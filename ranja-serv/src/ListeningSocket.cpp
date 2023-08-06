@@ -19,6 +19,12 @@ ListeningSocket::~ListeningSocket(void)
     return;
 }
 
+/*
+* int listen(int socket, int backlog);
+* int socket: file descriptor for the new socket, saved in _sock so here getSock() to get the integer.
+* int backlog: defines the maximum number of pending connections that can be queued up before connections are refused.
+*   This order is handled in accept() system call --> see TestServer.cpp
+*/
 void    ListeningSocket::startListening()
 {
     // start listening from the network

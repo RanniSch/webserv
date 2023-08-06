@@ -6,6 +6,11 @@
 
 # include "BindingSocket.hpp"
 
+/*
+* Before a client can connect to a server, the server should have a socket that is prepared to accept the connections.
+* The listen system call tells a socket that it should be capable of accepting incoming connections --> see ListeningSocket.cpp
+*/
+
 class   ListeningSocket : public BindingSocket {
         public:
                 // Constructor

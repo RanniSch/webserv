@@ -11,12 +11,23 @@
 // delete the private _socket variable after server usage is over!!! Think about how to code that!
 // first time responding from browser prints out detail messages twice on terminal - shouldn't it be one?
 
+/*
+* AF_INET (IP): Communication domain in which the socket should be created.
+* SOCK_STREAM: Type of service selected according to the properties required by the application.
+* 0: Indicate a specific protocol to use in supporting the sockets operation. There are no variations of the protocol, so it is zero.
+* 8000: port
+* INADDR_ANY: Symbolic constant that defines the special adress 0.0.0.0 for your machine's IP address.
+* 10: interface
+*/
+
 int main()
 {
-    TestServer(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
+    TestServer(AF_INET, SOCK_STREAM, 0, 8000, INADDR_ANY, 10);
 
     return (0);
 }
+
+
 
 /* main FOR TESTING CLASSES WITHOUT ServerSimple and TestServer
 

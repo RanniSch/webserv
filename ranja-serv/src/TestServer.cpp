@@ -16,6 +16,19 @@ TestServer::~TestServer(void)
     return;
 }
 
+/*
+* The accept system call grabs the first connection request on the queue of pending connections (set up in listen) and creates
+* a new socket for that connection. The original socket that was set up for listening is used only for accepting connections,
+* not for exchanging data. By default, socket operations are synchronous, or blocking, and accept will block until a connection
+* is present on the queue.
+*
+* int accept(int socket, struct sockaddr *restrict address, socklen_t *restrict address_len);
+* int socket: is the socket that was set for accepting connections with listen
+*   (file descriptor for the new socket, saved in _sock so here getSock() to get the integer).
+* address: is the address structure that gets filed in with the address of the client that is doing the connect.
+*   This allows us to examine the address and port number of the connecting socket if we want to.
+* address_len: filled in with the length of the address structure.
+*/
 void    TestServer::_accepter()
 {
     struct sockaddr_in*  address;
@@ -35,10 +48,20 @@ void    TestServer::_handler()
     std::cout << buffer << std::endl;
 }
 
+/*
+* write(): Communication is the easy part. The same read and write system calls that work on files also work on sockets.
+*   The real working of HTTP server happens based on the content present in std::string hello variable.
+*
+* close(new_socket): When we’re done communicating, the easiest thing to do is to close a socket with the close system call.
+*   The same close that is used for files.
+*/
 void    TestServer::_responder()
 {
-    //char *hello = "Hello from server";
-    std::string hello("Hello from Server!");
+    //std::string hello("Hello from Server!"); // only works in Firefox, as Header is missing
+
+    // The browser is expecting same format response in which it sent us the request.
+    // HTTP is nothing but following some rules specified in the RFC documents.
+    std::string hello("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"); // works for all browsers (minimum HTTP Header to respond)
     const char* cHello = hello.c_str();
     write(_newSocket, cHello, strlen(cHello));
     close(_newSocket);

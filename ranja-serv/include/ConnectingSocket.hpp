@@ -6,6 +6,10 @@
 
 # include "SocketSimple.hpp"
 
+/*
+* connectToNetwork function calls and returns the conntect() function which shall attempt to make a connection on a socket.
+*/
+
 class ConnectingSocket: public SocketSimple {
         public:
                 // Constructor

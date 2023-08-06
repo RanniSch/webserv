@@ -19,6 +19,16 @@ BindingSocket::~BindingSocket(void)
     return;
 }
 
+/*
+* int bind(int socket, const struct sockaddr *address, socklen_t address_len);
+* socket: ...that was created with the socket system call.
+* struct sockaddr *address: struct sockaddr is a generic container that just allows the OS to be able to read the first couple
+*   of bytes that identify the address family. The address family determines what variant of the sockaddr struct to use
+*   that contains elements that make sense for that specific communication type. For IP networking, we use struct sockaddr_in.
+*   Before calling bind, we need to fill out this structure --> see SocketSimple.cpp
+* socklen_t address_len: Specifies the length of that structure. Since the address structure may differ based on the type of transport used.
+*/
+
 // Definition of connectToNetwork virtual function
 int BindingSocket::connectToNetwork(int _sock, struct sockaddr_in _address)
 {
