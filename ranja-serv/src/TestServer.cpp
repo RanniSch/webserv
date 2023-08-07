@@ -31,16 +31,34 @@ TestServer::~TestServer(void)
 */
 void    TestServer::_accepter()
 {
-    struct sockaddr_in*  address;
-    getSocket()->getAddress();
+    struct sockaddr_in  address = getSocket()->getAddress();
+    // struct sockaddr_in*  address;
+	// getSocket()->getAddress();
+
     int addrLen = sizeof(address);
+
     // loop waits here until something comes in to get accepted!
     // system call is used with connection-based socket types (SOCK_STREAM, SOCK_SEQPACKET). It extracts the first connection request
     // on the queue of pending connections for the listening socket, sockfd, creates a new connected socket, and returns a
     // new file descriptor referring to that socket. The newly created socket is not in the listening state.  The original
     // socket sockfd is unaffected by this call.
     _newSocket = accept(getSocket()->getSock(), (struct sockaddr *)&address, (socklen_t *)&addrLen);
+	_RequestIp(&address);
     read(_newSocket, buffer, 30000);
+}
+
+void	TestServer::_RequestIp(sockaddr_in *address)
+{
+	// std::cout << ntohl(address.sin_addr.s_addr) << std::endl;
+	int rest;
+	int first_part = ntohl(address->sin_addr.s_addr)/(1<<24);
+	rest = ntohl(address->sin_addr.s_addr)%(1<<24);
+	int second_part = rest/(1<<16);
+	rest = rest%(1<<16);
+	int third_part = rest/(1<<8);
+	rest = rest%(1<<8);
+	std::cout << "Request from IP: ";
+	std::cout << first_part << "." << second_part << "." << third_part << "." << rest << std::endl;
 }
 
 void    TestServer::_handler()
