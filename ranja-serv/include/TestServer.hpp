@@ -28,6 +28,8 @@ class TestServer : public ServerSimple {
                 void    _handler();
                 void    _responder();
 
+				void	_RequestIp(sockaddr_in *address);
+
 };
 
 #endif
