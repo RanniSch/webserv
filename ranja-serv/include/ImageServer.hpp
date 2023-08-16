@@ -1,22 +1,23 @@
+// JUST FOR TESTING THE SERVER THAT SENDS AN IMAGE BEFORE GETTING MORE CRAZY ON IT
 
-// JUST FOR TESTING THE SERVER BEFORE GETTING MORE CRAZY ON IT
-
-#ifndef TESTSERVER_HPP
-# define TESTSERVER_HPP
+#ifndef IMAGESERVER_HPP
+# define IMAGESERVER_HPP
 
 #include <iostream>
+#include <sstream>
 #include <cstring>
 #include <unistd.h>
+#include <fstream>
 #include "ServerSimple.hpp"
 
-class TestServer : public ServerSimple {
+class ImageServer : public ServerSimple {
         public:
                 // Constructor
-                TestServer(int domain, int service, int protocol,
+                ImageServer(int domain, int service, int protocol,
                     int port, u_long interface, int backlog);
 
                 // Destructor
-                ~TestServer (void);
+                ~ImageServer (void);
 
                 void    launch();
         

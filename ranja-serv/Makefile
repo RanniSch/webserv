@@ -24,7 +24,7 @@ UP			=	\033[A
 CUT			=	\033[K
 
 ### Source Files ###
-SRC_FILES	=	main.cpp TestServer.cpp ServerSimple.cpp SocketSimple.cpp BindingSocket.cpp ConnectingSocket.cpp ListeningSocket.cpp
+SRC_FILES	=	main.cpp ImageServer.cpp TestServer.cpp ServerSimple.cpp SocketSimple.cpp BindingSocket.cpp ConnectingSocket.cpp ListeningSocket.cpp
 
 OBJ_FILES	=	$(SRC_FILES:.cpp=.o)
 
