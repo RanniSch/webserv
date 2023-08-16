@@ -17,6 +17,11 @@ git rm -rf --cached .                           -> when added .gitignore after t
 git fetch origin full_SHA_key                   -> fetch a specific commit 
 git chekout FETCH_HEAD                          -> checkout that specific commit
 
+Force pull request:
+git fetch --all                                 -> update all origin/<branch> refs to latest; downloads the latest from remote without trying to merge or rebase anything.
+git branch backup-master                        -> Backup current branch (e.g. master)
+git reset --hard origin/master                  -> Jump to the latest commit on origin/master and checkout those files; resets the master branch to what you just fetched. The --hard option changes all the files in your working tree to match the files in origin/master.
+
 
 What is a fork?
 Maybe sometimes you’d want to work on projects where you are not the owner or collaborator. In such situations where you do not have a push access to an existing project, you have an option of forking the repository.
