@@ -84,7 +84,7 @@ void    ImageServer::_responder()
 
     std::cout << "giraffe1: " << giraffe << std::endl;
 
-    giraffe << animal.rdbuf();
+    giraffe << animal.rdbuf();      // this function could be the problem; or sending picture directly as binary?
 
     std::cout << "giraffe2: " << giraffe << std::endl;
 
