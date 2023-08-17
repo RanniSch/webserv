@@ -19,8 +19,6 @@ void	ClientSocket::acceptConnection()
 {
 	_client_addr_len = sizeof(_server_addr);
 
-
-	std::cout << _listening_socket->getSocketFd() << std::endl;
 	_client_socket_fd = accept(_listening_socket->getSocketFd(), (struct sockaddr *)&_server_addr, (socklen_t *)&_client_addr_len);
 	if (_client_socket_fd < 0)
 	{

@@ -113,12 +113,11 @@ void    TestServer::launch()
 		std::cout << "Succesfully started server " << _listening_socket.getSocketFd() << std::endl;
 		while (42)
 		{
-			std::cout << "\n\033[32m===== WAITING [ " << _loop_counter << " ] =====\033[0m" << std::endl;
+			std::cout << "\n\033[32m===== WAITING [ " << _loop_counter++ << " ] =====\033[0m" << std::endl;
 			_acceptConnection();
 			_handler();
 			_responder();
 			std::cout << "\033[35m===== DONE =====\n\033[0m" << std::endl;
-			_loop_counter++;
 		}
    	}
   	catch (const CTRL_C_PRESS& e)
