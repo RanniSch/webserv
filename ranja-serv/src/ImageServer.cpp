@@ -77,84 +77,50 @@ void    ImageServer::_responder()
     // The browser is expecting same format response in which it sent us the request.
     // HTTP is nothing but following some rules specified in the RFC documents.
     
-    std::fstream animal;
-    animal.open("animal.jpg", std::fstream::in | std::fstream::binary); // allowed function?
+    std::ifstream animal("/home/rschlott/workspace/webserv-team/ranja-serv/src/animal.jpg");
+    //animal.open("animal.jpg", std::ifstream::in | std::ifstream::binary); // allowed function?
 
-    std::ostringstream giraffe("HTTP/1.1 200 OK\nContent-type: image/jpeg\nContent-Length: 80\n");
+    if (!(animal.is_open()))
+    {
+        std::cout << "Error" << std::endl;
+        exit(-1);
+    }
 
-    std::cout << "giraffe1: " << giraffe << std::endl;
+    std::stringstream giraffe2;
+    giraffe2 << animal.rdbuf();
+    std::cout << "giraffe2: " << giraffe2.str() << std::endl;
 
-    giraffe << animal.rdbuf();      // this function could be the problem; or sending picture directly as binary?
+    std::string data(giraffe2.str());
 
-    std::cout << "giraffe2: " << giraffe << std::endl;
+    //const char* wdata = data.c_str();
+    std::cout << "len1: " << data.length() << std::endl;
+
+    //std::cout << "String: " << data << std::endl;
+    //std::string data("Hello World!");
+
+    //std::ostringstream giraffe("HTTP/1.1 200 OK\nContent-type: image/jpeg\nContent-Length: 61\n\n");
+    std::string giraffe("HTTP/1.1 200 OK\nContent-type: image/jpeg\nContent-Length: 230314\n\n");
+    //std::string giraffe("HTTP/1.1 200 OK\nContent-type: text/plain\nContent-Length: 12\n\n");
+
+    //std::cout << "giraffe1: " << giraffe << std::endl;
+
+    //giraffe << animal.rdbuf();      // this function could be the problem; or sending picture directly as binary?
+
+    std::string giraffe3 = giraffe + data;
+
+
+    //std::cout << "giraffe2: " << giraffe << std::endl;
 
     animal.close();
     
-    std::string data(giraffe.str());
+    //std::string data(giraffe3.str());
 
-    const char* cData = data.c_str();
+    const char* cData = giraffe3.c_str();
     
-    std::cout << "len: " << strlen(cData) << std::endl;
+    //std::cout << "len: " << strlen(cData) << std::endl;
 
-    write(_newSocket, cData, strlen(cData));
+    write(_newSocket, cData, giraffe3.length());
     close(_newSocket);
-
-    //********************************************************************************************
-    
-    /*std::ifstream animal ("animal.jpg", std::ifstream::binary);
-    if (animal)
-    {
-        // get length of file:
-        animal.seekg (0, animal.end);
-        int length = animal.tellg();
-        animal.seekg (0, animal.beg);
-
-        char * buffer = new char [length];
-
-        std::cout << "Reading " << length << " characters... ";
-        // read data as a block:
-        animal.read (buffer, length);
-
-        if (animal)
-            std::cout << "all characters read successfully.";
-        else
-            std::cout << "error: only " << animal.gcount() << " could be read";
-        
-        std::string header("HTTP/1.1 200 OK\nContent-type: image/jpeg\nContent-Length: length\n");
-
-        std::string binaryStr = "";
-        for(int i = 0; i < length; i++) 
-        {
-            // Creating an empty stringstream
-            std::stringstream temp;
-      
-            // Inserting data into the stream
-            temp << buffer[i];
-      
-            // Extracting data from stream using 
-            // .str() function
-            binaryStr += temp.str();
-        }
-    
-        // Printing the string 
-        std::cout << binaryStr;
-
-        std::string giraffe;
-        giraffe = header + binaryStr;
-
-        const char* cGiraffe = giraffe.c_str();
-    
-        std::cout << "len: " << strlen(cGiraffe) << std::endl;
-
-        write(_newSocket, cGiraffe, strlen(cGiraffe));
-        close(_newSocket);
-        
-        animal.close();
-
-        // ...buffer contains the entire file...
-
-        delete[] buffer;
-    }*/
 
 }
 

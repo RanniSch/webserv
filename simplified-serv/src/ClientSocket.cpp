@@ -1,4 +1,4 @@
-#include "../include/ClientSocket.hpp"
+#include "ClientSocket.hpp"
 
 ClientSocket::ClientSocket()
 {

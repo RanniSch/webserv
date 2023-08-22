@@ -3,14 +3,17 @@
 #ifndef TESTSERVER_HPP
 # define TESTSERVER_HPP
 
-#include <cstring>
-#include <csignal>
-#include <unistd.h>
-#include <iostream>
-#include <exception>
-#include <netinet/in.h>
-#include "ClientSocket.hpp"
-#include "ListeningSocket.hpp"
+# include <cstring>
+# include <csignal>
+# include <unistd.h>
+# include <iostream>
+# include <fstream>     // for std::ifstream
+#include <sstream>      // for std::stringstream 
+# include <exception>
+# include <netinet/in.h>
+
+# include "ClientSocket.hpp"
+# include "ListeningSocket.hpp"
 
 //Exceptions 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class	CTRL_C_PRESS: public std::exception

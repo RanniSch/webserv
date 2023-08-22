@@ -1,5 +1,5 @@
 
-#include "../include/TestServer.hpp"
+#include "TestServer.hpp"
 
 // Constructor
 TestServer::TestServer():_loop_counter(0)
@@ -86,16 +86,47 @@ void    TestServer::_handler()
 */
 void    TestServer::_responder()
 {
-    //std::string hello("Hello from Server!"); // only works in Firefox, as Header is missing
+	/*{
+    	// The browser is expecting same format response in which it sent us the request.
+    	// HTTP is nothing but following some rules specified in the RFC documents.
+    	
+		std::string hello("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"); // works for all browsers (minimum HTTP Header to respond)
+    	const char* cHello = hello.c_str();
+    	write(_client_socket.getSocketFd(), cHello, strlen(cHello));
 
-    // The browser is expecting same format response in which it sent us the request.
-    // HTTP is nothing but following some rules specified in the RFC documents.
-    std::string hello("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"); // works for all browsers (minimum HTTP Header to respond)
-    const char* cHello = hello.c_str();
-    write(_client_socket.getSocketFd(), cHello, strlen(cHello));
+		close(_client_socket.getSocketFd());
+		_client_socket.setSocketFd(-2);
+	}*/
 
-	close(_client_socket.getSocketFd());
-	_client_socket.setSocketFd(-2);
+	{
+		std::ifstream animal("/home/rschlott/workspace/webserv-team/ranja-serv/src/animal.jpg");
+
+    	if (!(animal.is_open()))
+    	{
+        	std::cout << "Error" << std::endl;
+        	exit(-1);
+    	}
+
+    	std::stringstream giraffe2;
+    	giraffe2 << animal.rdbuf();
+    	std::cout << "giraffe2: " << giraffe2.str() << std::endl;
+
+    	std::string data(giraffe2.str());
+
+    	std::cout << "len1: " << data.length() << std::endl;
+
+    	std::string giraffe("HTTP/1.1 200 OK\nContent-type: image/jpeg\nContent-Length: 230314\n\n");
+
+    	std::string giraffe3 = giraffe + data;
+
+    	animal.close();
+
+    	const char* cData = giraffe3.c_str();
+
+    	write(_client_socket.getSocketFd(), cData, giraffe3.length());
+    	close(_client_socket.getSocketFd());
+		_client_socket.setSocketFd(-2);
+	}
 }
 
 void    signalHandler(int signum)
