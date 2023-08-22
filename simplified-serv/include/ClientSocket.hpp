@@ -1,12 +1,11 @@
 #ifndef	CLIENTSOCKET_HPP
 # define CLIENTSOCKET_HPP
 
-#include <iostream>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include "ListeningSocket.hpp"
-
+# include <iostream>
+# include <unistd.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include "ListeningSocket.hpp"
 
 class ClientSocket
 {

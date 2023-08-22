@@ -44,7 +44,7 @@ void    TestServer::_accepter()
     // socket sockfd is unaffected by this call.
     _newSocket = accept(getSocket()->getSock(), (struct sockaddr *)&address, (socklen_t *)&addrLen);
 	_RequestIp(&address);
-    read(_newSocket, buffer, 30000);
+    read(_newSocket, _buffer, 30000);
 }
 
 void	TestServer::_RequestIp(sockaddr_in *address)
@@ -63,7 +63,7 @@ void	TestServer::_RequestIp(sockaddr_in *address)
 
 void    TestServer::_handler()
 {
-    std::cout << buffer << std::endl;
+    std::cout << _buffer << std::endl;
 }
 
 /*

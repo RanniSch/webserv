@@ -1,4 +1,4 @@
-#include "../include/ListeningSocket.hpp"
+#include "ListeningSocket.hpp"
 
 ListeningSocket::ListeningSocket(void)
 {

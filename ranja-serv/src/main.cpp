@@ -24,7 +24,7 @@
 
 int main()
 {
-    ImageServer(AF_INET, SOCK_STREAM, 0, 8000, INADDR_ANY, 10);
+    ImageServer(AF_INET, SOCK_STREAM, 0, 8080, INADDR_ANY, 10);
     //TestServer(AF_INET, SOCK_STREAM, 0, 8000, INADDR_ANY, 10);
 
     return (0);

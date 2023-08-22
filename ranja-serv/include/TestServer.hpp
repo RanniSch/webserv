@@ -21,7 +21,7 @@ class TestServer : public ServerSimple {
                 void    launch();
         
         private:
-                char    buffer[30000];
+                char    _buffer[30000];
                 int     _newSocket;
 
                 void    _accepter();
