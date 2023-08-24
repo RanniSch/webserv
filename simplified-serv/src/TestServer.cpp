@@ -116,6 +116,8 @@ void    TestServer::_responder(std::string indentifier)
 		_respondStatic();
 	else if (indentifier == "error")
 		_respondError();
+	else if (indentifier == "upload")
+		_respondFileUpload();
 }
 
 void	TestServer::_respondImage(void)
@@ -163,6 +165,19 @@ void	TestServer::_respondStatic(void)
 	_client_socket.setSocketFd(-2);
 }
 
+void	TestServer::_respondFileUpload(void)
+{
+	for (int i = 0; i < 1000000; i++)
+		std::cout << "\r" << i;
+	std::cout << std::endl;
+	std::string hello("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 121\n\n<!DOCTYPE html><html><body><p>Click</p><input type='file' id='myFile' name='filename'><input type='submit'></body></html>");
+	const char* cHello = hello.c_str();
+	write(_client_socket.getSocketFd(), cHello, strlen(cHello));
+
+	close(_client_socket.getSocketFd());
+	_client_socket.setSocketFd(-2);
+}
+
 
 void	TestServer::_respondError(void)
 {
@@ -181,7 +196,7 @@ void	TestServer::_executeEventSequence(int index)
 	_acceptConnection(index);
 	_handler();
 	if (DEBUG == 1)
-		_responder("normal");
+		_responder("upload");
 	else if (DEBUG == 2)
 		_executeCGI();
 	else

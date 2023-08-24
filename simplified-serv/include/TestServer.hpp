@@ -54,6 +54,7 @@ class TestServer{
                 void	_responder(std::string indentifier);
                 void	_respondImage(void);
                 void	_respondStatic(void);
+				void	_respondFileUpload(void);
 				void	_respondError(void);
 
 		void	_RequestIp(sockaddr_in *address);
