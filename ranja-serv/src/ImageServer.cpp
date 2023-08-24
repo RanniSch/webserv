@@ -72,12 +72,13 @@ void    ImageServer::_handler()
 * close(new_socket): When we’re done communicating, the easiest thing to do is to close a socket with the close system call.
 *   The same close that is used for files.
 */
+template
 void    ImageServer::_responder()
 {
     // The browser is expecting same format response in which it sent us the request.
     // HTTP is nothing but following some rules specified in the RFC documents.
     
-    std::ifstream animal("/home/rschlott/workspace/webserv-team/ranja-serv/src/animal.jpg");
+    std::ifstream animal("/home/lucas/Desktop/school/Webserv/ranja-serv/src/animal.jpg");
     //animal.open("animal.jpg", std::ifstream::in | std::ifstream::binary); // allowed function?
 
     if (!(animal.is_open()))
