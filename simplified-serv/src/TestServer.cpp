@@ -153,7 +153,9 @@ void	TestServer::_respondStatic(void)
 	for (int i = 0; i < 1000000; i++)
 		std::cout << "\r" << i;
 	std::cout << std::endl;
-	std::string hello("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"); // works for all browsers (minimum HTTP Header to respond)
+	// std::string hello("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"); // works for all browsers (minimum HTTP Header to respond)
+	std::string hello("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 121\n\n<!DOCTYPE html><html><body><p>Click</p><input type='file' id='myFile' name='filename'><input type='submit'></body></html>"); // works for all browsers (minimum HTTP Header to respond)
+	// std::string hello("POST / HTTP/1.1\nContent-Type: text/html\nContent-Length: 167\n\n<!DOCTYPE html><html><body><p>Click on the 'Choose File' button to upload a file:</p><input type='file' id='myFile' name='filename'><input type='submit'></body></html>");
 	const char* cHello = hello.c_str();
 	write(_client_socket.getSocketFd(), cHello, strlen(cHello));
 
