@@ -2,37 +2,61 @@
 #include "TestServer.hpp"
 
 // Constructor
-TestServer::TestServer():_loop_counter(0)
+TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3)
 {
     std::cout << "TestServer constructor called!" << std::endl;
-    launch();
+
+	_ports.push_back(8000); // REMEMBER WHICH CONTAINER SORTS BY SIZE!
+	_ports.push_back(8080);
+	_ports.push_back(8090);
+
+	ListeningSocket	tmp_listening_socket;
+
+	for (int i = 0; i < _nbr_of_ports; i++)
+	{
+		tmp_listening_socket.setPort(static_cast <int> (_ports[i]));
+		_listening_sockets.push_back(tmp_listening_socket);
+	}
+
+	for (int i = 0; i < _nbr_of_ports; i++)
+		_listening_sockets[i].startListening();
+
+	//Creating Pollfd stuct
+	struct pollfd	tmp_pollfd;
+	for (int i = 0; i < _nbr_of_ports; i++)
+	{
+		tmp_pollfd.fd = _listening_sockets[i].getSocketFd();
+		tmp_pollfd.events = POLLIN;
+		tmp_pollfd.revents = 0;
+		_sockets_for_poll.push_back(tmp_pollfd);
+	}
+	_nbr_of_sockets_in_poll += 3;
 }
 
 // Destructor
 TestServer::~TestServer(void)
 {
     std::cout << "Destructor for TestServer called!" << std::endl;
-	std::cout << "Listening socket:" << _listening_socket.getSocketFd() << std::endl;
-	if (close(_listening_socket.getSocketFd()) <  0)
-	{
-		perror("listening closing failed... ");
-	}
-	std::cout << "Client socket:" << _client_socket.getSocketFd() << std::endl;
+	std::cout << GREY "\nClosing client socket: " << _client_socket.getSocketFd() << BLANK << std::endl;
 	if (_client_socket.getSocketFd() == -2)
-		std::cout << "Client socket already closed!" << std::endl;
+		std::cout << GREEN "Client socket already closed!" BLANK << std::endl;
 	else
 	{
 		if (close(_client_socket.getSocketFd()) <  0)
-		{
-			perror("client closing failed... ");
-		}
+			perror(RED "ERROR: Client closing failed: " BLANK);
+		else
+			std::cout << GREEN "Client socket closed succesfully." BLANK << std::endl;
+	}
+
+	for (int i = 0; i < _nbr_of_ports; i++)
+	{
+		std::cout << GREY "\nClosing listening socket for port: " << _listening_sockets[i].getPort() << BLANK << std::endl;
+		if (close(_listening_sockets[i].getSocketFd()) < 0)
+			perror(RED "ERROR: Listening socket closing failed: " BLANK);
+		else
+			std::cout << GREEN "Listening socket closed succesfully." BLANK << std::endl;
 	}
     exit(-1);
-}
-
-void	TestServer::_startServer()
-{
-	_listening_socket.startListening();
 }
 
 /*
@@ -49,9 +73,9 @@ void	TestServer::_startServer()
 * address_len: filled in with the length of the address structure.
 */
 
-void    TestServer::_acceptConnection()
+void    TestServer::_acceptConnection(int index)
 {
-	this->_client_socket.setListeningSocketPtr(this->_listening_socket);
+	this->_client_socket.setListeningSocketPtr(this->_listening_sockets[index]);
 	this->_client_socket.acceptConnection();
 
 	_RequestIp(&_client_socket.getSockAddr());
@@ -74,7 +98,7 @@ void	TestServer::_RequestIp(sockaddr_in *address)
 
 void    TestServer::_handler()
 {
-    std::cout << _buffer << std::endl;
+    std::cout << GREY << _buffer <<  BLANK << std::endl;
 }
 
 /*
@@ -84,49 +108,63 @@ void    TestServer::_handler()
 * close(new_socket): When we’re done communicating, the easiest thing to do is to close a socket with the close system call.
 *   The same close that is used for files.
 */
-void    TestServer::_responder()
+void    TestServer::_responder(std::string indentifier)
 {
-	/*{
-    	// The browser is expecting same format response in which it sent us the request.
-    	// HTTP is nothing but following some rules specified in the RFC documents.
-    	
-		std::string hello("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"); // works for all browsers (minimum HTTP Header to respond)
-    	const char* cHello = hello.c_str();
-    	write(_client_socket.getSocketFd(), cHello, strlen(cHello));
+	if (indentifier == "image")
+		_respondImage();
+	else if (indentifier == "normal")
+		_respondStatic();
+	else if (indentifier == "error")
+		_respondError();
+}
 
-		close(_client_socket.getSocketFd());
-		_client_socket.setSocketFd(-2);
-	}*/
+void	TestServer::_respondImage(void)
+{
+	std::ifstream animal("/home/lucas/Desktop/school/Webserv/simplified-serv/src/animal.jpg");
 
-	{
-		std::ifstream animal("/home/rschlott/workspace/webserv-team/ranja-serv/src/animal.jpg");
-
-    	if (!(animal.is_open()))
-    	{
-        	std::cout << "Error" << std::endl;
-        	exit(-1);
-    	}
-
-    	std::stringstream giraffe2;
-    	giraffe2 << animal.rdbuf();
-    	std::cout << "giraffe2: " << giraffe2.str() << std::endl;
-
-    	std::string data(giraffe2.str());
-
-    	std::cout << "len1: " << data.length() << std::endl;
-
-    	std::string giraffe("HTTP/1.1 200 OK\nContent-type: image/jpeg\nContent-Length: 230314\n\n");
-
-    	std::string giraffe3 = giraffe + data;
-
-    	animal.close();
-
-    	const char* cData = giraffe3.c_str();
-
-    	write(_client_socket.getSocketFd(), cData, giraffe3.length());
-    	close(_client_socket.getSocketFd());
-		_client_socket.setSocketFd(-2);
+    if (!(animal.is_open()))
+    {
+       	std::cout << "Error: failed to open jpg" << std::endl;
+       	exit(-1);
 	}
+    
+	std::stringstream giraffe2;
+	giraffe2 << animal.rdbuf();
+	//std::cout << "giraffe2: " << giraffe2.str() << std::endl;
+
+	std::string data(giraffe2.str());
+	//std::cout << "len1: " << data.length() << std::endl;
+	std::string giraffe("HTTP/1.1 200 OK\nContent-type: image/jpeg\nContent-Length: 230314\n\n");
+	std::string giraffe3 = giraffe + data;
+
+	animal.close();
+
+	const char* cData = giraffe3.c_str();
+
+	write(_client_socket.getSocketFd(), cData, giraffe3.length());
+	close(_client_socket.getSocketFd());
+	_client_socket.setSocketFd(-2);
+}
+
+void	TestServer::_respondStatic(void)
+{
+	// The browser is expecting same format response in which it sent us the request.
+    // HTTP is nothing but following some rules specified in the RFC documents.
+	for (int i = 0; i < 1000000; i++)
+		std::cout << "\r" << i;
+	std::cout << std::endl;
+	std::string hello("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"); // works for all browsers (minimum HTTP Header to respond)
+	const char* cHello = hello.c_str();
+	write(_client_socket.getSocketFd(), cHello, strlen(cHello));
+
+	close(_client_socket.getSocketFd());
+	_client_socket.setSocketFd(-2);
+}
+
+
+void	TestServer::_respondError(void)
+{
+	//Respond with the Error HTTP response
 }
 
 void    signalHandler(int signum)
@@ -135,19 +173,62 @@ void    signalHandler(int signum)
         throw   CTRL_C_PRESS();
 }
 
+
+void	TestServer::_executeEventSequence(int index)
+{
+	_acceptConnection(index);
+	_handler();
+	if (DEBUG == 1)
+		_responder("normal");
+	else if (DEBUG == 2)
+		_executeCGI();
+	else
+		_responder("error");
+}
+
+
 void    TestServer::launch()
 {
    	try
 	{
 		signal(SIGINT, signalHandler);
-		_startServer();
-		std::cout << "Succesfully started server " << _listening_socket.getSocketFd() << std::endl;
+		// DEBUGGING
+		std::cout <<GREEN "Finished creating the ports:" BLANK << std::endl;		
+		for (int i = 0; i < _nbr_of_ports; i++)
+			std::cout << GREY "Listening Socket onject for Port: " << _listening_sockets[i].getPort() << " succesfully created!" BLANK << std::endl;
+		// DEBUGGING
+
+		int	ready = 0;
 		while (42)
 		{
-			std::cout << "\n\033[32m===== WAITING [ " << _loop_counter++ << " ] =====\033[0m" << std::endl;
-			_acceptConnection();
-			_handler();
-			_responder();
+			std::cout << GREEN "\n===== WAITING [ " << _loop_counter++ << " ] =====" BLANK << std::endl;
+			ready = poll(_sockets_for_poll.data(), _sockets_for_poll.size(), -1);
+			if (ready == -1)
+			{
+				perror(RED "ERROR: poll() has failed: " BLANK);
+				exit(-1);
+			}
+			else if (ready == 0)
+				perror(RED "ERROR: poll() has timed out: " BLANK);
+			else
+			{
+				for (int i = 0; i < _nbr_of_ports; i++)
+				{
+					if (_sockets_for_poll[i].revents & POLLIN)
+					{
+						//It means port has activity and there is something to read.
+						//DEBUGGING
+						int x = 0;
+						while (_listening_sockets[x].getSocketFd() != _sockets_for_poll[i].fd)
+							x++;
+						std::cout << GREY << "PORT: " << _listening_sockets[x].getPort() << " has something to read!" BLANK << std::endl;
+						//DEBUGGING
+						_executeEventSequence(x);
+						_sockets_for_poll[i].revents = 0;
+					}
+				}
+
+			}
 			std::cout << "\033[35m===== DONE =====\n\033[0m" << std::endl;
 		}
    	}
@@ -156,7 +237,7 @@ void    TestServer::launch()
 		std::cerr << "\nCaught exception: " << e.what() << std::endl;
 		this->~TestServer();
     }
-	close(_listening_socket.getSocketFd());
+	//close(_listening_socket.getSocketFd());
 }
 
 const char	*CTRL_C_PRESS::what() const throw()

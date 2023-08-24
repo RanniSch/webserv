@@ -5,7 +5,7 @@ NAME		=	webserv
 ### Compiler ###
 CC			=	c++
 
-CFLAGS		=	-Wall -Werror -Wextra -std=c++98
+CFLAGS		=	-Wall -Werror -Wextra -g -std=c++98
 
 ### Directories (Sources) ###
 SRC_DIR		=	src/

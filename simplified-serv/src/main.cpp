@@ -21,5 +21,7 @@ int main()
 {
     TestServer server;
 
+    server.launch();
+
     return (0);
 }
