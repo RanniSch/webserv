@@ -44,8 +44,8 @@ std::string	RespondMessage::_createStartLine( void )
 		std::string path;
 		path = _config.find("cwd")->second;
 		// path.append(cwd);
-		// path.append("/www/index.html");
-		path.append("/simplified-serv/www/index.html");
+		path.append("/www/index.html");
+		// path.append("/simplified-serv/www/index.html");
 
 		_content.append(_createContentFromFile(path));
 		_output.append("Content-Length: ");
