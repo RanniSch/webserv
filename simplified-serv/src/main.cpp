@@ -25,13 +25,5 @@ int main()
     // start the server
     server.launch();
 
-    // Create a client instance and connect to the server
-    TestClient client("localhost", 8000);
-    client.connectToServer();
-
-    // Send an HTTP POST request
-    std::string postData = "key1=value1&key2=value2";
-    client.sendHttpPostRequest("/api/endpoint", postData);
-
     return (0);
 }

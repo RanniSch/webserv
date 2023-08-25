@@ -79,7 +79,7 @@ void    TestServer::_acceptConnection(int index)
 	this->_client_socket.acceptConnection();
 
 	_RequestIp(&_client_socket.getSockAddr());
-	read(_client_socket.getSocketFd(), _buffer, 30000);
+	//read(_client_socket.getSocketFd(), _buffer, 30000);
 }
 
 void	TestServer::_RequestIp(sockaddr_in *address)

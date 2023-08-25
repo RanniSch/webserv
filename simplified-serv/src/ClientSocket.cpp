@@ -33,7 +33,7 @@ void	ClientSocket::acceptConnection()
         buffer[bytesRead] = '\0';
         std::cout << "Received data from client: " << buffer << std::endl;
     }
-	close(_client_socket_fd);
+	//close(_client_socket_fd);
 }
 
 void	ClientSocket::setSocketFd(int value)
