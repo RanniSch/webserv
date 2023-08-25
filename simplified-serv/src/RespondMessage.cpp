@@ -1,7 +1,10 @@
 #include "../include/RespondMessage.hpp"
 
-RespondMessage::RespondMessage( void )
+RespondMessage::RespondMessage( const std::map<std::string, std::string> &config,\
+ const std::map<std::string, std::string> &request_map )
+: _config(config), _request_map(request_map)
 {
+	createResponse( );
 }
 
 RespondMessage::~RespondMessage( void )
@@ -27,24 +30,32 @@ std::string	RespondMessage::_createStartLine( void )
 	// std::cout << filesystem::current_path() << std::endl;
 	
 	// geht das besser??
-	char cwd[PATH_MAX];
-   	if (getcwd(cwd, sizeof(cwd)) != NULL) {
-	// std::cout << cwd << std::endl;
-   	}
-	else {
-       perror("getcwd() error");
-	}
-	std::string path;
-	path.append(cwd);
-	// path.append("/www/index.html");
-	path.append("/simplified-serv/www/index.html");
+	// char cwd[PATH_MAX];
+   	// if (getcwd(cwd, sizeof(cwd)) != NULL) {
+	// // std::cout << cwd << std::endl;
+   	// }
+	// else {
+    //    perror("getcwd() error");
+	// }
 
-	_content.append(_createContentFromFile(path));
-	_output.append("Content-Length: ");
-	_output.append(std::to_string(_content.length()));
-	_output.append("\n\n");
-	_output.append(_content);
-	return _output;
+	// am anfang checken ob die maps gewisse felder haben oder try catch ? denn die könnnten falsch herum übergeben werden
+	if (_request_map.find("Method")->second == "GET")
+	{
+		std::string path;
+		path = _config.find("cwd")->second;
+		// path.append(cwd);
+		// path.append("/www/index.html");
+		path.append("/simplified-serv/www/index.html");
+
+		_content.append(_createContentFromFile(path));
+		_output.append("Content-Length: ");
+		_output.append(std::to_string(_content.length()));
+		_output.append("\n\n");
+		_output.append(_content);
+		return _output;
+		
+	}
+	return (std::string("hallo")); // weg!!!
 }
 
 	//std::string hello("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length:

@@ -61,9 +61,29 @@ TestServer::~TestServer(void)
 
 void	TestServer::processRequest( std::string &request)
 {
+	// for testing provide config map
+	char cwd[PATH_MAX];
+   	if (getcwd(cwd, sizeof(cwd)) != NULL) {
+   	}
+	else {
+       perror("getcwd() error");
+	}
+	std::string path;
+	path.append(cwd);
+
+	std::map<std::string, std::string> config;
+	std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
+	config.insert(pair);
+	// -testing
+
+
+	if (!request.compare(""))
+		return;
 	RequestObj reqObj(request);
-	std::map<std::string, std::string> map;
-	reqObj.ParseIntoMap(map);
+	std::map<std::string, std::string> request_map;
+	reqObj.ParseIntoMap(request_map);
+
+	RespondMessage respond(config, request_map);
 
 }
 
@@ -185,11 +205,11 @@ void	TestServer::_respondFileUpload(void)
 	// 121\n\n<!DOCTYPE html><html><body><p>Click</p><input
 	// type='file' id='myFile' name='filename'><input type='submit'></body></html>
 	
-	RespondMessage respM;
-	std::string hello = respM.createResponse();
-	const char* cHello = hello.c_str();
-	std::cout << _client_socket.getSocketFd() << std::endl;
-	write(_client_socket.getSocketFd(), cHello, strlen(cHello));
+	// RespondMessage respM;
+	// std::string hello = respM.createResponse();
+	// const char* cHello = hello.c_str();
+	// std::cout << _client_socket.getSocketFd() << std::endl;
+	// write(_client_socket.getSocketFd(), cHello, strlen(cHello));
 
 	// int i = 0;
 	std::string request;
