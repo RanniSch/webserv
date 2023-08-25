@@ -168,10 +168,17 @@ void	TestServer::_respondStatic(void)
 
 void	TestServer::_respondFileUpload(void)
 {
-	for (int i = 0; i < 1000000; i++)
-		std::cout << "\r" << i;
-	std::cout << std::endl;
-	std::string hello("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 121\n\n<!DOCTYPE html><html><body><p>Click</p><input type='file' id='myFile' name='filename'><input type='submit'></body></html>");
+	// for (int i = 0; i < 1000000; i++)
+	// 	std::cout << "\r" << i;
+	// std::cout << std::endl;
+	// std::string hello("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 121\n\n<!DOCTYPE html><html><body><p>Click</p><input type='file' id='myFile' name='filename'><input type='submit'></body></html>");
+	
+	//HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length:
+	// 121\n\n<!DOCTYPE html><html><body><p>Click</p><input
+	// type='file' id='myFile' name='filename'><input type='submit'></body></html>
+	
+	RespondMessage respM;
+	std::string hello = respM.createResponse();
 	const char* cHello = hello.c_str();
 	write(_client_socket.getSocketFd(), cHello, strlen(cHello));
 
@@ -197,8 +204,8 @@ void	TestServer::_executeEventSequence(int index)
 	_acceptConnection(index);
 	_handler();
 	if (DEBUG == 1)
-		//_responder("upload");
-		_responder("normal");
+		_responder("upload");
+		// _responder("normal");
 		//_responder("image");
 	else if (DEBUG == 2)
 		_executeCGI();
