@@ -59,6 +59,34 @@ TestServer::~TestServer(void)
     exit(-1);
 }
 
+void	TestServer::processRequest( std::string &request)
+{
+	// for testing provide config map
+	char cwd[PATH_MAX];
+   	if (getcwd(cwd, sizeof(cwd)) != NULL) {
+   	}
+	else {
+       perror("getcwd() error");
+	}
+	std::string path;
+	path.append(cwd);
+
+	std::map<std::string, std::string> config;
+	std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
+	config.insert(pair);
+	// -testing
+
+
+	if (!request.compare(""))
+		return;
+	RequestObj reqObj(request);
+	std::map<std::string, std::string> request_map;
+	reqObj.ParseIntoMap(request_map);
+
+	RespondMessage respond(config, request_map);
+
+}
+
 /*
 * The accept system call grabs the first connection request on the queue of pending connections (set up in listen) and creates
 * a new socket for that connection. The original socket that was set up for listening is used only for accepting connections,
@@ -177,10 +205,40 @@ void	TestServer::_respondFileUpload(void)
 	// 121\n\n<!DOCTYPE html><html><body><p>Click</p><input
 	// type='file' id='myFile' name='filename'><input type='submit'></body></html>
 	
-	RespondMessage respM;
-	std::string hello = respM.createResponse();
-	const char* cHello = hello.c_str();
-	write(_client_socket.getSocketFd(), cHello, strlen(cHello));
+	// RespondMessage respM;
+	// std::string hello = respM.createResponse();
+	// const char* cHello = hello.c_str();
+	// std::cout << _client_socket.getSocketFd() << std::endl;
+	// write(_client_socket.getSocketFd(), cHello, strlen(cHello));
+
+	// int i = 0;
+	std::string request;
+	char buffer [10];
+	while (1)
+	{
+
+		while (true) {
+                ssize_t bytesRead = recv(_client_socket.getSocketFd(), buffer, sizeof(buffer), 0);
+                if (bytesRead <= 0) {
+                    // Error or connection closed
+                    break;
+                }
+                request += std::string(buffer, bytesRead);
+		}
+
+		// read(_client_socket.getSocketFd(), buf, 1000);
+		// std::cout << _client_socket.getSocketFd() << std::endl;
+		std::cout << GREY << request <<  BLANK << std::endl;
+		processRequest(request);
+		request.clear();
+		// i = 0;
+		// while (i < 1000)
+		// {
+		// 	_buffer[i] = '\0';
+		// 	i++;
+		// }
+		usleep(3000000);
+	}
 
 	close(_client_socket.getSocketFd());
 	_client_socket.setSocketFd(-2);

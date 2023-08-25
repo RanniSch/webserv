@@ -17,6 +17,7 @@
 # include "ClientSocket.hpp"
 # include "ListeningSocket.hpp"
 # include "RespondMessage.hpp"
+# include "RequestObj.hpp"
 
 //Exceptions 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class	CTRL_C_PRESS: public std::exception
@@ -57,6 +58,8 @@ class TestServer{
                 void	_respondStatic(void);
 				void	_respondFileUpload(void);
 				void	_respondError(void);
+
+				void	processRequest( std::string &request);
 
 		void	_RequestIp(sockaddr_in *address);
 };
