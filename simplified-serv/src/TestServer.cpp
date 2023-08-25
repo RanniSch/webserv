@@ -197,8 +197,8 @@ void	TestServer::_executeEventSequence(int index)
 	_acceptConnection(index);
 	_handler();
 	if (DEBUG == 1)
-		//_responder("upload");
 		_responder("normal");
+		//_responder("upload");
 		//_responder("image");
 	else if (DEBUG == 2)
 		_executeCGI();

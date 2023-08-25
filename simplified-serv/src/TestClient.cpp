@@ -1,5 +1,38 @@
 #include "TestClient.hpp"
 
+
+// Constructor
+TestClient::TestClient(const std::string& serverHostname, int serverPort) : _serverHostname(serverHostname), _serverPort(serverPort)
+{
+    std::cout << "TestClient constructor called!" << std::endl;
+}
+
+// Destructor
+TestClient::~TestClient() 
+{
+    std::cout << "Destructor for TestClient called!" << std::endl;
+}
+
+void TestClient::connectToServer() 
+{
+    clientSocket.connectToServer(_serverHostname, _serverPort);
+}
+
+void TestClient::sendHttpPostRequest(const std::string& endpoint, const std::string& postData) 
+{
+    std::ostringstream request;
+    request << "POST " << endpoint << " HTTP/1.1\r\n"
+            << "Host: " << _serverHostname << "\r\n"
+            << "Content-Type: application/x-www-form-urlencoded\r\n"
+            << "Content-Length: " << postData.length() << "\r\n"
+            << "\r\n"
+            << postData;
+
+    clientSocket.sendData(request.str().c_str(), request.str().length());
+}
+
+
+/*
 // Constructor
 TestClient::TestClient(const std::string& serverHostname, int serverPort) : _serverHostname(serverHostname), _serverPort(serverPort) 
 {
@@ -53,7 +86,7 @@ void TestClient::sendHttpPostRequest(const std::string& endpoint, const std::str
         std::cerr << "Failed to send request" << std::endl;
         return;
     }
-}
+}*/
 
 /*void    TestClient::_questioner()
 {

@@ -51,6 +51,8 @@ class TestServer {
                 void	_acceptConnection(int index);
                 void	_handler(void);
 
+                
+
                 void	_responder(std::string indentifier);
                 void	_respondImage(void);
                 void	_respondStatic(void);

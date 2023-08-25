@@ -25,7 +25,7 @@ int main()
     // start the server
     server.launch();
 
-    // Create a client and connect to the server
+    // Create a client instance and connect to the server
     TestClient client("localhost", 8000);
     client.connectToServer();
 

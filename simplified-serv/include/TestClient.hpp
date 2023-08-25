@@ -9,6 +9,9 @@
 # include <netdb.h>
 # include <unistd.h>
 
+#include "ClientSocket.hpp"
+ 
+
 class TestClient {
         public:
                 TestClient(const std::string& serverHostname, int serverPort);
@@ -18,9 +21,9 @@ class TestClient {
                 void sendHttpPostRequest(const std::string& endpoint, const std::string& postData);
 
         private:
-                int         _clientSocket;
-                std::string _serverHostname;
-                int         _serverPort;
+                std::string     _serverHostname;
+                int             _serverPort;
+                ClientSocket    clientSocket;
 };
 
 #endif

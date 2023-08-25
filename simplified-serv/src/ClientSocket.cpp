@@ -51,3 +51,41 @@ int	ClientSocket::getSocketFd()
 {
 	return (_client_socket_fd);
 }
+
+void ClientSocket::connectToServer(const std::string& serverHostname, int serverPort)
+{
+    // Create socket
+    _client_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (_client_socket_fd == -1)
+    {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Configure server address
+    memset(&_server_addr, 0, sizeof(_server_addr));
+    _server_addr.sin_family = AF_INET;
+    _server_addr.sin_port = htons(serverPort);
+    if (inet_pton(AF_INET, serverHostname.c_str(), &_server_addr.sin_addr) <= 0)
+    {
+        perror("Invalid address/Address not supported");
+        exit(EXIT_FAILURE);
+    }
+
+	// Connect to the server
+    if (connect(_client_socket_fd, (struct sockaddr*)&_server_addr, sizeof(_server_addr)) == -1)
+    {
+        perror("Connection failed");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void ClientSocket::sendData(const char* data, size_t length)
+{
+    ssize_t bytesSent = send(_client_socket_fd, data, length, 0);
+    
+	if (bytesSent == -1) 
+	{
+        std::cerr << "Failed to send data" << std::endl;
+    }
+}
