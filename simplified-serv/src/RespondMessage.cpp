@@ -29,7 +29,7 @@ std::string	RespondMessage::_createStartLine( void )
 	// geht das besser??
 	char cwd[PATH_MAX];
    	if (getcwd(cwd, sizeof(cwd)) != NULL) {
-	std::cout << cwd << std::endl;
+	// std::cout << cwd << std::endl;
    	}
 	else {
        perror("getcwd() error");
