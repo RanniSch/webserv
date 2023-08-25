@@ -62,8 +62,8 @@ TestServer::~TestServer(void)
 void	TestServer::processRequest( std::string &request)
 {
 	RequestObj reqObj(request);
-	// std::map<std::string, std::string> map;
-	// reqObj.ParseIntoMap(map);
+	std::map<std::string, std::string> map;
+	reqObj.ParseIntoMap(map);
 
 }
 
