@@ -7,7 +7,9 @@
 #include <filesystem>   // später weg
 #include <unistd.h>		// später weg
 #include <stdio.h>     // später weg
-#include <limits.h>    // später weg 
+#include <limits.h>    // später weg
+#include <cstdlib>
+#include <sstream>
 
 // canonnical form!!!
 class RespondMessage {

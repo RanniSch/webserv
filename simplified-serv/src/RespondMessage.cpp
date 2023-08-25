@@ -41,7 +41,8 @@ std::string	RespondMessage::_createStartLine( void )
 	// am anfang checken ob die maps gewisse felder haben oder try catch ? denn die könnnten falsch herum übergeben werden
 	if (_request_map.find("Method")->second == "GET")
 	{
-		std::string path;
+		std::stringstream	ss;
+		std::string			path;
 		path = _config.find("cwd")->second;
 		// path.append(cwd);
 		path.append("/www/index.html");
@@ -49,7 +50,8 @@ std::string	RespondMessage::_createStartLine( void )
 
 		_content.append(_createContentFromFile(path));
 		_output.append("Content-Length: ");
-		_output.append(std::to_string(_content.length()));
+		ss << _content.length();
+		_output.append(ss.str());
 		_output.append("\n\n");
 		_output.append(_content);
 		return _output;
@@ -71,7 +73,7 @@ std::string		RespondMessage::_createContentFromFile( std::string filepath )
 {
 	std::string out;
 
-	std::ifstream file(filepath);
+	std::ifstream file(filepath.c_str());
 	if (!file.is_open())
 	{
 		std::cout << "Error: failed to open file" << std::endl;   // 
