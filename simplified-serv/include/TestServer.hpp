@@ -16,6 +16,7 @@
 # include <poll.h>
 # include "ClientSocket.hpp"
 # include "ListeningSocket.hpp"
+# include "RespondMessage.hpp"
 
 //Exceptions 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class	CTRL_C_PRESS: public std::exception
