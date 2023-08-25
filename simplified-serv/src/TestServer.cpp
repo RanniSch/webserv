@@ -59,6 +59,14 @@ TestServer::~TestServer(void)
     exit(-1);
 }
 
+void	TestServer::processRequest( std::string &request)
+{
+	RequestObj reqObj(request);
+	// std::map<std::string, std::string> map;
+	// reqObj.ParseIntoMap(map);
+
+}
+
 /*
 * The accept system call grabs the first connection request on the queue of pending connections (set up in listen) and creates
 * a new socket for that connection. The original socket that was set up for listening is used only for accepting connections,
@@ -180,7 +188,37 @@ void	TestServer::_respondFileUpload(void)
 	RespondMessage respM;
 	std::string hello = respM.createResponse();
 	const char* cHello = hello.c_str();
+	std::cout << _client_socket.getSocketFd() << std::endl;
 	write(_client_socket.getSocketFd(), cHello, strlen(cHello));
+
+	// int i = 0;
+	std::string request;
+	char buffer [10];
+	while (1)
+	{
+
+		while (true) {
+                ssize_t bytesRead = recv(_client_socket.getSocketFd(), buffer, sizeof(buffer), 0);
+                if (bytesRead <= 0) {
+                    // Error or connection closed
+                    break;
+                }
+                request += std::string(buffer, bytesRead);
+		}
+
+		// read(_client_socket.getSocketFd(), buf, 1000);
+		// std::cout << _client_socket.getSocketFd() << std::endl;
+		std::cout << GREY << request <<  BLANK << std::endl;
+		processRequest(request);
+		request.clear();
+		// i = 0;
+		// while (i < 1000)
+		// {
+		// 	_buffer[i] = '\0';
+		// 	i++;
+		// }
+		usleep(3000000);
+	}
 
 	close(_client_socket.getSocketFd());
 	_client_socket.setSocketFd(-2);

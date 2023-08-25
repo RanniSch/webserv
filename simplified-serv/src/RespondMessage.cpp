@@ -37,6 +37,7 @@ std::string	RespondMessage::_createStartLine( void )
 	std::string path;
 	path.append(cwd);
 	path.append("/www/index.html");
+	// path.append("/simplified-serv/www/index.html");
 
 	_content.append(_createContentFromFile(path));
 	_output.append("Content-Length: ");
@@ -63,8 +64,10 @@ std::string		RespondMessage::_createContentFromFile( std::string filepath )
 	if (!file.is_open())
 	{
 		std::cout << "Error: failed to open file" << std::endl;   // 
+		std::cout << "Filepath: " << filepath << std::endl;   // 
        	exit(-1);						//   handle better? server still should run
 	}
+	std::cout << "Filepath: " << filepath << std::endl;   // 
 	std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
 	//close file
 	return content;
