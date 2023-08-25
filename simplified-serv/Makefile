@@ -24,28 +24,34 @@ UP			=	\033[A
 CUT			=	\033[K
 
 ### Source Files ###
-SRC_FILES	=	main.cpp TestServer.cpp ClientSocket.cpp ListeningSocket.cpp RespondMessage.cpp
+# SRC_FILES	=	main.cpp TestServer.cpp ClientSocket.cpp ListeningSocket.cpp RespondMessage.cpp
 
-OBJ_FILES	=	$(SRC_FILES:.cpp=.o)
+# OBJ_FILES	=	$(SRC_FILES:.cpp=.o)
+SOURCES := $(wildcard $(SRC_DIR)*.cpp) 
+OBJECTS := $(patsubst $(SRC_DIR)%.cpp, $(OBJ_DIR)%.o, $(SOURCES)) 
 
 ### Paths ###
-SRC			=	$(addprefix $(SRC_DIR), $(SRC_FILES))
-OBJ			=	$(addprefix $(OBJ_DIR), $(OBJ_FILES))
+# SRC			=	$(addprefix $(SRC_DIR), $(SRC_FILES))
+# OBJ			=	$(addprefix $(OBJ_DIR), $(OBJ_FILES))
 
 ### All Rule ###
 all: $(NAME)
 
 ### Compile The Executable ###
-$(NAME): $(OBJ)
+# $(NAME): $(OBJ)
+$(NAME): $(OBJECTS)
 	@echo "$(YELLOW)Compiling [$(NAME)]...$(RESET)"
-	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+# 	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+	@$(CC) $(CFLAGS) $(OBJ) -o $@ $^
 	@echo "$(GREEN)Finished [$(NAME)]$(RESET)"
+
 
 ### Compile Objects ###
 $(OBJ_DIR)%.o:$(SRC_DIR)%.cpp
 	@mkdir -p $(OBJ_DIR)
 	@echo "$(YELLOW)Compiling [$@]...$(RESET)"
-	@$(CC) $(CFLAGS) -I $(INC_DIR) -o $@ -c $<
+#   @$(CC) $(CFLAGS) -I $(INC_DIR) -o $@ -c $<
+	@$(CC) $(CFLAGS) -I $(INC_DIR) -I $(SRC_DIR) -o $@ -c $<
 	@printf "$(UP)$(CUT)"
 	@echo "$(GREEN)Finished [$@]$(RESET)"
 	@printf "$(UP)$(CUT)"
