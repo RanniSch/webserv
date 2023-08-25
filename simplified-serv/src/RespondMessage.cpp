@@ -22,7 +22,23 @@ std::string	RespondMessage::_createStartLine( void )
 	_output.append("HTTP/1.1 200 OK\nContent-Type: text/html\n");
 	// _content.append("\n\n");
 	// _content.append("<!DOCTYPE html><html><body><p>Click</p><input type='file' id='myFile' name='filename'><input type='submit'></body></html>");
-	_content.append(_createContentFromFile("/Users/maxrehberg/Documents/42Wolfsburg/webserv/webserve/simplified-serv/www/index.html"));
+	// _content.append(_createContentFromFile("/Users/maxrehberg/Documents/42Wolfsburg/webserv/webserve/simplified-serv/www/index.html"));
+	// _content.append(_createContentFromFile("/simplified-serv/www/index.html"));
+	// std::cout << filesystem::current_path() << std::endl;
+	
+	// geht das besser??
+	char cwd[PATH_MAX];
+   	if (getcwd(cwd, sizeof(cwd)) != NULL) {
+	std::cout << cwd << std::endl;
+   	}
+	else {
+       perror("getcwd() error");
+	}
+	std::string path;
+	path.append(cwd);
+	path.append("/www/index.html");
+
+	_content.append(_createContentFromFile(path));
 	_output.append("Content-Length: ");
 	_output.append(std::to_string(_content.length()));
 	_output.append("\n\n");
