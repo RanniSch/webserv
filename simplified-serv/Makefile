@@ -66,6 +66,9 @@ fclean: clean
 	echo "No Executable to remove from webserv."; \
 	fi;
 
+e:	$(NAME)
+	./$(NAME)
+
 ### re Rule ###
 re: fclean all
 
