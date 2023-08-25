@@ -24,7 +24,7 @@ class	CTRL_C_PRESS: public std::exception
 	        virtual const char	*what() const throw();			
 };
 
-class TestServer{
+class TestServer {
         public:
                 // Constructor
                 TestServer();
@@ -57,7 +57,7 @@ class TestServer{
 				void	_respondFileUpload(void);
 				void	_respondError(void);
 
-		void	_RequestIp(sockaddr_in *address);
+		        void	_RequestIp(sockaddr_in *address);
 };
 
 # define	DEBUG	1

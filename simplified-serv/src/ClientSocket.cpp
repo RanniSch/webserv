@@ -25,6 +25,15 @@ void	ClientSocket::acceptConnection()
 		std::cout << _client_socket_fd << std::endl;
 		perror("Accepting connection failed");
 	}
+	//****** new ******
+	char buffer[1024];
+    ssize_t bytesRead = recv(_client_socket_fd, buffer, sizeof(buffer), 0);
+    if (bytesRead > 0)
+	{
+        buffer[bytesRead] = '\0';
+        std::cout << "Received data from client: " << buffer << std::endl;
+    }
+	close(_client_socket_fd);
 }
 
 void	ClientSocket::setSocketFd(int value)

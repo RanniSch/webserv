@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "TestServer.hpp"
+#include "TestClient.hpp"
 
 // Test with Tablet or so, if server is available on local network
 // delete the private _socket variable after server usage is over!!! Think about how to code that!
@@ -21,7 +22,16 @@ int main()
 {
     TestServer server;
 
+    // start the server
     server.launch();
+
+    // Create a client and connect to the server
+    TestClient client("localhost", 8000);
+    client.connectToServer();
+
+    // Send an HTTP POST request
+    std::string postData = "key1=value1&key2=value2";
+    client.sendHttpPostRequest("/api/endpoint", postData);
 
     return (0);
 }

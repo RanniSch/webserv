@@ -15,7 +15,7 @@ class ClientSocket
 		ClientSocket();
 		~ClientSocket();
 
-		void	acceptConnection();
+		void			acceptConnection();
 
 		void			setListeningSocketPtr(ListeningSocket& listening_obj);
 		void			setSocketFd(int value);

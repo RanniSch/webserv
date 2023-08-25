@@ -108,7 +108,7 @@ void    TestServer::_handler()
 * close(new_socket): When we’re done communicating, the easiest thing to do is to close a socket with the close system call.
 *   The same close that is used for files.
 */
-void    TestServer::_responder(std::string indentifier)
+void    TestServer::_responder(std::string indentifier)  // wrong spelling of identifier
 {
 	if (indentifier == "image")
 		_respondImage();
