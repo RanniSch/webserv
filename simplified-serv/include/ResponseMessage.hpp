@@ -12,19 +12,21 @@
 #include <sstream>
 
 // canonnical form!!!
-class RespondMessage {
+class ResponseMessage {
 	public:
-		RespondMessage( const std::map<std::string, std::string> &config, const std::map<std::string, std::string> &request_map );
-		~RespondMessage( void );
+		ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, const std::map<std::string, std::string> &request_map );
+		~ResponseMessage( void );
 		std::string		createResponse( void );
 
 	private:
 		std::string		_output;
 		std::string		_content;
 
-		const std::map<std::string, std::string> &_config;
-		const std::map<std::string, std::string> &_request_map;
+		const std::map<std::string, std::vector<std::string> >		&_config;
+		const std::map<std::string, std::string>					&_request_map;
 
+		void			_chooseMethod( void );
+		void			_GetMethod( void );
 		std::string		_createStartLine( void );
 		std::string		_createContentFromFile( std::string filepath );
 

@@ -16,7 +16,7 @@
 # include <poll.h>
 # include "ClientSocket.hpp"
 # include "ListeningSocket.hpp"
-# include "RespondMessage.hpp"
+# include "ResponseMessage.hpp"
 # include "RequestObj.hpp"
 
 //Exceptions 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
