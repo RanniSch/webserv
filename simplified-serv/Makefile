@@ -5,7 +5,14 @@ NAME		=	webserv
 ### Compiler ###
 CC			=	c++
 
+ifeq ($(shell uname), Darwin)
+# Max
+CFLAGS		=	-Wall -Werror -Wextra -g -std=c++98 --pedantic
+#-Werror
+else
+# Ranja and Lukas
 CFLAGS		=	-Wall -Werror -Wextra -g -std=c++98
+endif
 
 ### Directories (Sources) ###
 SRC_DIR		=	src/
