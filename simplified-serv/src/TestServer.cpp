@@ -150,7 +150,7 @@ void    TestServer::_responder(std::string indentifier)
 
 void	TestServer::_respondImage(void)
 {
-	std::ifstream animal("/home/lucas/Desktop/school/Webserv/simplified-serv/src/animal.jpg");
+	std::ifstream animal("/home/rschlott/workspace/webserv-team/simplified-serv/src/animal.jpg");
 
     if (!(animal.is_open()))
     {
@@ -263,8 +263,8 @@ void	TestServer::_executeEventSequence(int index)
 	_handler();
 	if (DEBUG == 1)
 	{
-		//_responder("upload");
-		_responder("normal");
+		_responder("upload");
+		//_responder("normal");
 		//_responder("image");
 	}
 	else if (DEBUG == 2)
