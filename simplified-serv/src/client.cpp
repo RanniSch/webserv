@@ -9,7 +9,7 @@ int main(void)
     client.connectToServer();
 
     // Send an HTTP POST request
-    std::string postData = "key1=value1&key2=value2";
+    std::string postData = "*** Hello Server from Client! ***";
     client.sendHttpPostRequest("/api/endpoint", postData);
     std::cout << GREEN "Custom Client is done!  ===============" BLANK << std::endl;
 }

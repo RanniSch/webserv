@@ -64,11 +64,13 @@ class TestServer {
 
 # define	DEBUG	1
 
-# define	GREY    "\033[90m"
-# define	GREEN   "\033[32m"
-# define	BLANK   "\033[0m"
-# define	RED     "\033[0;31m"
-# define	YELL    "\033[0;33m"
-# define	CYAN    "\033[0;36m"
+# define	GREY        "\033[90m"
+# define	GREEN       "\033[32m"
+# define	BLANK       "\033[0m"
+# define	RED         "\033[0;31m"
+# define    BOLDBLUE    "\033[34m"
+# define	YELL        "\033[0;33m"
+# define	CYAN        "\033[0;36m"
+# define    BOLDBLUE    "\033[1m\033[34m"
 
 #endif

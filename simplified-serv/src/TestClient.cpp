@@ -21,12 +21,12 @@ void TestClient::connectToServer()
 void TestClient::sendHttpPostRequest(const std::string& endpoint, const std::string& postData) 
 {
     std::ostringstream request;
-    request << "POST " << endpoint << " HTTP/1.1\r\n"
+    request << "\033[34mPOST " << endpoint << " HTTP/1.1\r\n"
             << "Host: " << _serverHostname << "\r\n"
             << "Content-Type: application/x-www-form-urlencoded\r\n"
             << "Content-Length: " << postData.length() << "\r\n"
             << "\r\n"
-            << postData;
+            << "\033[1m\033[34m" << postData << "\033[0m" << std::endl;
 
     clientSocket.sendData(request.str().c_str(), request.str().length());
 }
