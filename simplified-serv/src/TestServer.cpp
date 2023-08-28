@@ -72,11 +72,16 @@ void	TestServer::processRequest( std::string &request)
 	path.append(cwd);
 
 	std::map<std::string, std::vector<std::string> >	config;
-	std::vector<std::string> 							path_vec;
+	std::vector<std::string> 							buf_vec;
 
-	path_vec.push_back(path);
+	buf_vec.push_back(path);
 	// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
-	std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", path_vec);
+	std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
+	config.insert(pair);
+	buf_vec.clear();
+	buf_vec.push_back("index.htm");
+	buf_vec.push_back("index.html");
+	pair = std::make_pair("index", buf_vec);
 	config.insert(pair);
 	// for testing provide config map
 

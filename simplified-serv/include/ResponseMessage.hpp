@@ -28,7 +28,7 @@ class ResponseMessage {
 
 		void			_chooseMethod( void );
 		void			_GetMethod( void );
-		std::string		_createStartLine( void );
+		// std::string		_createStartLine( void );
 		std::string		_createContentFromFile( std::string filepath );
-
+		bool			_FileExists( const std::string &path );
 };
