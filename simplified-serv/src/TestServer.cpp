@@ -71,19 +71,32 @@ void	TestServer::processRequest( std::string &request)
 	std::string path;
 	path.append(cwd);
 
-	std::map<std::string, std::string> config;
-	std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
+	std::map<std::string, std::vector<std::string> >	config;
+	std::vector<std::string> 							buf_vec;
+
+	buf_vec.push_back(path);
+	// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
+	std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
 	config.insert(pair);
-	// -testing
+	buf_vec.clear();
+	buf_vec.push_back("index.htm");
+	buf_vec.push_back("index.html");
+	pair = std::make_pair("index", buf_vec);
+	config.insert(pair);
+	// for testing provide config map
 
 
 	if (!request.compare(""))
 		return;
-	RequestObj reqObj(request);
-	std::map<std::string, std::string> request_map;
+	RequestObj 							reqObj(request);
+	std::map<std::string, std::string>	request_map;
+	std::string							responseStr;
+
 	reqObj.ParseIntoMap(request_map);
 
-	RespondMessage respond(config, request_map);
+	ResponseMessage responseObj(config, request_map);
+	responseStr = responseObj.createResponse();
+	write(_client_socket.getSocketFd(), responseStr.c_str(), responseStr.length());
 
 }
 
@@ -264,8 +277,10 @@ void	TestServer::_executeEventSequence(int index)
 	if (DEBUG == 1)
 	{
 		_responder("upload");
+
 		//_responder("normal");
 		//_responder("image");
+
 	}
 	else if (DEBUG == 2)
 		_executeCGI();
