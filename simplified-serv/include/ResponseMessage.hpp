@@ -22,7 +22,11 @@ class ResponseMessage {
 	private:
 		std::string		_output;
 		std::string		_content;
+		std::string		_contentType;
+		std::string		_pictureType;
 		std::string		_filePath;
+		int				_statusCode;
+		
 
 		const std::map<std::string, std::vector<std::string> >		&_config;
 		const std::map<std::string, std::string>					&_request_map;
@@ -31,5 +35,6 @@ class ResponseMessage {
 		void			_GetMethod( void );
 		// std::string		_createStartLine( void );
 		std::string		_createContentFromFile( std::string filepath );
+		std::string		_lookForFileFromConfigMap( std::string dir_to_look_for, const std::string &config_map_key );
 		bool			_FileExists( const std::string &path );
 };

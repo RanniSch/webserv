@@ -84,6 +84,10 @@ void	TestServer::processRequest(std::string &request)
 	buf_vec.push_back("index.html");
 	pair = std::make_pair("index", buf_vec);
 	config.insert(pair);
+	buf_vec.clear();
+	buf_vec.push_back("error.html");
+	pair = std::make_pair("error404", buf_vec);
+	config.insert(pair);
 	// for testing provide config map
 
 
@@ -122,11 +126,16 @@ void    TestServer::_acceptConnection(int index)
 	this->_client_socket.acceptConnection();
 
 	_RequestIp(&_client_socket.getSockAddr());
-	read(_client_socket.getSocketFd(), _buffer, 30000);
-	//std::cout << "buffer_" << _buffer << std::endl;
-	std::string request;
-    request = _buffer;
-    processRequest(request);
+	int i = -1;
+	while ( ++i < 5 )
+	{
+		read(_client_socket.getSocketFd(), _buffer, 30000);
+		//std::cout << "buffer_" << _buffer << std::endl;
+		std::string request;
+		request = _buffer;
+		processRequest(request);
+		usleep(3000000);
+	}
 
 	//close(_client_socket.getSocketFd());
 	//_client_socket.setSocketFd(-2);
