@@ -2,7 +2,7 @@
 
 ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::string> > &config,\
 const std::map<std::string, std::string> &request_map )
-: _config(config), _request_map(request_map)
+: _statusCode(0), _config(config), _request_map(request_map)
 {
 
 }
@@ -23,6 +23,29 @@ what kind of response? 200?
 std::string	ResponseMessage::createResponse( void )
 {
 	_chooseMethod();
+
+	// std::stringstream					ss;
+
+	// if (_filePath == "")
+	// if (_statusCode == 200)
+	_output = "";
+	_output.append("HTTP/1.1 ");
+	if (_statusCode == 200)
+		_output.append("200 OK\n");
+	else if (_statusCode == 404)
+			_output.append("404 Not Found\n");
+	_output.append(_contentType);
+	//Content-Type: text/html\n");
+	// std::cout << "Path: " << path << std::endl;
+	_content = "";
+	_content.append(_createContentFromFile(_filePath));
+	_output.append("Content-Length: ");
+	// ss << _content.length();
+	// _output.append(ss.str());
+	_output.append(std::to_string(_content.length()));
+	_output.append("\n\n");
+	_output.append(_content);
+	
 	return (_output);
 }
 
@@ -58,78 +81,99 @@ void	ResponseMessage::_chooseMethod( void ) // take from config file which metho
 
 void	ResponseMessage::_GetMethod( void )
 {
-		std::stringstream					ss;
+		// std::stringstream					ss;
 		std::vector<std::string>			path_vec;
 		std::vector<std::string>			buf_vec;
 		std::string							buf;
+		std::string							cwd;
 
-		path_vec = _config.find("cwd")->second;
+		path_vec = _config.find("cwd")->second; // verändern wir config cwd mit path? weil &path?
+		// cwd catchen?
 		std::string	&path = path_vec.front();
 
-		// for debugging Max
-		extern bool debug_var;
-		if (debug_var)
-			path.append("/simplified-serv/www");
-		else
-			path.append("/www");
-		// for debugging Max
-
+		path.append("/www");
 		buf =  _request_map.find("Target")->second;
 
 		size_t num = buf.find_first_of(".");
 		num++;
 		std::string fileExtention = buf.substr(num, std::string::npos);
+		cwd = path;
 
 		if (buf == "/")
 		{
 			path.append("/");
-			buf_vec = _config.find("index")->second;
-			
-			unsigned i = 0;
-			//try
-			while (1)
+			_filePath = _lookForFileFromConfigMap( path, "index" );
+			if (_filePath == "")
+				_statusCode = 404;
+			else
 			{
-				buf = path.substr(0,std::string::npos);
-				buf.append(buf_vec.at(i));
-				if(_FileExists(buf))
-					{
-						path = buf.substr(0,std::string::npos);
-						break;
-					}
-				i++;
+				_statusCode = 200;
+				_contentType = "Content-Type: text/html; charset=UTF-8\n";
 			}
-			//catch out_of_range exception i
+/*
+			// buf_vec = _config.find("index")->second;
+			// unsigned i = 0;
+			// //try
+			// while (1)
+			// {
+			// 	buf = path.substr(0,std::string::npos);
+			// 	buf.append(buf_vec.at(i));
+			// 	if(_FileExists(buf))
+			// 	{
+			// 		_filePath = buf.substr(0,std::string::npos);
+			// 		_statusCode = 200;
+			// 		break;
+			// 	}
+			// 	else
+			// 	{
+			// 		_filePath = "";
+			// 		_statusCode = 404;
+			// 	}
+			// 	i++;
+			// }
+			// //catch out_of_range exception i
+*/
 		}
-		else if (fileExtention == "jpg")
+		else if (fileExtention == "jpg") // or jpeg !! whats with png??
 		{
 			path.append(buf);
 
-			if(_FileExists(buf))
+			if(_FileExists(path))
 			{
-				_filePath << path;
-				std::cout << _filePath << " " << path << std::endl;
+				_filePath = path;
+				_statusCode = 200;
+				_contentType = "Content-type: image/jpeg\n";
+				_pictureType = "jpeg";
 			}
 			else
 			{
-				_filePath 
+				_filePath = "";
+				_statusCode = 404;
 			}
+		}
+		if (_statusCode == 404)
+		{
+			cwd.append("/");
+			_filePath = _lookForFileFromConfigMap( cwd, "error404" );
+			if ( _filePath != "")
+				_contentType = "Content-Type: text/html; charset=UTF-8\n";
 		}
 
 		// if(!_FileExists) // anderer header und eine bestimmte error page
 
-		_output.append("HTTP/1.1 200 OK\nContent-Type: text/html\n");
-		std::cout << "Path: " << path << std::endl;
-		_content.append(_createContentFromFile(path));
-		_output.append("Content-Length: ");
-		ss << _content.length();
-		_output.append(ss.str());
-		_output.append("\n\n");
-		_output.append(_content);
+		// _output.append("HTTP/1.1 200 OK\nContent-Type: text/html\n");
+		// std::cout << "Path: " << path << std::endl;
+		// _content.append(_createContentFromFile(path));
+		// _output.append("Content-Length: ");
+		// ss << _content.length();
+		// _output.append(ss.str());
+		// _output.append("\n\n");
+		// _output.append(_content);
 
 		 //index    index.html index.htm index.php;
 }
 
-
+/*
 // std::string	ResponseMessage::_createStartLine( void )
 // {
 // 	// _output.append("HTTP/1.1 200 OK\nContent-Type: text/html\n");
@@ -164,11 +208,26 @@ void	ResponseMessage::_GetMethod( void )
 		
 // 	// }
 // 	return (std::string("hallo")); // weg!!!
-// }
+// }*/
 
 std::string		ResponseMessage::_createContentFromFile( std::string filepath )
 {
 	std::string out;
+
+	if (_pictureType == "jpeg" )  // png jpg ????
+	{
+		std::ifstream picture(filepath);
+		if (!(picture.is_open()))
+    	{
+       	std::cout << "Error: failed to open jpg" << std::endl;
+		return ("");
+		}
+		std::stringstream pic;
+		pic << picture.rdbuf();
+		std::string data(pic.str());
+		picture.close();
+		return (data);
+	}
 
 	std::ifstream file(filepath.c_str());
 	if (!file.is_open())
@@ -181,6 +240,32 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath )
 	std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
 	//close file
 	return content;
+}
+
+std::string	ResponseMessage::_lookForFileFromConfigMap( std::string dir_to_look_for, const std::string &config_map_key )
+{
+	std::vector<std::string>			buf_vec;
+	std::string							buf;
+	size_t								size;
+	unsigned int 						i = 0;
+
+	if (_config.find(config_map_key) == _config.end())
+	{
+		std::cout << "Key not found in _configMap" << std::endl;
+		return ( "" );
+	}
+	buf_vec = _config.find(config_map_key)->second;
+	size = buf_vec.size();
+	
+	while ( i < size )
+	{
+		buf = dir_to_look_for;
+		buf.append(buf_vec.at(i));
+		if(_FileExists(buf))
+			return (buf);
+		i++;
+	}
+	return ( "" );
 }
 
 bool	ResponseMessage::_FileExists( const std::string &filepath )
