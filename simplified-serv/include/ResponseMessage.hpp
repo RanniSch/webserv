@@ -22,6 +22,7 @@ class ResponseMessage {
 	private:
 		std::string		_output;
 		std::string		_content;
+		std::string		_filePath;
 
 		const std::map<std::string, std::vector<std::string> >		&_config;
 		const std::map<std::string, std::string>					&_request_map;

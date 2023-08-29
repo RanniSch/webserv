@@ -76,6 +76,10 @@ void	ResponseMessage::_GetMethod( void )
 
 		buf =  _request_map.find("Target")->second;
 
+		size_t num = buf.find_first_of(".");
+		num++;
+		std::string fileExtention = buf.substr(num, std::string::npos);
+
 		if (buf == "/")
 		{
 			path.append("/");
@@ -96,7 +100,20 @@ void	ResponseMessage::_GetMethod( void )
 			}
 			//catch out_of_range exception i
 		}
+		else if (fileExtention == "jpg")
+		{
+			path.append(buf);
 
+			if(_FileExists(buf))
+			{
+				_filePath << path;
+				std::cout << _filePath << " " << path << std::endl;
+			}
+			else
+			{
+				_filePath 
+			}
+		}
 
 		// if(!_FileExists) // anderer header und eine bestimmte error page
 

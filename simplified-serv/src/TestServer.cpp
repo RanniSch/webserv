@@ -127,6 +127,9 @@ void    TestServer::_acceptConnection(int index)
 	std::string request;
     request = _buffer;
     processRequest(request);
+
+	//close(_client_socket.getSocketFd());
+	//_client_socket.setSocketFd(-2);
 }
 
 void	TestServer::_RequestIp(sockaddr_in *address)
@@ -159,12 +162,12 @@ void    TestServer::_responder(std::string indentifier)
 {
 	if (indentifier == "image")
 		_respondImage();
-	else if (indentifier == "normal")
-		_respondStatic();
+	//else if (indentifier == "normal")
+	//	_respondStatic();
 	else if (indentifier == "error")
 		_respondError();
-	else if (indentifier == "upload")
-		_respondFileUpload();
+	//else if (indentifier == "upload")
+	//	_respondFileUpload();
 }
 
 void	TestServer::_respondImage(void)
@@ -195,7 +198,7 @@ void	TestServer::_respondImage(void)
 	_client_socket.setSocketFd(-2);
 }
 
-void	TestServer::_respondStatic(void)
+/*void	TestServer::_respondStatic(void)
 {
 	// The browser is expecting same format response in which it sent us the request.
     // HTTP is nothing but following some rules specified in the RFC documents.
@@ -203,86 +206,18 @@ void	TestServer::_respondStatic(void)
 		std::cout << "\r" << i;
 	std::cout << std::endl;
 	std::string hello("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"); // works for all browsers (minimum HTTP Header to respond)
-	//std::string hello("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 121\n\n<!DOCTYPE html><html><body><p>Click</p><input type='file' id='myFile' name='filename'><input type='submit'></body></html>"); // works for all browsers (minimum HTTP Header to respond)
-	// std::string hello("POST / HTTP/1.1\nContent-Type: text/html\nContent-Length: 167\n\n<!DOCTYPE html><html><body><p>Click on the 'Choose File' button to upload a file:</p><input type='file' id='myFile' name='filename'><input type='submit'></body></html>");
 	const char* cHello = hello.c_str();
-	//write(_client_socket.getSocketFd(), cHello, strlen(cHello));
 	write(_client_socket.getSocketFd(), cHello, hello.length());
 
 	close(_client_socket.getSocketFd());
 	_client_socket.setSocketFd(-2);
-}
+}*/
 
-void	TestServer::_respondFileUpload(void)
+/*void	TestServer::_respondFileUpload(void)
 {
-	// for (int i = 0; i < 1000000; i++)
-	// 	std::cout << "\r" << i;
-	// std::cout << std::endl;
-	// std::string hello("HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 121\n\n<!DOCTYPE html><html><body><p>Click</p><input type='file' id='myFile' name='filename'><input type='submit'></body></html>");
-	
-	//HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length:
-	// 121\n\n<!DOCTYPE html><html><body><p>Click</p><input
-	// type='file' id='myFile' name='filename'><input type='submit'></body></html>
-	
-	// RespondMessage respM;
-	// std::string hello = respM.createResponse();
-	// const char* cHello = hello.c_str();
-	// std::cout << _client_socket.getSocketFd() << std::endl;
-	// write(_client_socket.getSocketFd(), cHello, strlen(cHello));
-
-	// int i = 0;
-	
-	/*std::string request;
-	char buffer [10];
-	while (1)
-	{
-
-		while (true) 
-		{
-				std::cout << "dri" << std::endl;
-				//ssize_t bytesRead = recv(_client_socket.getSocketFd(), buffer, sizeof(buffer), 0);
-				ssize_t bytesRead = read(_client_socket.getSocketFd(), buffer, 10);
-				std::cout << "n" << std::endl;
-				if (bytesRead <= 0) {
-                    // Error or connection closed
-                    break;
-                }
-                request += std::string(buffer, bytesRead);
-		}
-
-		request = _buffer;
-
-		std::cout << "drin 2" << std::endl;
-
-		// read(_client_socket.getSocketFd(), buf, 1000);
-		// std::cout << _client_socket.getSocketFd() << std::endl;
-		//std::cout << GREY << request <<  BLANK << std::endl;
-		//std::cout << "drin 2" << std::endl;
-		processRequest(request);
-		//std::cout << "drin 2" << std::endl;
-		request.clear();
-		// i = 0;
-		// while (i < 1000)
-		// {
-		// 	_buffer[i] = '\0';
-		// 	i++;
-		// }
-		usleep(3000000);
-	}*/
-
-	/*while (true)
-	{
-		std::string request = _buffer;
-
-		std::cout << "drin 2" << std::endl;
-
-		processRequest(request);
-		request.clear();
-	}*/
-
 	close(_client_socket.getSocketFd());
 	_client_socket.setSocketFd(-2);
-}
+}*/
 
 
 void	TestServer::_respondError(void)
