@@ -59,9 +59,10 @@ TestServer::~TestServer(void)
     exit(-1);
 }
 
-void	TestServer::processRequest( std::string &request)
+void	TestServer::processRequest(std::string &request)
 {
 	// for testing provide config map
+	//std::cout << "drin 1" << std::endl;
 	char cwd[PATH_MAX];
    	if (getcwd(cwd, sizeof(cwd)) != NULL) {
    	}
@@ -88,6 +89,7 @@ void	TestServer::processRequest( std::string &request)
 
 	if (!request.compare(""))
 		return;
+	//std::cout << "drin" << std::endl;
 	RequestObj 							reqObj(request);
 	std::map<std::string, std::string>	request_map;
 	std::string							responseStr;
@@ -121,6 +123,10 @@ void    TestServer::_acceptConnection(int index)
 
 	_RequestIp(&_client_socket.getSockAddr());
 	read(_client_socket.getSocketFd(), _buffer, 30000);
+	//std::cout << "buffer_" << _buffer << std::endl;
+	std::string request;
+    request = _buffer;
+    processRequest(request);
 }
 
 void	TestServer::_RequestIp(sockaddr_in *address)
@@ -225,24 +231,35 @@ void	TestServer::_respondFileUpload(void)
 	// write(_client_socket.getSocketFd(), cHello, strlen(cHello));
 
 	// int i = 0;
-	std::string request;
+	
+	/*std::string request;
 	char buffer [10];
 	while (1)
 	{
 
-		while (true) {
-                ssize_t bytesRead = recv(_client_socket.getSocketFd(), buffer, sizeof(buffer), 0);
-                if (bytesRead <= 0) {
+		while (true) 
+		{
+				std::cout << "dri" << std::endl;
+				//ssize_t bytesRead = recv(_client_socket.getSocketFd(), buffer, sizeof(buffer), 0);
+				ssize_t bytesRead = read(_client_socket.getSocketFd(), buffer, 10);
+				std::cout << "n" << std::endl;
+				if (bytesRead <= 0) {
                     // Error or connection closed
                     break;
                 }
                 request += std::string(buffer, bytesRead);
 		}
 
+		request = _buffer;
+
+		std::cout << "drin 2" << std::endl;
+
 		// read(_client_socket.getSocketFd(), buf, 1000);
 		// std::cout << _client_socket.getSocketFd() << std::endl;
-		std::cout << GREY << request <<  BLANK << std::endl;
+		//std::cout << GREY << request <<  BLANK << std::endl;
+		//std::cout << "drin 2" << std::endl;
 		processRequest(request);
+		//std::cout << "drin 2" << std::endl;
 		request.clear();
 		// i = 0;
 		// while (i < 1000)
@@ -251,7 +268,17 @@ void	TestServer::_respondFileUpload(void)
 		// 	i++;
 		// }
 		usleep(3000000);
-	}
+	}*/
+
+	/*while (true)
+	{
+		std::string request = _buffer;
+
+		std::cout << "drin 2" << std::endl;
+
+		processRequest(request);
+		request.clear();
+	}*/
 
 	close(_client_socket.getSocketFd());
 	_client_socket.setSocketFd(-2);

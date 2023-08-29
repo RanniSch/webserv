@@ -57,7 +57,8 @@ void	RequestObj::_parseHeaders( void )
 		_it++;
 		if ( _it == _stapel.end() )
 			loop = false;
-		_skip_delimiter_in_stapel_with__it( _defaultDelimiter );
+		else
+			_skip_delimiter_in_stapel_with__it( _defaultDelimiter );
 	}
 }
 

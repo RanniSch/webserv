@@ -101,6 +101,7 @@ void	ResponseMessage::_GetMethod( void )
 		// if(!_FileExists) // anderer header und eine bestimmte error page
 
 		_output.append("HTTP/1.1 200 OK\nContent-Type: text/html\n");
+		std::cout << "Path: " << path << std::endl;
 		_content.append(_createContentFromFile(path));
 		_output.append("Content-Length: ");
 		ss << _content.length();
