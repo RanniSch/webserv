@@ -143,7 +143,7 @@ void	ResponseMessage::_GetMethod( void )
 				_filePath = path;
 				_statusCode = 200;
 				_contentType = "Content-type: image/jpeg\n";
-				_pictureType = "jpeg";
+				_pictureType = "jpg";
 			}
 			else
 			{
@@ -214,7 +214,7 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath )
 {
 	std::string out;
 
-	if (_pictureType == "jpeg" )  // png jpg ????
+	if (_pictureType == "jpg" )  // png jpg ????
 	{
 		std::ifstream picture(filepath);
 		if (!(picture.is_open()))
