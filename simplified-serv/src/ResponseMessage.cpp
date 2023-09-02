@@ -161,91 +161,92 @@ void	ResponseMessage::_GetMethod( void )
 
 std::string		ResponseMessage::_createContentFromFile( std::string filepath )
 {
-	// std::string 	out;
-	std::string 	data;
-	size_t			type = 0;
-	std::ifstream 	file;
+	// // std::string 	out;
+	// std::string 	data;
+	// size_t			type = 0;
+	// std::ifstream 	file;
 
 
-	if (_fileType == "jpg" || _fileType == "jpeg" || _fileType == "png" || _fileType == "gif")
-		type = 1;
-	else if(_fileType == "html" || _fileType == "htm")
-		type = 2;
-	else
-		type = 3;
+	// if (_fileType == "jpg" || _fileType == "jpeg" || _fileType == "png" || _fileType == "gif")
+	// 	type = 1;
+	// else if(_fileType == "html" || _fileType == "htm")
+	// 	type = 2;
+	// else
+	// 	type = 3;
 
-	if (type == 1 || type == 2)
-		file = std::ifstream(filepath);
-	else
-		file = std::ifstream(filepath, std::ios::binary);
+	// if (type == 1 || type == 2)
+	// 	file = std::ifstream(filepath.c_str());
+	// else
+	// 	file = std::ifstream(filepath.c_str(), std::ios::binary);
 	
-	if (!(file.is_open()))
-	{
-		// std::cout << "Error: failed to open file" << std::endl;
+	// if (!(file.is_open()))
+	// {
+	// 	// std::cout << "Error: failed to open file" << std::endl;
 
+	// 	std::ifstream picture(filepath.c_str());
+	// 	if (!(picture.is_open()))
+    // 	{
+    //    		std::cout << "Error: failed to open picture" << std::endl;
+	// 	}
+	// 	return ("");
+	// }
+	// if(type == 1 || type == 3)
+	// {
+	// 	std::stringstream ss_file;
+	// 	ss_file << file.rdbuf();
+	// 	data = std::string(ss_file.str());
+	// }
+	// else if(type == 2)
+	// 	data = std::string( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
+	// file.close();
+	// return (data);
+	// }
+
+
+
+	if ( _fileType == "jpg" || _fileType == "jpeg" || _fileType == "png" || _fileType == "gif")
+	{
 		std::ifstream picture(filepath.c_str());
 		if (!(picture.is_open()))
     	{
-       		std::cout << "Error: failed to open picture" << std::endl;
+			std::cout << "Error: failed to open picture" << std::endl;
+			return ("");
 		}
-		return ("");
+		std::stringstream pic;
+		pic << picture.rdbuf();
+		std::string data(pic.str());
+		picture.close();
+		return (data);
 	}
-	if(type == 1 || type == 3)
+	else if(_fileType == "html" || _fileType == "htm")
 	{
+		std::ifstream file(filepath.c_str());
+		if (!file.is_open())
+		{
+			std::cout << "Error: failed to open file" << std::endl;   // 
+			// std::cout << "Filepath: " << filepath << std::endl;   // 
+			//exit(-1);						//   handle better? server still should run
+		}
+		// std::cout << "Filepath: " << filepath << std::endl;   // 
+		std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
+		file.close();
+		return (content);
+	}
+	else
+	{
+		std::ifstream ifs_file(filepath.c_str(), std::ios::binary);
+		if (!(ifs_file.is_open()))
+    	{
+			std::cout << "Error: failed to open file" << std::endl;
+			return ("");
+		}
 		std::stringstream ss_file;
-		ss_file << file.rdbuf();
-		data = std::string(ss_file.str());
+		ss_file << ifs_file.rdbuf();
+		std::string data(ss_file.str());
+		ifs_file.close();
+		return (data);
 	}
-	else if(type == 2)
-		data = std::string( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
-	file.close();
-	return (data);
-	}
-
-
-
-	// if (_pictureType == "jpg" || _pictureType == "jpeg" || _pictureType == "png" || _pictureType == "gif")
-	// {
-	// 	std::ifstream picture(filepath);
-	// 	if (!(picture.is_open()))
-    // 	{
-	// 		std::cout << "Error: failed to open picture" << std::endl;
-	// 		return ("");
-	// 	}
-	// 	std::stringstream pic;
-	// 	pic << picture.rdbuf();
-	// 	std::string data(pic.str());
-	// 	picture.close();
-	// 	return (data);
-	// }
-	// else if(_pictureType == "html" || _pictureType == "htm")
-	// {
-	// 	std::ifstream file(filepath);
-	// 	if (!file.is_open())
-	// 	{
-	// 		std::cout << "Error: failed to open file" << std::endl;   // 
-	// 		// std::cout << "Filepath: " << filepath << std::endl;   // 
-	// 		//exit(-1);						//   handle better? server still should run
-	// 	}
-	// 	// std::cout << "Filepath: " << filepath << std::endl;   // 
-	// 	std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
-	// 	file.close();
-	// 	return (content);
-	// }
-	// else
-	// {
-	// 	std::ifstream ifs_file(filepath, std::ios::binary);
-	// 	if (!(ifs_file.is_open()))
-    // 	{
-	// 		std::cout << "Error: failed to open file" << std::endl;
-	// 		return ("");
-	// 	}
-	// 	std::stringstream ss_file;
-	// 	ss_file << ifs_file.rdbuf();
-	// 	std::string data(ss_file.str());
-	// 	ifs_file.close();
-	// 	return (data);
-	// }
+}
 
 
 std::string	ResponseMessage::_lookForFileFromConfigMap( std::string dir_to_look_for, const std::string &config_map_key )
