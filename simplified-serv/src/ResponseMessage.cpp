@@ -24,7 +24,7 @@ std::string	ResponseMessage::createResponse( void )
 {
 	_chooseMethod();
 
-	// std::stringstream					ss;
+	std::stringstream	ss;
 
 	// if (_filePath == "")
 	// if (_statusCode == 200)
@@ -40,9 +40,9 @@ std::string	ResponseMessage::createResponse( void )
 	_content = "";
 	_content.append(_createContentFromFile(_filePath));
 	_output.append("Content-Length: ");
-	// ss << _content.length();
-	// _output.append(ss.str());
-	_output.append(std::to_string(_content.length()));
+	ss << _content.length();
+	_output.append(ss.str());
+	//_output.append(std::to_string(_content.length()));
 	_output.append("\n\n");
 	_output.append(_content);
 	
@@ -221,7 +221,7 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath )
 
 	if (_pictureType == "jpg" || _pictureType == "jpeg" || _pictureType == "png" || _pictureType == "gif")  // png jpg ????
 	{
-		std::ifstream picture(filepath);
+		std::ifstream picture(filepath.c_str());
 		if (!(picture.is_open()))
     	{
        	std::cout << "Error: failed to open picture" << std::endl;
