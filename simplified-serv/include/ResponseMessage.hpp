@@ -24,7 +24,7 @@ class ResponseMessage {
 		std::string		_output;
 		std::string		_content;
 		std::string		_contentType;
-		std::string		_pictureType;
+		std::string		_fileType;
 		std::string		_filePath;
 		int				_statusCode;
 		

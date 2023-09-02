@@ -12,22 +12,10 @@ ResponseMessage::~ResponseMessage( void )
 
 }
 
-
-/*
-what kind of response? 200?
-
-
-
-*/
-
 std::string	ResponseMessage::createResponse( void )
 {
 	_chooseMethod();
 
-	// std::stringstream					ss;
-
-	// if (_filePath == "")
-	// if (_statusCode == 200)
 	_output = "";
 	_output.append("HTTP/1.1 ");
 	if (_statusCode == 200)
@@ -35,13 +23,10 @@ std::string	ResponseMessage::createResponse( void )
 	else if (_statusCode == 404)
 			_output.append("404 Not Found\n");
 	_output.append(_contentType);
-	//Content-Type: text/html\n");
-	// std::cout << "Path: " << path << std::endl;
 	_content = "";
 	_content.append(_createContentFromFile(_filePath));
+	//wenn nicht html htm png gif, jpg oder jpeg is dann: Content-Transfer-Encoding: binary\r\n
 	_output.append("Content-Length: ");
-	// ss << _content.length();
-	// _output.append(ss.str());
 	_output.append(std::to_string(_content.length()));
 	_output.append("\n\n");
 	_output.append(_content);
@@ -81,7 +66,6 @@ void	ResponseMessage::_chooseMethod( void ) // take from config file which metho
 
 void	ResponseMessage::_GetMethod( void )
 {
-		// std::stringstream					ss;
 		std::vector<std::string>			path_vec;
 		std::vector<std::string>			buf_vec;
 		std::string							buf;
@@ -97,12 +81,11 @@ void	ResponseMessage::_GetMethod( void )
 		size_t num = buf.find_first_of(".");
 		num++;
 		std::string fileExtention = buf.substr(num, std::string::npos);
-		// char c = "\0";
 		for (int i = 0; fileExtention[i] != '\0'; i++)
 			fileExtention[i] = tolower(fileExtention[i]);
 		cwd = path;
 
-		if (buf == "/")
+		if (buf == "/") // was ist mit unterordnern?
 		{
 			path.append("/");
 			_filePath = _lookForFileFromConfigMap( path, "index" );
@@ -113,34 +96,10 @@ void	ResponseMessage::_GetMethod( void )
 				_statusCode = 200;
 				_contentType = "Content-Type: text/html; charset=UTF-8\n";
 			}
-/*
-			// buf_vec = _config.find("index")->second;
-			// unsigned i = 0;
-			// //try
-			// while (1)
-			// {
-			// 	buf = path.substr(0,std::string::npos);
-			// 	buf.append(buf_vec.at(i));
-			// 	if(_FileExists(buf))
-			// 	{
-			// 		_filePath = buf.substr(0,std::string::npos);
-			// 		_statusCode = 200;
-			// 		break;
-			// 	}
-			// 	else
-			// 	{
-			// 		_filePath = "";
-			// 		_statusCode = 404;
-			// 	}
-			// 	i++;
-			// }
-			// //catch out_of_range exception i
-*/
 		}
 		else if (fileExtention == "jpg" || fileExtention == "jpeg" || fileExtention == "png" || fileExtention == "gif")
 		{
 			path.append(buf);
-
 			if(_FileExists(path))
 			{
 				_filePath = path;
@@ -148,7 +107,39 @@ void	ResponseMessage::_GetMethod( void )
 				_contentType = "Content-type: image/";//jpeg\n";
 				_contentType += fileExtention;
 				_contentType += "\n";
-				_pictureType = fileExtention;
+				_fileType = fileExtention;
+			}
+			else
+			{
+				_filePath = "";
+				_statusCode = 404;
+			}
+		}
+		else if(fileExtention == "html" || fileExtention == "htm")// htm oder html
+		{
+			path.append(buf);
+			if(_FileExists(path))
+			{
+				_filePath = path;
+				_statusCode = 200;
+				_contentType = "Content-Type: text/html; charset=UTF-8\r\n";
+				_fileType = fileExtention;
+			}
+			else
+			{
+				_filePath = "";
+				_statusCode = 404;
+			}
+		}
+		else
+		{
+			path.append(buf);
+			if(_FileExists(path))
+			{
+				_filePath = path;
+				_statusCode = 200;
+				_contentType = "Content-Type: application/octet-stream";//jpeg\n";
+				_fileType = fileExtention;
 			}
 			else
 			{
@@ -161,90 +152,91 @@ void	ResponseMessage::_GetMethod( void )
 			cwd.append("/");
 			_filePath = _lookForFileFromConfigMap( cwd, "error404" );
 			if ( _filePath != "")
-				_contentType = "Content-Type: text/html; charset=UTF-8\n";
+				_contentType = "Content-Type: text/html; charset=UTF-8\r\n";
 		}
-
-		// if(!_FileExists) // anderer header und eine bestimmte error page
-
-		// _output.append("HTTP/1.1 200 OK\nContent-Type: text/html\n");
-		// std::cout << "Path: " << path << std::endl;
-		// _content.append(_createContentFromFile(path));
-		// _output.append("Content-Length: ");
-		// ss << _content.length();
-		// _output.append(ss.str());
-		// _output.append("\n\n");
-		// _output.append(_content);
-
-		 //index    index.html index.htm index.php;
 }
-
-/*
-// std::string	ResponseMessage::_createStartLine( void )
-// {
-// 	// _output.append("HTTP/1.1 200 OK\nContent-Type: text/html\n");
-// 	// _content.append("\n\n");
-// 	// _content.append("<!DOCTYPE html><html><body><p>Click</p><input type='file' id='myFile' name='filename'><input type='submit'></body></html>");
-// 	// _content.append(_createContentFromFile("/Users/maxrehberg/Documents/42Wolfsburg/webserv/webserve/simplified-serv/www/index.html"));
-// 	// _content.append(_createContentFromFile("/simplified-serv/www/index.html"));
-// 	// std::cout << filesystem::current_path() << std::endl;
-	
-// 	// geht das besser??
-// 	// char cwd[PATH_MAX];
-//    	// if (getcwd(cwd, sizeof(cwd)) != NULL) {
-// 	// // std::cout << cwd << std::endl;
-//    	// }
-// 	// else {
-//     //    perror("getcwd() error");
-// 	// }
-
-// 	// am anfang checken ob die maps gewisse felder haben oder try catch ? denn die könnnten falsch herum übergeben werden
-// 	// if (_request_map.find("Method")->second == "GET")
-// 	// {
-
-
-
-// 	// 	_content.append(_createContentFromFile(path));
-// 	// 	_output.append("Content-Length: ");
-// 	// 	ss << _content.length();
-// 	// 	_output.append(ss.str());
-// 	// 	_output.append("\n\n");
-// 	// 	_output.append(_content);
-// 	// 	return _output;
-		
-// 	// }
-// 	return (std::string("hallo")); // weg!!!
-// }*/
 
 std::string		ResponseMessage::_createContentFromFile( std::string filepath )
 {
-	std::string out;
+	// std::string 	out;
+	std::string 	data;
+	size_t			type = 0;
+	std::ifstream 	file;
 
-	if (_pictureType == "jpg" || _pictureType == "jpeg" || _pictureType == "png" || _pictureType == "gif")  // png jpg ????
+
+	if (_fileType == "jpg" || _fileType == "jpeg" || _fileType == "png" || _fileType == "gif")
+		type = 1;
+	else if(_fileType == "html" || _fileType == "htm")
+		type = 2;
+	else
+		type = 3;
+
+	if (type == 1 || type == 2)
+		file = std::ifstream(filepath);
+	else
+		file = std::ifstream(filepath, std::ios::binary);
+	
+	if (!(file.is_open()))
 	{
-		std::ifstream picture(filepath);
-		if (!(picture.is_open()))
-    	{
-       	std::cout << "Error: failed to open picture" << std::endl;
+		std::cout << "Error: failed to open file" << std::endl;
 		return ("");
-		}
-		std::stringstream pic;
-		pic << picture.rdbuf();
-		std::string data(pic.str());
-		picture.close();
-		return (data);
 	}
-
-	std::ifstream file(filepath.c_str());
-	if (!file.is_open())
+	if(type == 1 || type == 3)
 	{
-		std::cout << "Error: failed to open file" << std::endl;   // 
-		std::cout << "Filepath: " << filepath << std::endl;   // 
-       	exit(-1);						//   handle better? server still should run
+		std::stringstream ss_file;
+		ss_file << file.rdbuf();
+		data = std::string(ss_file.str());
 	}
-	std::cout << "Filepath: " << filepath << std::endl;   // 
-	std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
-	//close file
-	return content;
+	else if(type == 2)
+		data = std::string( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
+	file.close();
+	return (data);
+	
+
+
+
+	// if (_pictureType == "jpg" || _pictureType == "jpeg" || _pictureType == "png" || _pictureType == "gif")
+	// {
+	// 	std::ifstream picture(filepath);
+	// 	if (!(picture.is_open()))
+    // 	{
+	// 		std::cout << "Error: failed to open picture" << std::endl;
+	// 		return ("");
+	// 	}
+	// 	std::stringstream pic;
+	// 	pic << picture.rdbuf();
+	// 	std::string data(pic.str());
+	// 	picture.close();
+	// 	return (data);
+	// }
+	// else if(_pictureType == "html" || _pictureType == "htm")
+	// {
+	// 	std::ifstream file(filepath);
+	// 	if (!file.is_open())
+	// 	{
+	// 		std::cout << "Error: failed to open file" << std::endl;   // 
+	// 		// std::cout << "Filepath: " << filepath << std::endl;   // 
+	// 		//exit(-1);						//   handle better? server still should run
+	// 	}
+	// 	// std::cout << "Filepath: " << filepath << std::endl;   // 
+	// 	std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
+	// 	file.close();
+	// 	return (content);
+	// }
+	// else
+	// {
+	// 	std::ifstream ifs_file(filepath, std::ios::binary);
+	// 	if (!(ifs_file.is_open()))
+    // 	{
+	// 		std::cout << "Error: failed to open file" << std::endl;
+	// 		return ("");
+	// 	}
+	// 	std::stringstream ss_file;
+	// 	ss_file << ifs_file.rdbuf();
+	// 	std::string data(ss_file.str());
+	// 	ifs_file.close();
+	// 	return (data);
+	// }
 }
 
 std::string	ResponseMessage::_lookForFileFromConfigMap( std::string dir_to_look_for, const std::string &config_map_key )
