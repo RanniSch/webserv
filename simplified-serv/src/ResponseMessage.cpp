@@ -16,6 +16,13 @@ std::string	ResponseMessage::createResponse( void )
 {
 	_chooseMethod();
 
+<<<<<<< HEAD
+=======
+	std::stringstream	ss;
+
+	// if (_filePath == "")
+	// if (_statusCode == 200)
+>>>>>>> main
 	_output = "";
 	_output.append("HTTP/1.1 ");
 	if (_statusCode == 200)
@@ -27,7 +34,13 @@ std::string	ResponseMessage::createResponse( void )
 	_content.append(_createContentFromFile(_filePath));
 	//wenn nicht html htm png gif, jpg oder jpeg is dann: Content-Transfer-Encoding: binary\r\n
 	_output.append("Content-Length: ");
+<<<<<<< HEAD
 	_output.append(std::to_string(_content.length()));
+=======
+	ss << _content.length();
+	_output.append(ss.str());
+	//_output.append(std::to_string(_content.length()));
+>>>>>>> main
 	_output.append("\n\n");
 	_output.append(_content);
 	
@@ -178,7 +191,14 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath )
 	
 	if (!(file.is_open()))
 	{
+<<<<<<< HEAD
 		std::cout << "Error: failed to open file" << std::endl;
+=======
+		std::ifstream picture(filepath.c_str());
+		if (!(picture.is_open()))
+    	{
+       	std::cout << "Error: failed to open picture" << std::endl;
+>>>>>>> main
 		return ("");
 	}
 	if(type == 1 || type == 3)
