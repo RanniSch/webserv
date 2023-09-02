@@ -97,6 +97,9 @@ void	ResponseMessage::_GetMethod( void )
 		size_t num = buf.find_first_of(".");
 		num++;
 		std::string fileExtention = buf.substr(num, std::string::npos);
+		// char c = "\0";
+		for (int i = 0; fileExtention[i] != '\0'; i++)
+			fileExtention[i] = tolower(fileExtention[i]);
 		cwd = path;
 
 		if (buf == "/")
@@ -134,7 +137,7 @@ void	ResponseMessage::_GetMethod( void )
 			// //catch out_of_range exception i
 */
 		}
-		else if (fileExtention == "jpg") // or jpeg !! whats with png??
+		else if (fileExtention == "jpg" || fileExtention == "jpeg" || fileExtention == "png" || fileExtention == "gif")
 		{
 			path.append(buf);
 
@@ -142,8 +145,10 @@ void	ResponseMessage::_GetMethod( void )
 			{
 				_filePath = path;
 				_statusCode = 200;
-				_contentType = "Content-type: image/jpeg\n";
-				_pictureType = "jpg";
+				_contentType = "Content-type: image/";//jpeg\n";
+				_contentType += fileExtention;
+				_contentType += "\n";
+				_pictureType = fileExtention;
 			}
 			else
 			{
@@ -214,12 +219,12 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath )
 {
 	std::string out;
 
-	if (_pictureType == "jpg" )  // png jpg ????
+	if (_pictureType == "jpg" || _pictureType == "jpeg" || _pictureType == "png" || _pictureType == "gif")  // png jpg ????
 	{
 		std::ifstream picture(filepath);
 		if (!(picture.is_open()))
     	{
-       	std::cout << "Error: failed to open jpg" << std::endl;
+       	std::cout << "Error: failed to open picture" << std::endl;
 		return ("");
 		}
 		std::stringstream pic;

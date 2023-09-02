@@ -11,6 +11,7 @@
 #include <limits.h>    // später weg
 #include <cstdlib>
 #include <sstream>
+#include <cctype>
 
 // canonnical form!!!
 class ResponseMessage {
