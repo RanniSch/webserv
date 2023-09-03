@@ -35,7 +35,8 @@ class ResponseMessage {
 		void			_chooseMethod( void );
 		void			_GetMethod( void );
 		// std::string		_createStartLine( void );
-		std::string		_createContentFromFile( std::string filepath );
+		std::string		_createContentFromFile( std::string filepath, int statusCode );
 		std::string		_lookForFileFromConfigMap( std::string dir_to_look_for, const std::string &config_map_key );
 		bool			_FileExists( const std::string &path );
+		void			_getProperFilePathAndPrepareResponse( const std::string &target, std::string path, std::string cwd);
 };
