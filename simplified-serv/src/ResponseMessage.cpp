@@ -30,7 +30,6 @@ std::string	ResponseMessage::createResponse( void )
 	_output.append("Content-Length: ");
 	ss << _content.length();
 	_output.append(ss.str());
-	//_output.append(std::to_string(_content.length()));
 	_output.append("\n\n");
 	_output.append(_content);
 	
@@ -75,143 +74,17 @@ void	ResponseMessage::_GetMethod( void )
 		std::string							cwd;
 
 		path_vec = _config.find("cwd")->second; // verändern wir config cwd mit path? weil &path?
-		// cwd catchen?
 		std::string	&path = path_vec.front();
 
 		path.append("/www");
 		buf =  _request_map.find("Target")->second;
-
-		// size_t num = buf.find_first_of(".");
-		// num++;
-		// std::string fileExtension = buf.substr(num, std::string::npos);
-		// for (int i = 0; fileExtension[i] != '\0'; i++)
-		// 	fileExtension[i] = tolower(fileExtension[i]);
 		cwd = path;
-
-		// refactor
 		path.append(buf);
 		_getProperFilePathAndPrepareResponse(buf, path, cwd);
-
-
-/*
-		if (buf == "/") // was ist mit unterordnern?
-		{
-			// path.append("/");
-			_filePath = _lookForFileFromConfigMap( path, "index" );
-			if (_filePath != "")
-			{
-				_statusCode = 200;
-				_contentType = "Content-Type: text/html; charset=UTF-8\n";
-			}
-			else
-			{
-				_filePath = "";
-				_statusCode = 404;
-				
-			}
-		} // fileExtension ersetzen durch _fileType ??
-		else if (fileExtension == "jpg" || fileExtension == "jpeg" || fileExtension == "png" || fileExtension == "gif")
-		{
-			// path.append(buf);
-			if(_FileExists(path))
-			{
-				_filePath = path;
-				_statusCode = 200;
-				_contentType = "Content-type: image/";//jpeg\n";
-				_contentType += fileExtension;
-				_contentType += "\n";
-				_fileType = fileExtension;
-			}
-			else
-			{
-				_filePath = "";
-				_statusCode = 404;
-			}
-		}
-		else if(fileExtension == "html" || fileExtension == "htm")// htm oder html
-		{
-			// path.append(buf);
-			if(_FileExists(path))
-			{
-				_filePath = path;
-				_statusCode = 200;
-				_contentType = "Content-Type: text/html; charset=UTF-8\r\n";
-				_fileType = fileExtension;
-			}
-			else
-			{
-				_filePath = "";
-				_statusCode = 404;
-			}
-		}
-		else // binary
-		{
-			// path.append(buf);
-			if(_FileExists(path))
-			{
-				_filePath = path;
-				_statusCode = 200;
-				_contentType = "Content-Type: application/octet-stream";//jpeg\n";
-				_fileType = fileExtension;
-			}
-			else
-			{
-				_filePath = "";
-				_statusCode = 404;
-			}
-		}
-		if (_statusCode == 404)
-		{
-			cwd.append("/"); // look in config map were to find the error pages
-			_filePath = _lookForFileFromConfigMap( cwd, "error404" );
-			if ( _filePath != "")
-				_contentType = "Content-Type: text/html; charset=UTF-8\r\n";
-		}
-		*/
 }
 
 std::string		ResponseMessage::_createContentFromFile( std::string filepath, int statusCode )
 {
-	// // std::string 	out;
-	// std::string 	data;
-	// size_t			type = 0;
-	// std::ifstream 	file;
-
-
-	// if (_fileType == "jpg" || _fileType == "jpeg" || _fileType == "png" || _fileType == "gif")
-	// 	type = 1;
-	// else if(_fileType == "html" || _fileType == "htm")
-	// 	type = 2;
-	// else
-	// 	type = 3;
-
-	// if (type == 1 || type == 2)
-	// 	file = std::ifstream(filepath.c_str());
-	// else
-	// 	file = std::ifstream(filepath.c_str(), std::ios::binary);
-	
-	// if (!(file.is_open()))
-	// {
-	// 	// std::cout << "Error: failed to open file" << std::endl;
-
-	// 	std::ifstream picture(filepath.c_str());
-	// 	if (!(picture.is_open()))
-    // 	{
-    //    		std::cout << "Error: failed to open picture" << std::endl;
-	// 	}
-	// 	return ("");
-	// }
-	// if(type == 1 || type == 3)
-	// {
-	// 	std::stringstream ss_file;
-	// 	ss_file << file.rdbuf();
-	// 	data = std::string(ss_file.str());
-	// }
-	// else if(type == 2)
-	// 	data = std::string( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
-	// file.close();
-	// return (data);
-	// }
 	if ( filepath == "" && statusCode == 404)
 		return ("Error 404 (Not Found)");
 	if ( filepath == "") // überprüfen ob korrekt
@@ -237,10 +110,8 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath, int 
 		if (!file.is_open())
 		{
 			std::cout << "Error: failed to open file" << std::endl;   // 
-			// std::cout << "Filepath: " << filepath << std::endl;   // 
 			//exit(-1);						//   handle better? server still should run
 		}
-		// std::cout << "Filepath: " << filepath << std::endl;   // 
 		std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
 		file.close();
 		return (content);
@@ -307,61 +178,42 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( const std::string &t
 	size_t 		num;
 	std::string fileExtension;
 
-	// wenn / erst file suchen
 	// gucken ob original path jetzt anders ist
-	// if (buf == "/")
-	if (target == "/") // kann ich weglassen, steht i path drin !!!!!!!
+	if (target == "/")
 		path = _lookForFileFromConfigMap( path, "index" );
-		// _filePath = _lookForFileFromConfigMap( path, "index" );
-	// if (path == "")
-	// {
-	// 	_filePath = "";
-	// 	_statusCode = 404;
-	// }
 
 	if(!_FileExists(path))
 	{
-		// _statusCode = 404;
 		error = true;
 		cwd.append("/"); // look in config map were to find the error pages
-		// _filePath = _lookForFileFromConfigMap( cwd, "error404" );
 		path = _lookForFileFromConfigMap( cwd, "error404" );
-		if ( path == "")
+		if ( path == "") //stadard error when no file provided or not found
 		{
-			//stadard error
 			_contentType = "Content-type: text/plain\r\n";
 			_statusCode = 404;
 			_fileType = "";
 			_filePath = "";
 			return;
 		}
-		// if ( path != "")
-		// {
-		
-		// _contentType = "Content-Type: text/html; charset=UTF-8\r\n";
-		// }
-		// wenn file nicht gibt error suchen und dann jeweils die Variablen dafür setzen
-		// return;
 	}
 	num = path.find_last_of(".");
 	num++;
 	fileExtension = path.substr(num, std::string::npos);
 	
-	
-	_filePath = path; // 
+	_filePath = path;
 	if (error)
-		_statusCode = 404; // .. ausprobieren
+		_statusCode = 404;
 	else
 		_statusCode = 200;
 
-	_contentType = "Content-type: ";//image/";//jpeg\n";
+	_contentType = "Content-type: ";
 	if (fileExtension == "jpg" || fileExtension == "jpeg" || fileExtension == "png" || fileExtension == "gif")
 		_contentType += "image/";
 	else if (fileExtension == "html" || fileExtension == "htm")
 		_contentType += "text/";
 	else // binary
 	{
-		_contentType += "application/"; //octet-stream";
+		_contentType += "application/";
 		fileExtension = "octet-stream";
 	}
 	_contentType += fileExtension;
