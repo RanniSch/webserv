@@ -8,8 +8,9 @@
 # include <unistd.h>
 # include <iostream>
 # include <fstream>     // for std::ifstream
-#include <sstream>      // for std::stringstream
+# include <sstream>      // for std::stringstream
 # include <vector>
+# include <map>
 # include <exception>
 # include <netinet/in.h>
 
@@ -18,13 +19,6 @@
 # include "ListeningSocket.hpp"
 # include "ResponseMessage.hpp"
 # include "RequestObj.hpp"
-
-//Exceptions 	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class	CTRL_C_PRESS: public std::exception
-{
-        public:
-	        virtual const char	*what() const throw();			
-};
 
 class TestServer{
         public:
@@ -40,26 +34,27 @@ class TestServer{
                 char							_buffer[30000];
 
                 int								_nbr_of_ports;
-				int								_nbr_of_sockets_in_poll;
+                int                             _nbr_of_client_sockets;
+                int								_nbr_of_sockets_in_poll;
                 std::vector<int>      			_ports;
-				ClientSocket					_client_socket;	//Soon will change
+			    std::map<int, ClientSocket>		_client_sockets;	//Soon will change
 				std::vector<ListeningSocket>	_listening_sockets;
 
                 std::vector<pollfd>				_sockets_for_poll; // For now the most important bit
 
-                void	_executeEventSequence(int index);
+                //void	_executeEventSequence(int &fd);
 				void	_executeCGI(void);
 
                 void	_acceptConnection(int index);
                 void	_handler(void);
 
-                void	_responder(std::string indentifier);
-                void	_respondImage(void);
-                void	_respondStatic(void);
+                //void	_responder(std::string indentifier, int &fd);
+                //void	_respondImage(int &fd);
+               // void	_respondStatic(int &fd);
 				//void	_respondFileUpload(void);
-				void	_respondError(void);
+				//void	_respondError(int &fd);
 
-				void	processRequest( std::string &request);
+				//void	processRequest( std::string &request);
 
 		void	_RequestIp(sockaddr_in *address);
 };

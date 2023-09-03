@@ -18,7 +18,7 @@ class ResponseMessage {
 	public:
 		ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, const std::map<std::string, std::string> &request_map );
 		~ResponseMessage( void );
-		std::string		createResponse( void );
+		std::string	createResponse( void );
 
 	private:
 		std::string		_output;

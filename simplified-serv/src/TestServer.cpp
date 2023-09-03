@@ -1,8 +1,10 @@
 
-#include "TestServer.hpp"
+#include "../include/TestServer.hpp"
+
+bool	g_server_shutdown = false;
 
 // Constructor
-TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3)
+TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3), _nbr_of_client_sockets(0), _nbr_of_sockets_in_poll(0)
 {
     std::cout << "TestServer constructor called!" << std::endl;
 
@@ -36,18 +38,21 @@ TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3)
 // Destructor
 TestServer::~TestServer(void)
 {
-    std::cout << "Destructor for TestServer called!" << std::endl;
-	std::cout << GREY "\nClosing client socket: " << _client_socket.getSocketFd() << BLANK << std::endl;
-	if (_client_socket.getSocketFd() == -2)
-		std::cout << GREEN "Client socket already closed!" BLANK << std::endl;
-	else
-	{
-		if (close(_client_socket.getSocketFd()) <  0)
-			perror(RED "ERROR: Client closing failed: " BLANK);
-		else
-			std::cout << GREEN "Client socket closed succesfully." BLANK << std::endl;
-	}
+	std::cout << "Destructor for TestServer called!" << std::endl;
 
+	for (std::map<int, ClientSocket>::iterator it = _client_sockets.begin(); it != _client_sockets.end(); it++)
+	{
+		std::cout << GREY "\nClosing client socket: " << it->second.getSocketFd() << BLANK << std::endl;
+		if (it->second.getSocketFd() == -2)
+			std::cout << GREEN "Client socket already closed!" BLANK << std::endl;
+		else
+		{
+			if (close(it->second.getSocketFd()) < 0)
+				perror(RED "ERROR: Client closing failed: " BLANK);
+			else
+				std::cout << GREEN "Client socket closed succesfully." BLANK << std::endl;
+		}
+	}
 	for (int i = 0; i < _nbr_of_ports; i++)
 	{
 		std::cout << GREY "\nClosing listening socket for port: " << _listening_sockets[i].getPort() << BLANK << std::endl;
@@ -56,89 +61,76 @@ TestServer::~TestServer(void)
 		else
 			std::cout << GREEN "Listening socket closed succesfully." BLANK << std::endl;
 	}
-    exit(-1);
+	exit(-1);
 }
 
-void	TestServer::processRequest(std::string &request)
-{
+//void	TestServer::processRequest(std::string &request)
+//{
+	// // for testing provide config map
+	// //std::cout << "drin 1" << std::endl;
+	// char cwd[PATH_MAX];
+   	// if (getcwd(cwd, sizeof(cwd)) != NULL) {
+   	// }
+	// else {
+    //    perror("getcwd() error");
+	// }
+	// std::string path;
+	// path.append(cwd);
+
+	// std::map<std::string, std::vector<std::string> >	config;
+	// std::vector<std::string> 							buf_vec;
+
+	// buf_vec.push_back(path);
+	// // std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
+	// std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
+	// config.insert(pair);
+	// buf_vec.clear();
+	// buf_vec.push_back("index.htm");
+	// buf_vec.push_back("index.html");
+	// pair = std::make_pair("index", buf_vec);
+	// config.insert(pair);
+	// buf_vec.clear();
+	// buf_vec.push_back("error.html");
+	// pair = std::make_pair("error404", buf_vec);
+	// config.insert(pair);
 	// for testing provide config map
-	//std::cout << "drin 1" << std::endl;
-	char cwd[PATH_MAX];
-   	if (getcwd(cwd, sizeof(cwd)) != NULL) {
-   	}
-	else {
-       perror("getcwd() error");
-	}
-	std::string path;
-	path.append(cwd);
-
-	std::map<std::string, std::vector<std::string> >	config;
-	std::vector<std::string> 							buf_vec;
-
-	buf_vec.push_back(path);
-	// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
-	std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
-	config.insert(pair);
-	buf_vec.clear();
-	buf_vec.push_back("index.htm");
-	buf_vec.push_back("index.html");
-	pair = std::make_pair("index", buf_vec);
-	config.insert(pair);
-	buf_vec.clear();
-	buf_vec.push_back("error.html");
-	pair = std::make_pair("error404", buf_vec);
-	config.insert(pair);
-	// for testing provide config map
 
 
-	if (!request.compare(""))
-		return;
+	// if (!request.compare(""))
+	// 	return;
 	//std::cout << "drin" << std::endl;
-	RequestObj 							reqObj(request);
-	std::map<std::string, std::string>	request_map;
-	std::string							responseStr;
+	// RequestObj 							reqObj(request);
+	// std::map<std::string, std::string>	request_map;
+	// std::string							responseStr;
 
-	reqObj.ParseIntoMap(request_map);
+	// reqObj.ParseIntoMap(request_map);
 
-	ResponseMessage responseObj(config, request_map);
-	responseStr = responseObj.createResponse();
-	write(_client_socket.getSocketFd(), responseStr.c_str(), responseStr.length());
+	// ResponseMessage responseObj(config, request_map);
+	// responseStr = responseObj.createResponse();
+	//write(_client_socket.getSocketFd(), responseStr.c_str(), responseStr.length());
 
-}
-
-/*
-* The accept system call grabs the first connection request on the queue of pending connections (set up in listen) and creates
-* a new socket for that connection. The original socket that was set up for listening is used only for accepting connections,
-* not for exchanging data. By default, socket operations are synchronous, or blocking, and accept will block until a connection
-* is present on the queue.
-*
-* int accept(int socket, struct sockaddr *restrict address, socklen_t *restrict address_len);
-* int socket: is the socket that was set for accepting connections with listen
-*   (file descriptor for the new socket, saved in _sock so here getSock() to get the integer).
-* address: is the address structure that gets filed in with the address of the client that is doing the connect.
-*   This allows us to examine the address and port number of the connecting socket if we want to.
-* address_len: filled in with the length of the address structure.
-*/
+//}
 
 void    TestServer::_acceptConnection(int index)
 {
-	this->_client_socket.setListeningSocketPtr(this->_listening_sockets[index]);
-	this->_client_socket.acceptConnection();
+	ClientSocket tmp;
 
-	_RequestIp(&_client_socket.getSockAddr());
-	int i = -1;
-	while ( ++i < 5 )
-	{
-		read(_client_socket.getSocketFd(), _buffer, 30000);
-		//std::cout << "buffer_" << _buffer << std::endl;
-		std::string request;
-		request = _buffer;
-		processRequest(request);
-		usleep(3000000);
-	}
+	tmp.setListeningSocketPtr(this->_listening_sockets[index]);
+	tmp.acceptConnection();
 
-	//close(_client_socket.getSocketFd());
-	//_client_socket.setSocketFd(-2);
+	struct pollfd tmp_pollfd;
+
+	tmp_pollfd.fd = tmp.getSocketFd();
+	tmp_pollfd.events = POLLIN | POLLOUT | POLLHUP | POLLERR; // POLLERR POLLHUP
+	tmp_pollfd.revents = 0;
+
+	this->_sockets_for_poll.push_back(tmp_pollfd);
+	this->_client_sockets.insert(std::pair<int, ClientSocket>(tmp.getSocketFd(), tmp));
+
+	_nbr_of_sockets_in_poll++;
+	_nbr_of_client_sockets++;
+
+	_RequestIp(&tmp.getSockAddr());
 }
 
 void	TestServer::_RequestIp(sockaddr_in *address)
@@ -160,52 +152,43 @@ void    TestServer::_handler()
     std::cout << GREY << _buffer <<  BLANK << std::endl;
 }
 
-/*
-* write(): Communication is the easy part. The same read and write system calls that work on files also work on sockets.
-*   The real working of HTTP server happens based on the content present in std::string hello variable.
-*
-* close(new_socket): When we’re done communicating, the easiest thing to do is to close a socket with the close system call.
-*   The same close that is used for files.
-*/
-void    TestServer::_responder(std::string indentifier)
-{
-	if (indentifier == "image")
-		_respondImage();
-	//else if (indentifier == "normal")
-	//	_respondStatic();
-	else if (indentifier == "error")
-		_respondError();
-	//else if (indentifier == "upload")
-	//	_respondFileUpload();
-}
+// void    TestServer::_responder(std::string indentifier, int &fd)
+// {
+// 	if (indentifier == "image")
+// 		_respondImage(fd);
+// 	else if (indentifier == "normal")
+// 		_respondStatic(fd);
+// 	else if (indentifier == "error")
+// 		_respondError(fd);
+// 	//else if (indentifier == "upload")
+// 	//	_respondFileUpload();
+// }
 
-void	TestServer::_respondImage(void)
-{
-	std::ifstream animal("/home/rschlott/workspace/webserv-team/simplified-serv/src/animal.jpg");
+// void	TestServer::_respondImage(int &fd)
+// {
+// 	std::ifstream animal("/home/rschlott/workspace/webserv-team/simplified-serv/src/animal.jpg");
 
-    if (!(animal.is_open()))
-    {
-       	std::cout << "Error: failed to open jpg" << std::endl;
-       	exit(-1);
-	}
+//     if (!(animal.is_open()))
+//     {
+//        	std::cout << "Error: failed to open jpg" << std::endl;
+//        	exit(-1);
+// 	}
     
-	std::stringstream giraffe2;
-	giraffe2 << animal.rdbuf();
-	//std::cout << "giraffe2: " << giraffe2.str() << std::endl;
+// 	std::stringstream giraffe2;
+// 	giraffe2 << animal.rdbuf();
+// 	//std::cout << "giraffe2: " << giraffe2.str() << std::endl;
 
-	std::string data(giraffe2.str());
-	//std::cout << "len1: " << data.length() << std::endl;
-	std::string giraffe("HTTP/1.1 200 OK\nContent-type: image/jpeg\nContent-Length: 230314\n\n");
-	std::string giraffe3 = giraffe + data;
+// 	std::string data(giraffe2.str());
+// 	//std::cout << "len1: " << data.length() << std::endl;
+// 	std::string giraffe("HTTP/1.1 200 OK\nContent-type: image/jpeg\nContent-Length: 230314\n\n");
+// 	std::string giraffe3 = giraffe + data;
 
-	animal.close();
+// 	animal.close();
 
-	const char* cData = giraffe3.c_str();
+// 	const char* cData = giraffe3.c_str();
 
-	write(_client_socket.getSocketFd(), cData, giraffe3.length());
-	close(_client_socket.getSocketFd());
-	_client_socket.setSocketFd(-2);
-}
+// 	write(fd, cData, giraffe3.length());
+// }
 
 /*void	TestServer::_respondStatic(void)
 {
@@ -229,91 +212,139 @@ void	TestServer::_respondImage(void)
 }*/
 
 
-void	TestServer::_respondError(void)
-{
-	//Respond with the Error HTTP response
-}
+// void	TestServer::_respondError(int &fd)
+// {
+// 	//Respond with the Error HTTP response
+// }
 
 void    signalHandler(int signum)
 {
     if (signum == SIGINT)
-        throw   CTRL_C_PRESS();
+        g_server_shutdown = true;
 }
 
 
-void	TestServer::_executeEventSequence(int index)
-{
-	_acceptConnection(index);
-	_handler();
-	if (DEBUG == 1)
-	{
-		_responder("upload");
+// void	TestServer::_executeEventSequence(int &fd)
+// {
+// 	std::cout << RED "Execute eventSequence" BLANK << std::endl;
+// 	_handler();
+// 	if (DEBUG == 1)
+// 	{
+// 		//_responder("upload");
 
-		//_responder("normal");
-		//_responder("image");
+// 		_responder("normal", fd);
+// 		//_responder("image");
 
-	}
-	else if (DEBUG == 2)
-		_executeCGI();
-	else
-		_responder("error");
-}
+// 	}
+// 	else if (DEBUG == 2)
+// 		_executeCGI();
+// 	else
+// 		_responder("error", fd);
+// }
 
 
 void    TestServer::launch()
 {
-   	try
-	{
-		signal(SIGINT, signalHandler);
-		// DEBUGGING
-		std::cout <<GREEN "Finished creating the ports:" BLANK << std::endl;		
-		for (int i = 0; i < _nbr_of_ports; i++)
-			std::cout << GREY "Listening Socket onject for Port: " << _listening_sockets[i].getPort() << " succesfully created!" BLANK << std::endl;
-		// DEBUGGING
 
-		int	ready = 0;
-		while (42)
+	signal(SIGINT, signalHandler);
+	// DEBUGGING
+	std::cout <<GREEN "Finished creating the ports:" BLANK << std::endl;		
+	for (int i = 0; i < _nbr_of_ports; i++)
+		std::cout << GREY "Listening Socket onject for Port: " << _listening_sockets[i].getPort() << " succesfully created!" BLANK << std::endl;
+	// DEBUGGING
+
+	int	ready = 0;
+	std::string	responseStr;
+	while (g_server_shutdown  == false)
+	{
+		ready = poll(_sockets_for_poll.data(), _sockets_for_poll.size(), 2000);
+		if (ready == -1)
 		{
-			std::cout << GREEN "\n===== WAITING [ " << _loop_counter++ << " ] =====" BLANK << std::endl;
-			ready = poll(_sockets_for_poll.data(), _sockets_for_poll.size(), -1);
-			if (ready == -1)
-			{
 				perror(RED "ERROR: poll() has failed: " BLANK);
 				exit(-1);
-			}
-			else if (ready == 0)
-				perror(RED "ERROR: poll() has timed out: " BLANK);
-			else
-			{
-				for (int i = 0; i < _nbr_of_ports; i++)
-				{
-					if (_sockets_for_poll[i].revents & POLLIN)
-					{
-						//It means port has activity and there is something to read.
-						//DEBUGGING
-						int x = 0;
-						while (_listening_sockets[x].getSocketFd() != _sockets_for_poll[i].fd)
-							x++;
-						std::cout << GREY << "PORT: " << _listening_sockets[x].getPort() << " has something to read!" BLANK << std::endl;
-						//DEBUGGING
-						_executeEventSequence(x);
-						_sockets_for_poll[i].revents = 0;
-					}
-				}
-
-			}
-			std::cout << "\033[35m===== DONE =====\n\033[0m" << std::endl;
 		}
-   	}
-  	catch (const CTRL_C_PRESS& e)
-   	{
-		std::cerr << "\nCaught exception: " << e.what() << std::endl;
-		this->~TestServer();
-    }
-	//close(_listening_socket.getSocketFd());
-}
+		else if (ready == 0)
+				perror(RED "ERROR: poll() has timed out: " BLANK);
+		else
+		{
+				for (std::vector<pollfd>::iterator it = _sockets_for_poll.begin(); it != _sockets_for_poll.end(); it++)
+				{
+					if (it->revents & POLLIN)
+					{
+						if (it < _sockets_for_poll.begin() + _nbr_of_ports)
+						{
+							std::cout << "ACCEPT CONNECTION => " << std::endl;
+							_acceptConnection(std::distance(_sockets_for_poll.begin(), it));
+							it->revents = 0;
+							std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
+							break;
+						}
+						else
+						{
+							std::cout << "READ AND EXECUTE => " << std::endl;
+							//TESTINT
+							char cwd[PATH_MAX];
+							if (getcwd(cwd, sizeof(cwd)) != NULL) {
+							}
+							else {
+								perror("getcwd() error");
+							}
+							std::string path;
+							path.append(cwd);
 
-const char	*CTRL_C_PRESS::what() const throw()
-{
-	return ("TERMINATING AFTER CTRL-C");
+							std::map<std::string, std::vector<std::string> >	config;
+							std::vector<std::string> 							buf_vec;
+
+							buf_vec.push_back(path);
+							// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
+							std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
+							config.insert(pair);
+							buf_vec.clear();
+							buf_vec.push_back("index.htm");
+							buf_vec.push_back("index.html");
+							pair = std::make_pair("index", buf_vec);
+							config.insert(pair);
+							buf_vec.clear();
+							buf_vec.push_back("error.html");
+							pair = std::make_pair("error404", buf_vec);
+							config.insert(pair);
+
+							//TESTING
+							read(it->fd, _buffer, 30000);
+							// Parsing of the request and excecuting should happen here
+							//_executeEventSequence(it->fd);
+							std::string request;
+							request = _buffer;
+							//processRequest(request);
+							//_responder("normal", it->fd);
+							RequestObj 							reqObj(request);
+							std::map<std::string, std::string>	request_map;
+							
+							reqObj.ParseIntoMap(request_map);
+
+							ResponseMessage responseObj(config, request_map);
+							responseStr = responseObj.createResponse();
+
+							it->revents = 0;
+							ready = 0;
+							_handler();
+							_client_sockets.at(it->fd).setSocketRequest(true);
+							std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
+						}
+					}
+					else if (it->revents & POLLOUT && _client_sockets.at(it->fd).getSocketRequest() == true) // The connection is ready for writing
+					{
+						std::cout << "RESPONDING BY WRITING => " << std::endl;
+						// 	//_handler();
+						std::cout << "responseStr: " << responseStr << std::endl;
+						write(it->fd, responseStr.c_str(), responseStr.length());
+						_client_sockets.at(it->fd).setSocketRequest(false);
+						it->revents = 0;
+						ready = 0;
+						std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
+					}
+			}
+		}
+	}
+	this->~TestServer();
 }
