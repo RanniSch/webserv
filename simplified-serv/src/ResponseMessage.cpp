@@ -310,7 +310,7 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( const std::string &t
 	// wenn / erst file suchen
 	// gucken ob original path jetzt anders ist
 	// if (buf == "/")
-	if (target == "/")
+	if (target == "/") // kann ich weglassen, steht i path drin !!!!!!!
 		path = _lookForFileFromConfigMap( path, "index" );
 		// _filePath = _lookForFileFromConfigMap( path, "index" );
 	// if (path == "")
@@ -329,7 +329,7 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( const std::string &t
 		if ( path == "")
 		{
 			//stadard error
-			_contentType = "Content-type: text/plain;";
+			_contentType = "Content-type: text/plain\r\n";
 			_statusCode = 404;
 			_fileType = "";
 			_filePath = "";
