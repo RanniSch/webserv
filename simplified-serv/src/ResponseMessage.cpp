@@ -136,7 +136,6 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath, int 
 	}
 }
 
-
 std::string	ResponseMessage::_lookForFileFromConfigMap( std::string dir_to_look_for, const std::string &config_map_key )
 {
 	std::vector<std::string>			buf_vec;
@@ -199,11 +198,8 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string target, 
 			_filePath = "";
 			return;
 		}
-
 		target = "/";
-
 	}
-
 	// gucken ob original path jetzt anders ist
 	if (target == "/")
 		path = _lookForFileFromConfigMap( path, "index" );
