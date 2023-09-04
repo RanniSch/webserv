@@ -12,6 +12,8 @@
 #include <cstdlib>
 #include <sstream>
 #include <cctype>
+#include <sys/types.h> // check for directory
+#include <sys/stat.h> // check for directory
 
 // canonnical form!!!
 class ResponseMessage {
@@ -26,6 +28,7 @@ class ResponseMessage {
 		std::string		_contentType;
 		std::string		_fileType;
 		std::string		_filePath;
+		std::string		_location;
 		int				_statusCode;
 		
 
@@ -38,5 +41,5 @@ class ResponseMessage {
 		std::string		_createContentFromFile( std::string filepath, int statusCode );
 		std::string		_lookForFileFromConfigMap( std::string dir_to_look_for, const std::string &config_map_key );
 		bool			_FileExists( const std::string &path );
-		void			_getProperFilePathAndPrepareResponse( const std::string &target, std::string path, std::string cwd);
+		void			_getProperFilePathAndPrepareResponse( std::string target, std::string path, std::string cwd);
 };

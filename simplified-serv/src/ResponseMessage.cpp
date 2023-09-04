@@ -4,7 +4,7 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 const std::map<std::string, std::string> &request_map )
 : _statusCode(0), _config(config), _request_map(request_map)
 {
-
+	_location = "";
 }
 
 ResponseMessage::~ResponseMessage( void )
@@ -20,9 +20,13 @@ std::string	ResponseMessage::createResponse( void )
 	_output = "";
 	_output.append("HTTP/1.1 ");
 	if (_statusCode == 200)
-		_output.append("200 OK\n");
+		_output.append("200 OK\r\n");
 	else if (_statusCode == 404)
-			_output.append("404 Not Found\n");
+			_output.append("404 Not Found\r\n");
+	else if (_statusCode == 301)
+		_output.append("301 Moved Permanently\r\n");
+	// if (_location != "")
+	_output.append(_location);
 	_output.append(_contentType);
 	_content = "";
 	_content.append(_createContentFromFile(_filePath, _statusCode));
@@ -172,11 +176,33 @@ bool	ResponseMessage::_FileExists( const std::string &filepath )
 	return false;
 }
 
-void	ResponseMessage::_getProperFilePathAndPrepareResponse( const std::string &target, std::string path, std::string cwd)
+void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string target, std::string path, std::string cwd)
 {
-	bool 		error = false;
-	size_t 		num;
-	std::string fileExtension;
+	bool 			error = false;
+	size_t 			num;
+	std::string 	fileExtension;
+	struct stat 	info;
+
+	// check for directory
+	const char *path_ptr = path.c_str();
+	if (stat(path_ptr, &info) == 0 && S_ISDIR(info.st_mode))
+	{
+		//The directory exists
+		if (path[path.length() - 1] != '/')
+		{
+			// 301 redirect
+			_contentType = "";
+			_location = "location: http://localhost:8000"; // get from config
+			_location += target + "/\r\n";
+			_statusCode = 301;
+			_fileType = "";
+			_filePath = "";
+			return;
+		}
+
+		target = "/";
+
+	}
 
 	// gucken ob original path jetzt anders ist
 	if (target == "/")
