@@ -10,11 +10,12 @@ bool debug_var = false;
 // int main(int argv, char **argc)
 int main( void )
 {
-	// // for debugging Max
-	// if (argv > 1 && *argc[1] == '1')
-	// 	debug_var = true;
-	// // for debugging Max
+	// open with a config file !! or open default config?
+	std::map<std::string, std::vector<std::string> >		config_map;
+	std::string												path_config_file;
 
+	path_config_file = "/Users/maxrehberg/Documents/42Wolfsburg/webserv/webserve/simplified-serv/nginx.conf";
+	ConfigObj confObj(path_config_file);//, config_map);
 	
     TestServer server;
 

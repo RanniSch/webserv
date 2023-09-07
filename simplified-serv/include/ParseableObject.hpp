@@ -7,10 +7,12 @@
 
 class ParseableObject {
 	public:
+		ParseableObject();
 		ParseableObject( std::string input);
 		~ParseableObject();
 		void lexer( const std::string &delimiter );
 		void	deleteChars( const std::string &chars);
+		void	setInput(std::string input);
 	
 	protected:
 		// std::string					&_inputRef;

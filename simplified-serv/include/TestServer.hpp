@@ -19,6 +19,7 @@
 # include "ListeningSocket.hpp"
 # include "ResponseMessage.hpp"
 # include "RequestObj.hpp"
+# include "ConfigObj.hpp"
 
 class TestServer{
         public:

@@ -1,8 +1,16 @@
 #include "../include/ParseableObject.hpp"
 
+ParseableObject::ParseableObject()
+{}
+
 ParseableObject::ParseableObject( std::string input): _input(input)
 {
 	// _input
+}
+
+void	ParseableObject::setInput(std::string input)
+{
+	_input = input;
 }
 
 ParseableObject::~ParseableObject()
