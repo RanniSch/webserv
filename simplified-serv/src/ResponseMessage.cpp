@@ -204,7 +204,7 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string target, 
 	if (target == "/")
 		path = _lookForFileFromConfigMap( path, "index" );
 
-	if(!_FileExists(path))
+	if(!_FileExists(path) || (path.find("..") != std::string::npos))
 	{
 		error = true;
 		cwd.append("/"); // look in config map were to find the error pages
