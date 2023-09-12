@@ -46,6 +46,9 @@ class TestServer{
                 //void	_executeEventSequence(int &fd);
 				void	_executeCGI(void);
 
+				void	_pollReading(std::vector<pollfd>::iterator &_it, std::string &_responseStr);
+				void	_pollWriting(std::vector<pollfd>::iterator &_it, std::string &_responseStr);
+
                 void	_acceptConnection(int index);
                 void	_handler(void);
 
@@ -61,6 +64,10 @@ class TestServer{
 };
 
 # define	DEBUG	1
+
+# define    READING			1
+# define    WRITING			2
+# define    KILLING_CLIENT	3
 
 # define	GREY    "\033[90m"
 # define	GREEN   "\033[32m"

@@ -28,7 +28,7 @@ TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3), _nbr_of_client_sock
 	for (int i = 0; i < _nbr_of_ports; i++)
 	{
 		tmp_pollfd.fd = _listening_sockets[i].getSocketFd();
-		tmp_pollfd.events = POLLIN;
+		tmp_pollfd.events = POLLIN | POLLHUP | POLLERR;
 		tmp_pollfd.revents = 0;
 		_sockets_for_poll.push_back(tmp_pollfd);
 	}
@@ -243,6 +243,93 @@ void    signalHandler(int signum)
 // }
 
 
+int		checkPollAction(short revents, std::map<int, ClientSocket> &client_sockets, int fd)
+{
+	if (revents & POLLIN)
+		return (1);
+	if (revents & POLLOUT && client_sockets.at(fd).getSocketRequest() == true)
+		return (2);
+	if (revents & POLLHUP)
+	{
+		std::cout << RED "closing the socket" BLANK << std::endl;
+		return (3);
+	}
+	if (revents & POLLERR)
+	{
+		std::cout << RED "closing the socket  eeeeee" BLANK << std::endl;
+		return (4);
+	}
+	return (0);
+}
+
+
+void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, std::string &_responseStr)
+{
+	std::cout << "RESPONDING BY WRITING => " << std::endl;
+	std::cout << "responseStr: " << _responseStr << std::endl;
+	write(_it->fd, _responseStr.c_str(), _responseStr.length());
+	_client_sockets.at(_it->fd).setSocketRequest(false);
+}
+
+void	TestServer::_pollReading(std::vector<pollfd>::iterator &_it, std::string &_responseStr)
+{
+	if (_it < _sockets_for_poll.begin() + _nbr_of_ports)
+	{
+		std::cout << "ACCEPT CONNECTION => " << std::endl;
+		_acceptConnection(std::distance(_sockets_for_poll.begin(), _it));
+		std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
+	}
+	else if (recv(_it->fd, _buffer, 30000, 0) != 0)
+	{
+		std::cout << "READ AND EXECUTE: Thre is something to read => " << std::endl;
+		// //TESTINT
+		char cwd[PATH_MAX];
+		if (getcwd(cwd, sizeof(cwd)) != NULL) {
+		}
+		else 
+		{
+			perror("getcwd() error");
+		}
+		std::string path;
+		path.append(cwd);
+
+		std::map<std::string, std::vector<std::string> >	config;
+		std::vector<std::string> 							buf_vec;
+
+		buf_vec.push_back(path);
+		// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
+		std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
+		config.insert(pair);
+		buf_vec.clear();
+		buf_vec.push_back("index.htm");
+		buf_vec.push_back("index.html");
+		pair = std::make_pair("index", buf_vec);
+		config.insert(pair);
+		buf_vec.clear();
+		buf_vec.push_back("error.html");
+		pair = std::make_pair("error404", buf_vec);
+		config.insert(pair);
+
+		//TESTING
+		// Parsing of the request and excecuting should happen here
+		//_executeEventSequence(it->fd);
+		std::string request;
+		request = _buffer;
+		//processRequest(request);
+		//_responder("normal", it->fd);
+		RequestObj 							reqObj(request);
+		std::map<std::string, std::string>	request_map;
+								
+		reqObj.ParseIntoMap(request_map);
+
+		ResponseMessage responseObj(config, request_map);
+		_responseStr = responseObj.createResponse();
+								// _handler();
+		_client_sockets.at(_it->fd).setSocketRequest(true);
+		std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
+	}
+}
+
 void    TestServer::launch()
 {
 
@@ -258,92 +345,40 @@ void    TestServer::launch()
 	while (g_server_shutdown  == false)
 	{
 		ready = poll(_sockets_for_poll.data(), _sockets_for_poll.size(), 2000);
-		if (ready == -1)
+		switch (ready)
 		{
+			case(-1):
 				perror(RED "ERROR: poll() has failed: " BLANK);
 				exit(-1);
-		}
-		else if (ready == 0)
+				break;
+		
+			case(0):
 				perror(RED "ERROR: poll() has timed out: " BLANK);
-		else
-		{
-				for (std::vector<pollfd>::iterator it = _sockets_for_poll.begin(); it != _sockets_for_poll.end(); it++)
+				break;
+			default:
+				for (std::vector<pollfd>::iterator it = _sockets_for_poll.begin(); it != _sockets_for_poll.end() && ready != 0; it++)
 				{
-					if (it->revents & POLLIN)
+					int	action = checkPollAction(it->revents, _client_sockets, it->fd);
+					switch(action)
 					{
-						if (it < _sockets_for_poll.begin() + _nbr_of_ports)
-						{
-							std::cout << "ACCEPT CONNECTION => " << std::endl;
-							_acceptConnection(std::distance(_sockets_for_poll.begin(), it));
+						case(READING):
+							_pollReading(it, responseStr);
 							it->revents = 0;
+							ready--;
+							break;
+						case(WRITING):// The connection is ready for writing
+							_pollWriting(it, responseStr);
+							it->revents = 0;
+							ready--;
 							std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
 							break;
-						}
-						else
-						{
-							std::cout << "READ AND EXECUTE => " << std::endl;
-							//TESTINT
-							char cwd[PATH_MAX];
-							if (getcwd(cwd, sizeof(cwd)) != NULL) {
-							}
-							else {
-								perror("getcwd() error");
-							}
-							std::string path;
-							path.append(cwd);
-
-							std::map<std::string, std::vector<std::string> >	config;
-							std::vector<std::string> 							buf_vec;
-
-							buf_vec.push_back(path);
-							// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
-							std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
-							config.insert(pair);
-							buf_vec.clear();
-							buf_vec.push_back("index.htm");
-							buf_vec.push_back("index.html");
-							pair = std::make_pair("index", buf_vec);
-							config.insert(pair);
-							buf_vec.clear();
-							buf_vec.push_back("error.html");
-							pair = std::make_pair("error404", buf_vec);
-							config.insert(pair);
-
-							//TESTING
-							read(it->fd, _buffer, 30000);
-							// Parsing of the request and excecuting should happen here
-							//_executeEventSequence(it->fd);
-							std::string request;
-							request = _buffer;
-							//processRequest(request);
-							//_responder("normal", it->fd);
-							RequestObj 							reqObj(request);
-							std::map<std::string, std::string>	request_map;
-							
-							reqObj.ParseIntoMap(request_map);
-
-							ResponseMessage responseObj(config, request_map);
-							responseStr = responseObj.createResponse();
-
-							it->revents = 0;
-							ready = 0;
-							_handler();
-							_client_sockets.at(it->fd).setSocketRequest(true);
-							std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
-						}
+						case(KILLING_CLIENT):
+							break;
+						default:
+							break;
 					}
-					else if (it->revents & POLLOUT && _client_sockets.at(it->fd).getSocketRequest() == true) // The connection is ready for writing
-					{
-						std::cout << "RESPONDING BY WRITING => " << std::endl;
-						// 	//_handler();
-						std::cout << "responseStr: " << responseStr << std::endl;
-						write(it->fd, responseStr.c_str(), responseStr.length());
-						_client_sockets.at(it->fd).setSocketRequest(false);
-						it->revents = 0;
-						ready = 0;
-						std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
-					}
-			}
+				}	
+			break;
 		}
 	}
 	this->~TestServer();
