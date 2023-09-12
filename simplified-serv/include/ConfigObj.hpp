@@ -20,4 +20,5 @@ class ConfigObj: protected ParseableObject {
 
 		void	_read_in_config_file();
 		void	_deleteComments();
+		bool	_checkCurlyBrackets( const std::string &input ) const;
 };

@@ -6,6 +6,7 @@ ConfigObj::ConfigObj( const std::string &path_config_file)//, std::map<std::stri
 {
 	_read_in_config_file();
 	_deleteComments();
+	_checkCurlyBrackets(_content);
 }
 
 ConfigObj::~ConfigObj()
@@ -36,8 +37,31 @@ void	ConfigObj::_deleteComments()
 		end = _content.find_first_of("\n", pos);
 		len = end - begin;
 		_content.erase(begin, len);
-		std::cout << _content << std::endl;
-		std::cout << std::endl;
-		std::cout << std::endl;
 	}
+}
+
+bool	ConfigObj::_checkCurlyBrackets( const std::string &input ) const
+{
+	size_t				pos = 0, level = 0;
+	const size_t 		len = input.length();
+
+	while ( pos < len )
+	{
+		pos = input.find_first_of("{}", pos);
+		if ( pos >= len )
+			break;
+		if ( input.at(pos) == '{' )
+			level++;
+		else if ( input.at(pos) == '}' )
+			level--;
+		if ( level < 0 )
+			return ( false );
+		pos++;
+		// if ( pos == std::string::npos )
+		// 	break;
+	}
+
+	if ( level != 0 )
+		return ( false );
+	return ( true );
 }
