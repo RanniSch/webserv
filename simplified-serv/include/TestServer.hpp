@@ -76,4 +76,10 @@ class TestServer{
 # define	YELL    "\033[0;33m"
 # define	CYAN    "\033[0;36m"
 
+//*********************************************************//
+//**                FUNCTIONS                           **//
+//*******************************************************//
+
+std::list<std::string>::iterator end_of_leveled_directive( std::list<std::string>::iterator start, std::list<std::string>::iterator container_end, std::string directive );
+
 #endif

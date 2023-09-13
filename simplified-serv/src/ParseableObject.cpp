@@ -25,12 +25,26 @@ void	ParseableObject::deleteChars( const std::string &chars)
 	
 	std::list<std::string>::iterator it;
 	it = _stapel.begin();
-	for (; it != _stapel.end(); it++)
+	bool 								condition = true;
+	bool 								jump = true;
+	
+	// for (; it != _stapel.end(); it++)
+	while(condition)
 	{
+		jump = true;
 		// is a char in list node of _stapel, then delete this node
 		if (it->find_first_of(chars) != std::string::npos)
+		{
 			it = _stapel.erase( it );
+			jump = false;
+		}
+		if(jump)
+			it++;
+		if( it == _stapel.end())
+			condition = false;
 	}
+
+
 }
 
 // check this function for leaks with valgrind because of string.substr
@@ -71,3 +85,16 @@ void ParseableObject::lexer\
 		start = end;
 	}
 }
+
+std::list<std::string>::iterator ParseableObject::_find( std::string str)
+{
+	std::list<std::string>::iterator 	it;
+
+	for (it =_stapel.begin(); it != _stapel.end(); it++)
+	{
+		if (it->find(str) != std::string::npos && str.length() == it->length())
+			return it;
+	}
+	return ( _stapel.end() );
+}
+
