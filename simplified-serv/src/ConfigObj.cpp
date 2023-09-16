@@ -4,6 +4,12 @@ ConfigObj::ConfigObj( const std::string &path_config_file)//, std::map<std::stri
 : _commentDelimiter("#"), _contentDelimiter("\t "), _path_config_file(path_config_file) //, _config_map(config_map), _input(""), _defaultDelimiter("\r\n")
 
 {
+	std::vector < std::string > valueVec;
+
+	valueVec.push_back("80");
+	_config_map["listen"] = valueVec; // erweitern mit default values
+
+
 	//check if it is a textfile // for example first line should be "! webserve config file !" or something
 	try
 	{
@@ -123,10 +129,13 @@ bool	ConfigObj::_checkCurlyBrackets( const std::string &input ) const
 	return ( true );
 }
 
-void	ConfigObj::_configServer( std::list<std::string>::iterator start )
+void	ConfigObj::_configServer( std::list<std::string>::iterator &start )
 {
 	std::list<std::string>::iterator 	end;
-	// size_t								level = 0;
+	std::map<std::string, std::vector<std::string> >::iterator 	buf;
+	std::vector <std::string>			value;
+	std::string							key;
+
 
 	// it = start;
 	// it++;
@@ -151,11 +160,91 @@ void	ConfigObj::_configServer( std::list<std::string>::iterator start )
 	// }
 	start++;
 	end = end_of_leveled_directive(start, _stapel.end(), "{}");
+	start++;
+	if (end == _stapel.end())
+	{
+		_error = ": some server config is causing an error";
+		throw _error;
+	}
+	/*
+		in config file at "server{...}" look for the keys in 
+		_config_map (like listen). If they are already with
+		default values in the config map then replace the values
+		if the keys are new then insert a new key value pair.
+		the value is a vector of strings.
+	*/
+	for ( ; start != end; start++ )
+	{
+		key = *start;
+		if (key == "location")
+			_configLocation( start, _stapel );
+		start++;
+		value.clear();
+		for ( ; *start != ";" && start != end; start++)
+			value.push_back(*start);
+		buf = _config_map.find(key);
+		if ( buf != _config_map.end() )
+			buf -> second = value;
+		else
+			_config_map.insert(std::make_pair(key, value));
+	}
 
-	// std::cout << "ende: " << *end << std::endl;
-	//-------------- TEST
-		// dist = std::distance(_stapel.begin(), end);
-		// std::cout << dist << " " << *end << std::endl;
-		//-------------- TEST
 
+
+}
+
+void	ConfigObj::_configLocation( std::list<std::string>::iterator &start, std::list<std::string> &stapel )
+{
+	std::string							location_key;
+	std::string							key;
+	StrVecMap							map;
+	std::list<std::string>::iterator 	end;
+
+	start++;
+	location_key = *start;
+	start++;
+	// now start is on {
+	if (*start != "{")
+	{
+		std::string error = ": location error near '{'";
+		throw error;
+	}
+	end = end_of_leveled_directive(start, stapel.end(), "{}");
+	if (end == stapel.end())
+	{
+		std::string error = ": some server config is causing an error";
+		throw _error;
+	}
+	if ( return_num_of_sub_levels(start, end, "{}") != 0)
+	{
+		std::string error = ": illegal curly brackets in location{..}";
+		throw error;
+	}
+	start++;
+	// start is on the first key
+	for ( ; start != end; start++)
+	{		
+		key = *start;
+		start++;
+		// start is on the first value
+		for ( ; *start != ";" && *start != "}"; start++)
+				map.push(*start);
+		if (*start == "}")
+		{
+			std::string error = ": missing ';' in location{..}";
+			throw error;
+		}
+		map.insert(key);
+	}
+
+
+	// map.push("hallo");
+	// map.push("du");
+	// map.push("da");
+	// map.insert("satz");
+	// map.push("hallo");
+	// map.push("max");
+	// map.push("da");
+	// map.insert("begr");
+	// map.print();
 }

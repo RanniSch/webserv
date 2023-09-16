@@ -9,14 +9,19 @@ std::list<std::string>::iterator end_of_leveled_directive( std::list<std::string
 	const int							close = 1;
 
 	if(directive.length() != 2)
-		return container_end;
+	{
+		error = ": directive in end_of_leveled_directive has not 2 chars";
+		throw error;
+	}
 
+	// the actual char should be an opening directive
 	end = start;
 	if (end->find(directive[open]) != 0)
 	{
-		error = ": the start iterator does not start at the given opening directive";
+		error = ": the start iterator does not start at the given opening directive in end_of_leveled_directive";
 		throw error;
 	}
+	// go through list and look for a closing directive in the same level 
 	for ( end = start ; 42; end++)
 	{
 		if ( end == container_end )
@@ -32,6 +37,49 @@ std::list<std::string>::iterator end_of_leveled_directive( std::list<std::string
 			level--;
 	}
 	return end;
+}
+
+int	return_num_of_sub_levels( std::list<std::string>::iterator &start, std::list<std::string>::iterator &end, std::string directive )
+{
+	std::string							error;
+	int									level;
+	int									act_level;
+	std::list<std::string>::iterator 	run;
+	const int							open = 0;
+	const int							close = 1;
+
+	run = start;
+	level = -1;
+	act_level = 0;
+	if(directive.length() != 2)
+	{
+		error = ": directive in return_num_of_sub_levels has not 2 chars";
+		throw error;
+	}
+	// the actual char should be an opening directive
+	if (run->find(directive[open]) != 0)
+	{
+		error = ": the start iterator does not start at the given opening directive in return_num_of_sub_levels";
+		throw error;
+	}
+	for ( ; run != end; run++)
+	{
+		if (run->find(directive[open]) == 0)
+		{
+			act_level++;
+			level++;
+		}
+		else if (end->find(directive[close]) == 0)
+			act_level--;
+	}
+	return level;
+}
+
+void	print_string_vector( std::vector <std::string> vec )
+{
+	for ( std::vector <std::string>:: iterator it = vec.begin() ; it != vec.end() ; it++ )
+		std::cout << *it << " ";
+	std::cout << std::endl;
 }
 
 // std::list<std::string>::iterator find_str_in_list( std::list<std::string> list, std::string str, int start)
