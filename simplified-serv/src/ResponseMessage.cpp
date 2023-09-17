@@ -104,7 +104,19 @@ void	ResponseMessage::_chooseMethod( void ) // take from config file which metho
 					std::cout << "Error saving the file!" << std::endl;
 				delete[] postData;
 			}
-			//else // it must be possible to upload any type of file (limited size), we only don't show every output in browser.
+			else
+			{
+				std::ofstream outputFile("/www/uploaded_file", std::ios::binary);
+				if (outputFile.is_open())
+				{
+					outputFile.write(postData, _content.length());
+					outputFile.close();
+					std::cout << "File uploaded successfully!" << std::endl;
+				}
+				else
+					std::cout << "Error saving the file!" << std::endl;
+				delete[] postData;
+			}
 			break;
 		}
 		case 1:
