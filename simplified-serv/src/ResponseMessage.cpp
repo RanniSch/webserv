@@ -56,17 +56,69 @@ void	ResponseMessage::_chooseMethod( void ) // take from config file which metho
 	switch (i)
 	{
 		case 0:
+		{
 			// POST Method();
 			std::cout << "here comes the post method" << std::endl;
+			
+			// reads the POST data (file content)
+			char* postData = new char[_content.length()];
+			std::cin.read(postData, _content.length());
+
+			// Saves the uploaded file to a desired location
+			if ( _fileType == "jpg" || _fileType == "jpeg")
+			{
+				std::ofstream outputFile("/www/uploaded_file.jpg", std::ios::binary);
+				if (outputFile.is_open())
+				{
+					outputFile.write(postData, _content.length());
+					outputFile.close();
+					std::cout << "File uploaded successfully!" << std::endl;
+				}
+				else
+					std::cout << "Error saving the file!" << std::endl;
+				delete[] postData;
+			}
+			else if (_fileType == "png")
+			{
+				std::ofstream outputFile("/www/uploaded_file.png", std::ios::binary);
+				if (outputFile.is_open())
+				{
+					outputFile.write(postData, _content.length());
+					outputFile.close();
+					std::cout << "File uploaded successfully!" << std::endl;
+				}
+				else
+					std::cout << "Error saving the file!" << std::endl;
+				delete[] postData;
+			}
+			else if (_fileType == "gif")
+			{
+				std::ofstream outputFile("/www/uploaded_file.gif", std::ios::binary);
+				if (outputFile.is_open())
+				{
+					outputFile.write(postData, _content.length());
+					outputFile.close();
+					std::cout << "File uploaded successfully!" << std::endl;
+				}
+				else
+					std::cout << "Error saving the file!" << std::endl;
+				delete[] postData;
+			}
+			//else // it must be possible to upload any type of file (limited size), we only don't show every output in browser.
 			break;
+		}
 		case 1:
+		{
 			_GetMethod();
 			break;
+		}
 		case 4:
+		{
 			std::cout << "error" << std::endl;
 			//error no method that I know
 			// correct in parsing, there no error message
 			break;
+		}
 	}
 }
 
