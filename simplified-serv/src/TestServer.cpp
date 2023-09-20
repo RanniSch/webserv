@@ -315,6 +315,7 @@ void	TestServer::_pollReading(std::vector<pollfd>::iterator &_it, std::string &_
 		//_executeEventSequence(it->fd);
 		std::string request;
 		request = _buffer;
+		std::cout << request << std::endl; // here for testing
 		//processRequest(request);
 		//_responder("normal", it->fd);
 		RequestObj 							reqObj(request);
