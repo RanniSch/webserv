@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload Form</title>
+</head>
+<body>
+    <h1>Upload a File</h1>
+    <form action="127.0.0.1:8000" method="post" enctype="multipart/form-data">
+        <label for="file">Choose a file:</label>
+        <input type="file" name="file" id="file"><br><br>
+        
+        <label for="description">File description:</label>
+        <input type="text" name="description" id="description"><br><br>
+        
+        <input type="submit" value="Upload">
+    </form>
+</body>
+</html>
