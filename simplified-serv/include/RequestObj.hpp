@@ -4,6 +4,7 @@
 
 #include <map>
 #include <vector>
+#include <fstream>     // for std::ifstream
 
 class RequestObj: protected ParseableObject {
 	public:

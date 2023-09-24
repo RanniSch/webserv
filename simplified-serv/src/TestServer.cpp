@@ -1,5 +1,6 @@
 
 #include "../include/TestServer.hpp"
+#include <stdio.h>
 
 bool	g_server_shutdown = false;
 
@@ -315,7 +316,54 @@ void	TestServer::_pollReading(std::vector<pollfd>::iterator &_it, std::string &_
 		//_executeEventSequence(it->fd);
 		std::string request;
 		request = _buffer;
-		std::cout << request << std::endl; // here for testing
+		// std::cout << request << std::endl; // here for testing
+
+
+		int i = 0, f = 0;
+		char c;
+		while(_buffer[i])
+		{
+			if(_buffer[i] == '\r' && f == 2)
+				f = 3;
+			else if (_buffer[i] == '\r' && f == 0)
+				f = 1;
+			else if(_buffer[i] == '\n' && f == 1)
+				f = 2;
+			else if(_buffer[i] == '\n' && f == 3)
+				break;
+			else
+				f = 0;
+			c = _buffer[i];
+			printf("%c", c);
+			i++;
+		}
+		f = 0;
+		while(_buffer[i])
+		{
+			if(_buffer[i] == '\r' && f == 2)
+				f = 3;
+			else if (_buffer[i] == '\r' && f == 0)
+				f = 1;
+			else if(_buffer[i] == '\n' && f == 1)
+				f = 2;
+			else if(_buffer[i] == '\n' && f == 3)
+				break;
+			else
+				f = 0;
+			c = _buffer[i];
+			printf("%c", c);
+			i++;
+		}
+		char* jpegDataStart = &_buffer[++i];
+		std::ofstream outFile("uploaded.jpg", std::ios::binary);
+		if (outFile.is_open()) 
+		{
+			outFile.write(jpegDataStart, 32000);
+			outFile.close();
+		}
+
+
+
 		//processRequest(request);
 		//_responder("normal", it->fd);
 		RequestObj 							reqObj(request);
