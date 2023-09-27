@@ -19,6 +19,7 @@ class RequestObj: protected ParseableObject {
 		std::list<std::string>::iterator	_it;
 		std::pair<std::string, std::string> _pair;
 		std::map<std::string, std::string>	*_map;
+		std::string							_error;
 		// std::string							*methods;
 
 		void	_parseStartLine( void );

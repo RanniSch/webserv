@@ -12,7 +12,7 @@ RequestObj::~RequestObj()
 void	RequestObj::_parseStartLine( void )
 {
 	const int	size = 3;
-	std::string	methods[size] = {"GET", "POST", "DELETE"};
+	std::string	methods[size] = {"GET", "POST", "DELETE"}; // methoden aus config holen
 	bool		found_method_flag = false;
 
 	// looks if the request method is known
@@ -23,13 +23,15 @@ void	RequestObj::_parseStartLine( void )
 	}
 	if ( !found_method_flag )
 	{
-		// ----------------------------------------------------- ein error drauß machen
-		std::cout << "method of request not known" << std::endl;
-		// ----------------------------------------------------- return oder was?
+		// // ----------------------------------------------------- ein error drauß machen
+		// std::cout << "method of request not known" << std::endl;
+		// // ----------------------------------------------------- return oder was?
+		_error = "no valid request";
+		throw _error;
 	}
 	_pair = std::make_pair("Method", *_it++);
 	_map->insert(_pair);
-	_pair = std::make_pair("Target", *_it++);
+	_pair = std::make_pair("Target", *_it++); // wenn eines davon fehlt absturz
 	_map->insert(_pair);
 	_pair = std::make_pair("Version", *_it++);
 	_map->insert(_pair);

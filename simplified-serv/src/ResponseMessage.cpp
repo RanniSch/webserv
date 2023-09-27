@@ -1,10 +1,28 @@
 #include "../include/ResponseMessage.hpp"
 
 ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::string> > &config,\
-const std::map<std::string, std::string> &request_map )
-: _statusCode(0), _config(config), _request_map(request_map)
+ char* request_cstr )
+: _request_cstr(request_cstr), _statusCode(0), _config(config)
 {
 	_location = "";
+	std::string request;
+	request = request_cstr;
+	RequestObj 							reqObj(request);
+	try
+	{
+		reqObj.ParseIntoMap(_request_map);
+	}
+	catch(std::string str)
+	{
+		if (str == "no valid request")
+			std::cout << "maybe it's data" << std::endl; // for Ranja
+			// do something with it or make buffer bigger?
+	}
+	catch(...)
+	{
+		std::cout << "bad request" << std::endl; // for Max (send request again oder so)
+	}
+
 }
 
 ResponseMessage::~ResponseMessage( void )
@@ -40,7 +58,7 @@ std::string	ResponseMessage::createResponse( void )
 	return (_output);
 }
 
-void	ResponseMessage::_chooseMethod( void ) // take from config file which methods we want at accept
+void	ResponseMessage::_chooseMethod( void ) // take from config file which methods we want to accept
 {
 	const int		count_methods = 4;
 	std::string		methods[count_methods] = {"POST", "GET", "DELETE"};
@@ -56,8 +74,7 @@ void	ResponseMessage::_chooseMethod( void ) // take from config file which metho
 	switch (i)
 	{
 		case 0:
-			// POST Method();
-			std::cout << "here comes the post method" << std::endl;
+			_PostMethod();
 			break;
 		case 1:
 			_GetMethod();
@@ -68,6 +85,58 @@ void	ResponseMessage::_chooseMethod( void ) // take from config file which metho
 			// correct in parsing, there no error message
 			break;
 	}
+}
+
+void	ResponseMessage::_PostMethod( void )
+{
+	std::cout << "here comes the post method" << std::endl;
+	// Beispiel für Ranja
+	int i = 0, f = 0;
+		char c;
+		while(_request_cstr[i])
+		{
+			if(_request_cstr[i] == '\r' && f == 2)
+				f = 3;
+			else if (_request_cstr[i] == '\r' && f == 0)
+				f = 1;
+			else if(_request_cstr[i] == '\n' && f == 1)
+				f = 2;
+			else if(_request_cstr[i] == '\n' && f == 3)
+				break;
+			else
+				f = 0;
+			c = _request_cstr[i];
+			printf("%c", c);
+			i++;
+		}
+		f = 0;
+		while(_request_cstr[i])
+		{
+			if(_request_cstr[i] == '\r' && f == 2)
+				f = 3;
+			else if (_request_cstr[i] == '\r' && f == 0)
+				f = 1;
+			else if(_request_cstr[i] == '\n' && f == 1)
+				f = 2;
+			else if(_request_cstr[i] == '\n' && f == 3)
+				break;
+			else
+				f = 0;
+			c = _request_cstr[i];
+			printf("%c", c);
+			i++;
+		}
+		char* jpegDataStart = &_request_cstr[++i];
+		std::ofstream outFile("uploaded.jpg", std::ios::binary);
+		if (outFile.is_open()) 
+		{
+			
+			outFile.write(jpegDataStart, 3000); // die Dateigrösse müsste in der request map stehen und auch der dateiname
+			// wenn zu viel byte hier oben angegeben werden als der buffer gross ist dann gibts segfault
+			outFile.close();	// aber der buffer in testserver hat nicht so viel platz
+			// wenn bild korrekt erhalten wurde korrekten response erstellen (mit Max)
+		}
+	// Ende Beispiel für Ranja
 }
 
 void	ResponseMessage::_GetMethod( void )

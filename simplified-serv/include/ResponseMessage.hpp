@@ -15,14 +15,18 @@
 #include <sys/types.h> // check for directory
 #include <sys/stat.h> // check for directory
 
+#include "RequestObj.hpp"
+
 // canonnical form!!!
 class ResponseMessage {
 	public:
-		ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, const std::map<std::string, std::string> &request_map );
+		ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, char* request_cstr );
+		// ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, const std::map<std::string, std::string> &request_map );
 		~ResponseMessage( void );
 		std::string	createResponse( void );
 
 	private:
+		char*			_request_cstr;
 		std::string		_output;
 		std::string		_content;
 		std::string		_contentType;
@@ -33,9 +37,10 @@ class ResponseMessage {
 		
 
 		const std::map<std::string, std::vector<std::string> >		&_config;
-		const std::map<std::string, std::string>					&_request_map;
+		std::map<std::string, std::string>							_request_map;
 
 		void			_chooseMethod( void );
+		void			_PostMethod( void );
 		void			_GetMethod( void );
 		// std::string		_createStartLine( void );
 		std::string		_createContentFromFile( std::string filepath, int statusCode );

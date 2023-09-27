@@ -279,9 +279,10 @@ void	TestServer::_pollReading(std::vector<pollfd>::iterator &_it, std::string &_
 		_acceptConnection(std::distance(_sockets_for_poll.begin(), _it));
 		std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
 	}
-	else if (recv(_it->fd, _buffer, 30000, 0) != 0)
+	else if (recv(_it->fd, _buffer, 30000, 0) != 0) // how many bytes we want to read?
 	{
 		std::cout << "READ AND EXECUTE: Thre is something to read => " << std::endl;
+		
 		// //TESTINT
 		char cwd[PATH_MAX];
 		if (getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -309,23 +310,13 @@ void	TestServer::_pollReading(std::vector<pollfd>::iterator &_it, std::string &_
 		buf_vec.push_back("error.html");
 		pair = std::make_pair("error404", buf_vec);
 		config.insert(pair);
-
 		//TESTING
+
 		// Parsing of the request and excecuting should happen here
 		//_executeEventSequence(it->fd);
-		std::string request;
-		request = _buffer;
-		std::cout << request << std::endl; // here for testing
-		//processRequest(request);
-		//_responder("normal", it->fd);
-		RequestObj 							reqObj(request);
-		std::map<std::string, std::string>	request_map;
-								
-		reqObj.ParseIntoMap(request_map);
-
-		ResponseMessage responseObj(config, request_map);
+		ResponseMessage responseObj(config, _buffer);
 		_responseStr = responseObj.createResponse();
-								// _handler();
+
 		_client_sockets.at(_it->fd).setSocketRequest(true);
 		std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
 	}
