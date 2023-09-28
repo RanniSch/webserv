@@ -12,35 +12,41 @@ ConfigServer::~ConfigServer()
 
 void	ConfigServer::push( std::string str )
 {
-	_serverConf.push(str);
+	_commonServerConf.push(str);
 }
 
 void	ConfigServer::vec_clear()
 {
-	_serverConf.vec_clear();
+	_commonServerConf.vec_clear();
 }
 
 // if the key already exists update the value
 void	ConfigServer::insert( std::string key )
 {
-	_serverConf.insert( key );
+	_commonServerConf.insert( key );
 }
 
 void	ConfigServer::print()
 {
-	_serverConf.print();
+	_commonServerConf.print();
 }
 
 void	ConfigServer::print_vec()
 {
-	_serverConf.print_vec();
+	_commonServerConf.print_vec();
 }
 
+
+/**
+ * @brief A location_map will be configured and put at the end of the map _location_map.
+	StrVecMap	_location_map_temp; -> _location_map
+ * 
+ */
 void	ConfigServer::newLocation( std::list<std::string>::iterator &start, std::list<std::string> &stapel )
 {
 	std::string							location_target;
 	std::string							key;
-	StrVecMap							map;
+	StrVecMap							location_map_temp;
 	std::list<std::string>::iterator 	end;
 
 	start++;
@@ -71,13 +77,13 @@ void	ConfigServer::newLocation( std::list<std::string>::iterator &start, std::li
 		start++;
 		// start is on the first value
 		for ( ; *start != ";" && *start != "}"; start++)
-				map.push(*start);
+				location_map_temp.push(*start);
 		if (*start == "}")
 		{
 			std::string error = ": missing ';' in location{..}";
 			throw error;
 		}
-		map.insert(key);
+		location_map_temp.insert(key);
 	}
 
 	// if the key (here location target) already exists update the value (here the StrVectorMap)
@@ -85,13 +91,13 @@ void	ConfigServer::newLocation( std::list<std::string>::iterator &start, std::li
 
 	buf = _location_map.find(location_target);
 	if ( buf != _location_map.end() )
-		buf -> second = map;
+		buf -> second = location_map_temp;
 	else
-		_location_map.insert(std::make_pair(location_target, map));
+		_location_map.insert(std::make_pair(location_target, location_map_temp));
 
 	//am ende funktion die guckt wie viele einträge hat ein bestimmter key. wenn z.b. listen zu viele hat fehler raus
 
-	print_locations();
+	// print_locations();
 
 
 	// map.push("hallo");

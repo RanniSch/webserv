@@ -53,11 +53,11 @@ server ...
 
 To store all the information in a structured way the following principle will be used:
 
-main.cpp Config						confObj
-	StrVecMap							_commonConfig
-	vector<ServerConfig>				_Server
-		StrVecMap						_serverConf
-		map<std::string, StrVecMap>		_location_map
+main.cpp			Config									confObj
+Config.cpp				StrVecMap							_commonConfig
+						vector<ConfigServer>				_Server
+ConfigServer.cpp			StrVecMap						_commonServerConf
+							map<std::string, StrVecMap>		_location_map
 */
 
 
@@ -75,7 +75,7 @@ class Config: protected ParseableObject {
 		StrVecMap											_commonConfig;
 		std::vector<ConfigServer>							_Server;
 
-		std::map<std::string, StrVecMap>					_location_map; // weg
+		// std::map<std::string, StrVecMap>					_location_map; // weg
 
 
 		void	_read_in_config_file();

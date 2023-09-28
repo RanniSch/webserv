@@ -54,8 +54,9 @@ Config::Config( const std::string &path_config_file)//, std::map<std::string, st
 			{
 				_newServer( start );
 				// _configLocation( start, _stapel );
-				start++;
-				key = *start;
+				// start++;
+				// key = *start;
+				continue;
 			}
 			start++;
 			//value.clear();
@@ -72,9 +73,8 @@ Config::Config( const std::string &path_config_file)//, std::map<std::string, st
 			// 	_config_map.insert(std::make_pair(key, value));
 			_commonConfig.insert(key);
 		}
-		_commonConfig.print();
+		// _commonConfig.print();
 
-		// check ob vor { entweder server steht oder 2 davor location (separate funktion)
 
 
 
@@ -213,8 +213,9 @@ std::list<std::string>::iterator	Config::_newServer( std::list<std::string>::ite
 		{
 			Server_temp.newLocation( start, _stapel );
 			// _configLocation( start, _stapel );
-			start++;
-			key = *start;
+			// start++;
+			// key = *start;
+			continue;
 		}
 		start++;
 		//value.clear();
@@ -231,7 +232,7 @@ std::list<std::string>::iterator	Config::_newServer( std::list<std::string>::ite
 		// 	_config_map.insert(std::make_pair(key, value));
 		Server_temp.insert(key);
 	}
-	Server_temp.print();
+	// Server_temp.print();
 	_Server.push_back(Server_temp);
 	return (start);
 

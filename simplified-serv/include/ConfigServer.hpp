@@ -18,7 +18,7 @@ class ConfigServer {
 		void	print_locations();
 
 	private:
-		StrVecMap							_serverConf;
+		StrVecMap							_commonServerConf;
 		std::string							_error;
 
 		std::map<std::string, StrVecMap>	_location_map;
