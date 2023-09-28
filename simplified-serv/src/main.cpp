@@ -17,7 +17,7 @@ int main( void )
 	// a config file as argument or use a default path 
 
 	// path_config_file = "/Users/maxrehberg/Documents/42Wolfsburg/webserv/webserve/simplified-serv/conf/webserve.conf";
-	// ConfigObj confObj(path_config_file);//, config_map);
+	// Config config(path_config_file);//, config_map);
 	
     TestServer server;
 
