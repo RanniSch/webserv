@@ -11,13 +11,13 @@ bool debug_var = false;
 int main( void )
 {
 	// open with a config file !! or open default config?
-	std::map<std::string, std::vector<std::string> >		config_map;
-	std::string												path_config_file;
+	// std::map<std::string, std::vector<std::string> >		config_map;
+	// std::string												path_config_file;
 
 	// a config file as argument or use a default path 
 
-	path_config_file = "/Users/maxrehberg/Documents/42Wolfsburg/webserv/webserve/simplified-serv/conf/webserve.conf";
-	Config config(path_config_file);//, config_map);
+	// path_config_file = "/Users/maxrehberg/Documents/42Wolfsburg/webserv/webserve/simplified-serv/conf/webserve.conf";
+	// Config config(path_config_file);//, config_map);
 	
     TestServer server;
 
