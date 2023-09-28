@@ -81,6 +81,7 @@ class Config: protected ParseableObject {
 		void								_read_in_config_file();
 		bool								_checkAndDeleteConfigHeader();
 		void								_deleteComments();
+		void								_checkAllowedCharacters();
 		bool								_checkCurlyBrackets( const std::string &input ) const;
 		void								_checkTokensInFrontOfCurlyBrackets();
 		void								_checkTokensInFrontOf_One_CurlyBracket( std::list<std::string>::iterator it );

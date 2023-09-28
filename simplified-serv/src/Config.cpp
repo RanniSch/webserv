@@ -24,6 +24,7 @@ Config::Config( const std::string &path_config_file)//, std::map<std::string, st
 			throw _error;
 		}
 		_deleteComments();
+		_checkAllowedCharacters();
 		if (!_checkCurlyBrackets(_input))
 		{
 			_error = ": wrong amount or wrong direction of curly brackets";
@@ -153,6 +154,22 @@ void	Config::_deleteComments()
 		len = end - begin;
 		_input.erase(begin, len);
 	}
+}
+
+void	Config::_checkAllowedCharacters()
+{
+	size_t result = 0;
+	std::string allowed = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ äüö ÄÜÖ ß 0123456789 {} _ ; \\ ~ \n\t\r /:.\0 -";
+
+	result = _input.find_first_not_of(allowed);
+	if (result != std::string::npos)
+	{
+		_error = ": not allowed character in config file '";
+		_error += _input.at(result);
+		_error += "'";
+		throw _error;
+	}
+
 }
 
 // returns true  when everything is allright
