@@ -36,7 +36,6 @@ void	ConfigServer::print_vec()
 	_commonServerConf.print_vec();
 }
 
-
 /**
  * @brief A location_map will be configured and put at the end of the map _location_map.
 	StrVecMap	_location_map_temp; -> _location_map
@@ -94,21 +93,7 @@ void	ConfigServer::newLocation( std::list<std::string>::iterator &start, std::li
 		buf -> second = location_map_temp;
 	else
 		_location_map.insert(std::make_pair(location_target, location_map_temp));
-
-	//am ende funktion die guckt wie viele einträge hat ein bestimmter key. wenn z.b. listen zu viele hat fehler raus
-
 	// print_locations();
-
-
-	// map.push("hallo");
-	// map.push("du");
-	// map.push("da");
-	// map.insert("satz");
-	// map.push("hallo");
-	// map.push("max");
-	// map.push("da");
-	// map.insert("begr");
-	// map.print();
 }
 
 void	ConfigServer::print_locations()
@@ -120,4 +105,71 @@ void	ConfigServer::print_locations()
 		std::cout << buf -> first << " :" << std::endl;
 		buf -> second.print();
 	}
+}
+
+/**
+ * @brief 
+ * 
+ * @return size_t number of _commonServerConf
+ */
+size_t	ConfigServer::size( void )
+{
+	return ( _commonServerConf.size() );
+}
+
+/**
+ * @brief returns the number of values of parameter str
+ * If str == "location" -> returns number of locations
+ * 
+ * @param str 
+ * @return size_t 
+ */
+size_t	ConfigServer::size( std::string str )
+{
+	if ( str == "location")
+	{
+		return ( _location_map.size() );
+	}
+	return ( _commonServerConf.size( str ) );
+}
+
+/**
+ * @brief returns number of parameters of the location number i
+ * when i is bigger then number of locations, it returns std::string::npos
+ * 
+ * @param i 
+ * @return size_t 
+ */
+size_t	ConfigServer::size( size_t loc )
+{
+	std::map<std::string, StrVecMap>::iterator it;
+
+	it = _location_map.begin();
+	for ( ; it != _location_map.end() && loc > 0; it++)
+		loc--;
+	if ( it == _location_map.end() )
+		return ( std::string::npos );
+	return ( it->second.size() );
+}
+
+/**
+ * @brief returns number of values of parameter of the location number loc
+ * when loc is bigger then number of locations, it returns std::string::npos
+ * 
+ * @param i 
+ * @return size_t 
+ */
+size_t	ConfigServer::size( size_t loc, std::string parameter )
+{
+	std::map<std::string, StrVecMap>::iterator it;
+
+	it = _location_map.begin();
+	for ( ; it != _location_map.end() && loc > 0; it++)
+		loc--;
+	if ( it == _location_map.end() )
+		return ( std::string::npos );
+	return ( it->second.size(parameter) );
+
+
+	// return ( it->second.size() );
 }

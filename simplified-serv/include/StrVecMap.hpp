@@ -16,6 +16,8 @@ class StrVecMap {
 		void	insert( std::string key );
 		void	print_vec();
 		void	print();
+		size_t	size( std::string str );
+		size_t	size( void );
 	
 	private:
 		std::map<std::string, std::vector<std::string> >	_map;

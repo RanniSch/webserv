@@ -53,7 +53,7 @@ server ...
 
 To store all the information in a structured way the following principle will be used:
 
-main.cpp			Config									confObj
+main.cpp			Config									config
 Config.cpp				StrVecMap							_commonConfig
 						vector<ConfigServer>				_Server
 ConfigServer.cpp			StrVecMap						_commonServerConf
@@ -67,16 +67,12 @@ class Config: protected ParseableObject {
 		~Config();
 
 	private:
-		std::string											_commentDelimiter;
-		std::string											_contentDelimiter;
-		const std::string 									&_path_config_file;
-		std::string											_error;
-		// std::map<std::string, std::vector<std::string> >	_config_map;
-		StrVecMap											_commonConfig;
-		std::vector<ConfigServer>							_Server;
-
-		// std::map<std::string, StrVecMap>					_location_map; // weg
-
+		std::string						_commentDelimiter;
+		std::string						_contentDelimiter;
+		const std::string 				&_path_config_file;
+		std::string						_error;
+		StrVecMap						_commonConfig;
+		std::vector<ConfigServer>		_server_vector;
 
 		void								_read_in_config_file();
 		bool								_checkAndDeleteConfigHeader();
@@ -86,6 +82,8 @@ class Config: protected ParseableObject {
 		void								_checkTokensInFrontOfCurlyBrackets();
 		void								_checkTokensInFrontOf_One_CurlyBracket( std::list<std::string>::iterator it );
 		std::list<std::string>::iterator	_newServer( std::list<std::string>::iterator &start );
+		void								_checkParametersWhereOnlyOneValueIsAllowed( void );
+
 };
 
 

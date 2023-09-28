@@ -13,7 +13,6 @@ Config::Config( const std::string &path_config_file)//, std::map<std::string, st
 	//check if it is a textfile // for example first line should be "! webserve config file !" or something
 	try
 	{
-		// std::list<std::string>::iterator 	it;
 		std::list<std::string>::iterator 	start;
 		std::string							key;
 
@@ -35,24 +34,12 @@ Config::Config( const std::string &path_config_file)//, std::map<std::string, st
 		deleteChars("\t");
 		deleteChars("\n");
 		_checkTokensInFrontOfCurlyBrackets();
-
-
-
 		start = _find("server");
 		if (start == _stapel.end())
 		{
 			_error = ": no server opened";
 			throw _error;
 		}
-		// it = _newServer(it);
-
-
-
-		// std::list<std::string>::iterator 	end;
-		// std::map<std::string, std::vector<std::string> >::iterator 	buf;
-		// std::vector <std::string>			value;
-		// ConfigServer						servConf;
-		
 
 		for ( start = _stapel.begin() ; start != _stapel.end(); start++ )
 		{
@@ -60,51 +47,32 @@ Config::Config( const std::string &path_config_file)//, std::map<std::string, st
 			if (key == "server")
 			{
 				_newServer( start );
-				// _configLocation( start, _stapel );
-				// start++;
-				// key = *start;
 				continue;
 			}
 			start++;
-			//value.clear();
 			_commonConfig.vec_clear();
 			for ( ; *start != ";" && start != _stapel.end(); start++)
-			{
-				//value.push_back(*start);
 				_commonConfig.push(*start);
-			}
-			//buf = _config_map.find(key);
-			// if ( buf != _config_map.end() )
-			// 	buf -> second = value;
-			// else
-			// 	_config_map.insert(std::make_pair(key, value));
 			_commonConfig.insert(key);
 		}
+		_checkParametersWhereOnlyOneValueIsAllowed();
+
+
 		// _commonConfig.print();
-
-
-
-
-
-
-
-
-
+		// size_t i = _server_vector.at(0).size();
+		// i = _server_vector.at(0).size("listen1\\");
+		// i = _server_vector.at(0).size("location");
+		// i = _server_vector.at(0).size(0);
+		// i = _server_vector.at(0).size(0, "proxy_pass");
+		// i = _server_vector.at(0).size(1, "Name");
+		// i = _server_vector.at(0).size(2, "Name");
+		// i = _server_vector.at(0).size(2, "expires");
+		// if ( i ) 
+		// 	i = 2;
 	}
 	catch(std::string str)
 	{
 		std::cout << "ERROR in Config File";
-
-		// if( str == "no_server_opened" )
-		// {
-		// 	std::cout << "no Server is opened in config file" << std::endl;
-		// 	exit(1);
-		// }
-		// else if ( str == "server_directive_not_closed" )
-		// {
-		// 	std::cout << "a server directive is not closed with a }" << std::endl;
-		// 	exit(1);
-		// }
 		std::cout << str << std::endl;
 		exit(1);
 	}
@@ -159,7 +127,8 @@ void	Config::_deleteComments()
 void	Config::_checkAllowedCharacters()
 {
 	size_t result = 0;
-	std::string allowed = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ äüö ÄÜÖ ß 0123456789 {} _ ; \\ ~ \n\t\r /:.\0 -";
+	// std::string allowed = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ äüö ÄÜÖ ß 0123456789 {} _ ; \\ ~ \n\t\r /:.\0 -";
+	std::string allowed = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 {} _ ; \\ ~ \n\t\r /:.\0 -";
 
 	result = _input.find_first_not_of(allowed);
 	if (result != std::string::npos)
@@ -242,8 +211,8 @@ void	Config::_checkTokensInFrontOf_One_CurlyBracket( std::list<std::string>::ite
 }
 
 /**
- * @brief A Server will be configured and put at the end of the vector _Server.
-	ConfigServer	Server_temp; -> _Server
+ * @brief A Server will be configured and put at the end of the vector _server_vector.
+	ConfigServer	Server_temp; -> _server_vector
  * 
  */
 std::list<std::string>::iterator	Config::_newServer( std::list<std::string>::iterator &start )
@@ -296,66 +265,29 @@ std::list<std::string>::iterator	Config::_newServer( std::list<std::string>::ite
 		Server_temp.insert(key);
 	}
 	// Server_temp.print();
-	_Server.push_back(Server_temp);
+	_server_vector.push_back(Server_temp);
 	return (start);
 
 }
 
-//void	Config::_configLocation( std::list<std::string>::iterator &start, std::list<std::string> &stapel )
-// {
-// 	std::string							location_key;//location target
-// 	std::string							key;
-// 	StrVecMap							map;
-// 	std::list<std::string>::iterator 	end;
+void	Config::_checkParametersWhereOnlyOneValueIsAllowed()
+{
+	size_t			result;
+	const int 		count_para = 3;
+	std::string		parameters[count_para] = {"listen", "Root1", "root1"};
 
-// 	start++;
-// 	location_key = *start;
-// 	start++;
-// 	// now start is on {
-// 	if (*start != "{")
-// 	{
-// 		std::string error = ": location error near '{'";
-// 		throw error;
-// 	}
-// 	end = end_of_leveled_directive(start, stapel.end(), "{}");
-// 	if (end == stapel.end())
-// 	{
-// 		std::string error = ": some server config is causing an error";
-// 		throw _error;
-// 	}
-// 	if ( return_num_of_sub_levels(start, end, "{}") != 0)
-// 	{
-// 		std::string error = ": illegal curly brackets in location{..}";
-// 		throw error;
-// 	}
-// 	start++;
-// 	// start is on the first key
-// 	for ( ; start != end; start++)
-// 	{		
-// 		key = *start;
-// 		start++;
-// 		// start is on the first value
-// 		for ( ; *start != ";" && *start != "}"; start++)
-// 				map.push(*start);
-// 		if (*start == "}")
-// 		{
-// 			std::string error = ": missing ';' in location{..}";
-// 			throw error;
-// 		}
-// 		map.insert(key);
-// 	}
+	for ( size_t i = 0; i < count_para; i++ )
+	{
+		result = _commonConfig.size(parameters[i]);
+		if ( result > 1)
+		{
+			_error = ": parameter '";
+			_error += parameters[i];
+			_error += "' should only have one value";
+			throw _error;
+		}
+	}
+	// the same for subconfigs and server
+	// ';' bei jeder zeile außer server und so pflicht?
+}
 
-// 	//am ende funktion die guckt wie viele einträge hat ein bestimmter key. wenn z.b. listen zu viele hat fehler raus
-
-
-
-// 	// map.push("hallo");
-// 	// map.push("du");
-// 	// map.push("da");
-// 	// map.insert("satz");
-// 	// map.push("hallo");
-// 	// map.push("max");
-// 	// map.push("da");
-// 	// map.insert("begr");
-// 	// map.print();
-// }

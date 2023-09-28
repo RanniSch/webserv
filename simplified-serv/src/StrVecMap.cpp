@@ -52,3 +52,23 @@ void	StrVecMap::_print_string_vector( std::vector <std::string> vec )
 		std::cout << *it << " ";
 	std::cout << std::endl;
 }
+
+size_t	StrVecMap::size( std::string str )
+{
+	std::map<std::string, std::vector<std::string> >::iterator	it;
+
+	it = _map.find(str);
+	if (it == _map.end() )
+		return 0;
+	return ( it->second.size() );
+}
+
+/**
+ * @brief returns number of items
+ * 
+ * @return size_t 
+ */
+size_t	StrVecMap::size( void )
+{
+	return ( _map.size() );
+}
