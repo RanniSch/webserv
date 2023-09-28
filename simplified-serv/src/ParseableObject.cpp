@@ -86,15 +86,37 @@ void ParseableObject::lexer\
 	}
 }
 
+/**
+ * @brief looks for str in _stapel
+ * 
+ * @param str 
+ * @return std::list<std::string>::iterator 
+ */
 std::list<std::string>::iterator ParseableObject::_find( std::string str)
 {
-	std::list<std::string>::iterator 	it;
+	std::list<std::string>::iterator	start;
 
-	for (it =_stapel.begin(); it != _stapel.end(); it++)
+	start = _stapel.begin();
+	std::string str_ = *start; // testing
+	return (_find(str, start));
+
+
+	// for (it =_stapel.begin(); it != _stapel.end(); it++)
+	// {
+	// 	if (it->find(str) != std::string::npos && str.length() == it->length())
+	// 		return it;
+	// }
+	// return ( _stapel.end() );
+}
+
+std::list<std::string>::iterator ParseableObject::_find( std::string str, std::list<std::string>::iterator start)
+{
+	std::string skjfd;
+	for ( ; start != _stapel.end(); start++)
 	{
-		if (it->find(str) != std::string::npos && str.length() == it->length())
-			return it;
+		skjfd = *start; // testung
+		if (start->find(str) != std::string::npos && str.length() == start->length())
+			return start;
 	}
 	return ( _stapel.end() );
 }
-

@@ -19,4 +19,5 @@ class ParseableObject {
 		std::list<std::string>				_stapel;
 		
 		std::list<std::string>::iterator	_find( std::string str);
+		std::list<std::string>::iterator	_find( std::string str, std::list<std::string>::iterator start);
 };

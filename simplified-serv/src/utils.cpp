@@ -82,6 +82,19 @@ void	print_string_vector( std::vector <std::string> vec )
 	std::cout << std::endl;
 }
 
+int	find_me( std::list<std::string>::iterator start, std::list<std::string>::iterator find_me )
+{
+	int index = 0;
+	
+	for ( ; start != find_me && index < 1000; start++)
+		index++;
+	if ( index >= 1000 )
+		return (-1);
+	return ( index );
+}
+
+
+
 // std::list<std::string>::iterator find_str_in_list( std::list<std::string> list, std::string str, int start)
 // {
 // 	std::list<std::string>::iterator 	it;

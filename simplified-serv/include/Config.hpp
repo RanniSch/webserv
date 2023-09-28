@@ -78,13 +78,13 @@ class Config: protected ParseableObject {
 		// std::map<std::string, StrVecMap>					_location_map; // weg
 
 
-		void	_read_in_config_file();
-		bool	_checkAndDeleteConfigHeader();
-		void	_deleteComments();
-		bool	_checkCurlyBrackets( const std::string &input ) const;
-		// void	_newServer( std::list<std::string>::iterator &start );
+		void								_read_in_config_file();
+		bool								_checkAndDeleteConfigHeader();
+		void								_deleteComments();
+		bool								_checkCurlyBrackets( const std::string &input ) const;
+		void								_checkTokensInFrontOfCurlyBrackets();
+		void								_checkTokensInFrontOf_One_CurlyBracket( std::list<std::string>::iterator it );
 		std::list<std::string>::iterator	_newServer( std::list<std::string>::iterator &start );
-		//void	_configLocation( std::list<std::string>::iterator &start, std::list<std::string> &stapel );
 };
 
 

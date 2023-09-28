@@ -13,11 +13,16 @@ Config::Config( const std::string &path_config_file)//, std::map<std::string, st
 	//check if it is a textfile // for example first line should be "! webserve config file !" or something
 	try
 	{
-		std::list<std::string>::iterator 	it;
+		// std::list<std::string>::iterator 	it;
 		std::list<std::string>::iterator 	start;
+		std::string							key;
 
 		_read_in_config_file();
-		_checkAndDeleteConfigHeader();
+		if (!_checkAndDeleteConfigHeader())
+		{
+			_error = ": wrong config Header. The very first thing in the config file has to be:'! webserve config file !'";
+			throw _error;
+		}
 		_deleteComments();
 		if (!_checkCurlyBrackets(_input))
 		{
@@ -28,15 +33,16 @@ Config::Config( const std::string &path_config_file)//, std::map<std::string, st
 		deleteChars(" ");
 		deleteChars("\t");
 		deleteChars("\n");
+		_checkTokensInFrontOfCurlyBrackets();
 
 
 
-		// it = _find("server");
-		// if (it == _stapel.end())
-		// {
-		// 	_error = ": no server opened";
-		// 	throw _error;
-		// }
+		start = _find("server");
+		if (start == _stapel.end())
+		{
+			_error = ": no server opened";
+			throw _error;
+		}
 		// it = _newServer(it);
 
 
@@ -45,7 +51,7 @@ Config::Config( const std::string &path_config_file)//, std::map<std::string, st
 		// std::map<std::string, std::vector<std::string> >::iterator 	buf;
 		// std::vector <std::string>			value;
 		// ConfigServer						servConf;
-		std::string							key;
+		
 
 		for ( start = _stapel.begin() ; start != _stapel.end(); start++ )
 		{
@@ -177,6 +183,46 @@ bool	Config::_checkCurlyBrackets( const std::string &input ) const
 	return ( true );
 }
 
+void	Config::_checkTokensInFrontOfCurlyBrackets()
+{
+	std::list<std::string>::iterator 	it;//, buf;
+
+	_error = ": wrong usage of an opening curly bracket '{'. Only 'server' or 'location <with_a_location>' has to come right before '{'. It is case sensitive.";
+
+	int i = 0; // testung
+
+	for ( it = _stapel.begin() ; it != _stapel.end() ; it++)
+	{
+		it = _find("{", it);
+		i = find_me(_stapel.begin(), it); // testung
+		if ( it == _stapel.end() )
+			return;
+		// buf = it;
+		_checkTokensInFrontOf_One_CurlyBracket( it );
+	}
+	if ( i ) // testung
+		return;
+
+}
+
+void	Config::_checkTokensInFrontOf_One_CurlyBracket( std::list<std::string>::iterator it )
+{
+	_error = ": wrong usage of an opening curly bracket '{'. Only 'server' or 'location <with_a_location>' has to come right before '{'. It is case sensitive.";
+
+	if ( it == _stapel.begin() )
+		throw _error;
+	it--;
+	// it is now one before '{'
+	if ( *it == "server" )
+		return;
+	if ( it == _stapel.begin())
+		throw _error;
+	it--;
+	// it is now two before '{'
+	if ( *it == "location" )
+		return;
+	throw _error;
+}
 
 /**
  * @brief A Server will be configured and put at the end of the vector _Server.
