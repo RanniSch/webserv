@@ -63,13 +63,13 @@ ConfigServer.cpp			StrVecMap						_commonServerConf
 
 class Config: protected ParseableObject {
 	public:
-		Config( const std::string &path_config_file);//, std::map<std::string, std::vector<std::string> > &config_map );
+		Config( const char* path_config_file);//, std::map<std::string, std::vector<std::string> > &config_map );
 		~Config();
 
 	private:
 		std::string						_commentDelimiter;
 		std::string						_contentDelimiter;
-		const std::string 				&_path_config_file;
+		const char* 					_path_config_file;
 		std::string						_error;
 		StrVecMap						_commonConfig;
 		std::vector<ConfigServer>		_server_vector;

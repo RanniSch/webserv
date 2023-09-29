@@ -1,6 +1,6 @@
 #include "../include/Config.hpp"
 
-Config::Config( const std::string &path_config_file)//, std::map<std::string, std::vector<std::string> > &config_map )
+Config::Config( const char* path_config_file)//, std::map<std::string, std::vector<std::string> > &config_map )
 : _commentDelimiter("#"), _contentDelimiter("\t "), _path_config_file(path_config_file) //, _config_map(config_map), _input(""), _defaultDelimiter("\r\n")
 
 {
@@ -87,14 +87,32 @@ Config::~Config()
 
 void	Config::_read_in_config_file()
 {
-	std::ifstream conf_file(_path_config_file.c_str());
-	if (!conf_file.is_open())
+	try
 	{
-		_error = ": cannot open file";
-		throw _error;
+		std::ifstream conf_file(_path_config_file);
+		if (!conf_file.is_open())
+		{
+			_error = "Information: cannot open your config file. Will take default Config.";
+			throw _error;
+		}
+		_input = std::string( (std::istreambuf_iterator<char>(conf_file) ), (std::istreambuf_iterator<char>() ) );
+		conf_file.close();
 	}
-	_input = std::string( (std::istreambuf_iterator<char>(conf_file) ), (std::istreambuf_iterator<char>() ) );
-	conf_file.close();
+	catch( std::string str)
+	{
+		std::cout << _error << std::endl;
+		// try to open default config file
+		std::ifstream conf_file("conf/default.conf");
+		if (!conf_file.is_open())
+		{
+			_error = ": cannot open default config file.";
+			throw _error;
+		}
+		_input = std::string( (std::istreambuf_iterator<char>(conf_file) ), (std::istreambuf_iterator<char>() ) );
+		conf_file.close();
+	}
+	// _input = std::string( (std::istreambuf_iterator<char>(conf_file) ), (std::istreambuf_iterator<char>() ) );
+	// conf_file.close();
 }
 
 bool	Config::_checkAndDeleteConfigHeader()
