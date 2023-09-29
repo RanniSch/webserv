@@ -118,7 +118,7 @@ size_t	ConfigServer::size( void )
 }
 
 /**
- * @brief returns the number of values of parameter str
+ * @brief returns the number of values of parameter str from _commonServerConf
  * If str == "location" -> returns number of locations
  * 
  * @param str 

@@ -273,9 +273,12 @@ std::list<std::string>::iterator	Config::_newServer( std::list<std::string>::ite
 void	Config::_checkParametersWhereOnlyOneValueIsAllowed()
 {
 	size_t			result;
-	const int 		count_para = 3;
-	std::string		parameters[count_para] = {"listen", "Root1", "root1"};
+	size_t	 		count_server;
+	size_t	 		count_location;
+	const int 		count_para = 4;
+	std::string		parameters[count_para] = {"listen", "Root1", "root1", "root2"}; // set the right ones
 
+	// for the common config
 	for ( size_t i = 0; i < count_para; i++ )
 	{
 		result = _commonConfig.size(parameters[i]);
@@ -287,7 +290,42 @@ void	Config::_checkParametersWhereOnlyOneValueIsAllowed()
 			throw _error;
 		}
 	}
-	// the same for subconfigs and server
-	// ';' bei jeder zeile außer server und so pflicht?
+	// For the common Server configs
+	count_server = _server_vector.size();
+	for ( ; count_server > 0; count_server--)
+	{
+		for ( size_t i = 0; i < count_para; i++)
+		{
+			result = _server_vector.at(count_server-1).size(parameters[i]);
+			if ( result > 1)
+			{
+				_error = ": parameter '";
+				_error += parameters[i];
+				_error += "' should only have one value";
+				throw _error;
+			}
+		}
+	}
+	// For the parameters in the locations in the servers (be carefull, server and location will be counted backwarts)
+	count_server = _server_vector.size();
+	for ( ; count_server > 0; count_server--)
+	{
+		count_location = _server_vector.at(count_server-1).size("location");		
+		for ( ; count_location > 0; count_location--)
+		{
+			for ( size_t i = 0; i < count_para; i++)
+			{
+				result = _server_vector.at(count_server-1).size(count_location-1, parameters[i]);
+				if ( result > 1)
+				{
+					_error = ": parameter '";
+					_error += parameters[i];
+					_error += "' should only have one value";
+					throw _error;
+				}
+			}
+
+		}
+	}
 }
 
