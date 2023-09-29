@@ -4,6 +4,7 @@
 #include "StrVecMap.hpp"
 #include "ConfigServer.hpp"
 #include "utils.h"
+#include <stdlib.h>
 
 #include <map>
 #include <vector>
