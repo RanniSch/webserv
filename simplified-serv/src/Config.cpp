@@ -80,6 +80,8 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 	{
 		std::cout << "ERROR: unknown error while parsing the config file" << std::endl; 
 	}
+		// std::string ha;
+		// ha = this.get("")
 }
 
 Config::~Config()
@@ -346,4 +348,88 @@ void	Config::_checkParametersWhereOnlyOneValueIsAllowed()
 		}
 	}
 }
+
+//  ------------------------
+// 		_commonConfig
+//  ------------------------
+
+/**
+ * @brief returns the number of values of parameter from _commonConf
+ * If parameter == "server", returns the number of servers
+ * If no parameter with that name returns 0
+ * 
+ * @param str 
+ * @return size_t 
+ */
+size_t	Config::size( std::string parameter )
+{
+	if ( parameter == "server")
+		return( _server_vector.size() );
+	return (_commonConfig.size(parameter) );
+}
+
+/**
+ * @brief gets you the value, number n, from parameter from _commonConfig
+ * when the parameter does not exist, returns ""
+ * when n is bigger than count of values, returns ""
+ * @param str 
+ * @param n 
+ * @return std::string 
+ */
+std::string	Config::get( std::string parameter, size_t n )
+{
+	std::string ret;
+	try
+	{
+		ret = _commonConfig.get( parameter, n );
+	}
+	catch( std::string str)
+	{
+		if ( str == "parameter_not_found")
+			return ( "" );
+		if ( str == "value_not_found")
+			return ( "" );
+	}
+	return ( ret );
+}
+
+//  ------------------------
+// 		GO INTO SERVER
+//  ------------------------
+
+/**
+ * @brief go into server
+ * gets you the value, number n, from parameter of server (number) from _commonServerConf
+ * when n is bigger than count of server, returns ""
+ * when n is bigger than count of values, returns ""
+ * when the parameter does not exist in _commonServerConf, it looks for it in _commonConfig
+ * * when the parameter also does not exist in _commonConfig, returns ""
+ * 
+ * @param parameter 
+ * @param n 
+ * @return std::string 
+ */
+// std::string	Config::get( size_t server, std::string parameter, size_t n )
+// {
+// 	size_t count_server = _server_vector.size();
+// 	if ( server > count_server )
+// 		return "";
+// 	_server_vector.at(server)
+
+// 	for ( ; count_server > 0; count_server--)
+// 	{
+// 		for ( size_t i = 0; i < count_para; i++)
+// 		{
+// 			result = _server_vector.at(count_server-1).size(parameters[i]);
+// 			if ( result > 1)
+// 			{
+// 				_error = ": parameter '";
+// 				_error += parameters[i];
+// 				_error += "' should only have one value";
+// 				throw _error;
+// 			}
+// 		}
+// 	}
+// 	return (_commonConfig.get( parameter, n) );
+// }
 

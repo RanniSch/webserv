@@ -12,6 +12,9 @@
 
 /* DATA STRUCTURES in Config
 
+double Parameters:	the last one counts
+Parameterladder:	if a parameter is not in location, it will be searched for it in _commonServerConfig, and if it's not there, it will be searched for in _commonConfig
+
 I assume that a config file can have multiple parameters with multiple values.
 It also can have multiple Server with themselves multiple parameters with multiple Values.
 Each Server can have multiple locations with themselves multiple Parameters with multiple Values.
@@ -67,6 +70,15 @@ class Config: protected ParseableObject {
 		Config( const char* path_config_file);//, std::map<std::string, std::vector<std::string> > &config_map );
 		~Config();
 
+		//  ------------------------
+		// 		_commonConfig
+		//  ------------------------
+		std::string			get( std::string str, size_t n );
+		size_t				size( std::string str );
+		//  ------------------------
+		// 		GO INTO SERVER
+		//  ------------------------
+
 	private:
 		std::string						_commentDelimiter;
 		std::string						_contentDelimiter;
@@ -84,6 +96,8 @@ class Config: protected ParseableObject {
 		void								_checkTokensInFrontOf_One_CurlyBracket( std::list<std::string>::iterator it );
 		std::list<std::string>::iterator	_newServer( std::list<std::string>::iterator &start );
 		void								_checkParametersWhereOnlyOneValueIsAllowed( void );
+
+		
 
 };
 
