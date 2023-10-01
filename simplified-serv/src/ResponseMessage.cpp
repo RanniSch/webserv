@@ -7,6 +7,7 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	_location = "";
 	std::string request;
 	request = request_cstr;
+	std::cout << request_cstr << std::endl;   // testing
 	RequestObj 							reqObj(request);
 	try
 	{

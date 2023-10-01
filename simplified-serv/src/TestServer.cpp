@@ -247,7 +247,7 @@ int		checkPollAction(short revents, std::map<int, ClientSocket> &client_sockets,
 {
 	if (revents & POLLIN)
 		return (1);
-	if (revents & POLLOUT && client_sockets.at(fd).getSocketRequest() == true)
+	if (revents & POLLOUT && client_sockets.find(fd)->second.getSocketRequest() == true)
 		return (2);
 	if (revents & POLLHUP)
 	{
@@ -362,7 +362,7 @@ void    TestServer::launch()
 								_acceptConnection(index);
 								std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
 							}
-							else if (recv(it->fd, _buffer, 30000, 0) != 0) // how many bytes we want to read?
+							else if (recv(it->fd, _buffer, 300000, 0) != 0) // how many bytes we want to read?
 							{
 								std::cout << "READ AND EXECUTE: Thre is something to read => " << std::endl;
 								
