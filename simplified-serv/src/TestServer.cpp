@@ -268,59 +268,59 @@ void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, std::string &_
 	std::cout << "RESPONDING BY WRITING => " << std::endl;
 	std::cout << "responseStr: " << _responseStr << std::endl;
 	write(_it->fd, _responseStr.c_str(), _responseStr.length());
-	_client_sockets.at(_it->fd).setSocketRequest(false);
+	_client_sockets.find(_it->fd)->second.setSocketRequest(false);
 }
 
-void	TestServer::_pollReading(std::vector<pollfd>::iterator &_it, std::string &_responseStr)
-{
-	if (_it < _sockets_for_poll.begin() + _nbr_of_ports)
-	{
-		std::cout << "ACCEPT CONNECTION => " << std::endl;
-		_acceptConnection(std::distance(_sockets_for_poll.begin(), _it));
-		std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
-	}
-	else if (recv(_it->fd, _buffer, 30000, 0) != 0) // how many bytes we want to read?
-	{
-		std::cout << "READ AND EXECUTE: Thre is something to read => " << std::endl;
+// void	TestServer::_pollReading(std::vector<pollfd>::iterator &_it, std::string &_responseStr)
+// {
+// 	if (_it < _sockets_for_poll.begin() + _nbr_of_ports)
+// 	{
+// 		std::cout << "ACCEPT CONNECTION => " << std::endl;
+// 		_acceptConnection(std::distance(_sockets_for_poll.begin(), _it));
+// 		std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
+// 	}
+// 	else if (recv(_it->fd, _buffer, 30000, 0) != 0) // how many bytes we want to read?
+// 	{
+// 		std::cout << "READ AND EXECUTE: Thre is something to read => " << std::endl;
 		
-		// //TESTINT
-		char cwd[PATH_MAX];
-		if (getcwd(cwd, sizeof(cwd)) != NULL) {
-		}
-		else 
-		{
-			perror("getcwd() error");
-		}
-		std::string path;
-		path.append(cwd);
+// 		// //TESTINT
+// 		char cwd[PATH_MAX];
+// 		if (getcwd(cwd, sizeof(cwd)) != NULL) {
+// 		}
+// 		else 
+// 		{
+// 			perror("getcwd() error");
+// 		}
+// 		std::string path;
+// 		path.append(cwd);
 
-		std::map<std::string, std::vector<std::string> >	config;
-		std::vector<std::string> 							buf_vec;
+// 		std::map<std::string, std::vector<std::string> >	config;
+// 		std::vector<std::string> 							buf_vec;
 
-		buf_vec.push_back(path);
-		// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
-		std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
-		config.insert(pair);
-		buf_vec.clear();
-		buf_vec.push_back("index.htm");
-		buf_vec.push_back("index.html");
-		pair = std::make_pair("index", buf_vec);
-		config.insert(pair);
-		buf_vec.clear();
-		buf_vec.push_back("error.html");
-		pair = std::make_pair("error404", buf_vec);
-		config.insert(pair);
-		//TESTING
+// 		buf_vec.push_back(path);
+// 		// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
+// 		std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
+// 		config.insert(pair);
+// 		buf_vec.clear();
+// 		buf_vec.push_back("index.htm");
+// 		buf_vec.push_back("index.html");
+// 		pair = std::make_pair("index", buf_vec);
+// 		config.insert(pair);
+// 		buf_vec.clear();
+// 		buf_vec.push_back("error.html");
+// 		pair = std::make_pair("error404", buf_vec);
+// 		config.insert(pair);
+// 		//TESTING
 
-		// Parsing of the request and excecuting should happen here
-		//_executeEventSequence(it->fd);
-		ResponseMessage responseObj(config, _buffer);
-		_responseStr = responseObj.createResponse();
+// 		// Parsing of the request and excecuting should happen here
+// 		//_executeEventSequence(it->fd);
+// 		ResponseMessage responseObj(config, _buffer);
+// 		_responseStr = responseObj.createResponse();
 
-		_client_sockets.at(_it->fd).setSocketRequest(true);
-		std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
-	}
-}
+// 		_client_sockets.at(_it->fd).setSocketRequest(true);
+// 		std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
+// 	}
+// }
 
 void    TestServer::launch()
 {
@@ -348,13 +348,62 @@ void    TestServer::launch()
 				perror(RED "ERROR: poll() has timed out: " BLANK);
 				break;
 			default:
+				int index = 0;
 				for (std::vector<pollfd>::iterator it = _sockets_for_poll.begin(); it != _sockets_for_poll.end() && ready != 0; it++)
 				{
 					int	action = checkPollAction(it->revents, _client_sockets, it->fd);
 					switch(action)
 					{
 						case(READING):
-							_pollReading(it, responseStr);
+							//_pollReading(it, responseStr);
+							if (it < _sockets_for_poll.begin() + _nbr_of_ports)
+							{
+								std::cout << "ACCEPT CONNECTION => " << std::endl;
+								_acceptConnection(index);
+								std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
+							}
+							else if (recv(it->fd, _buffer, 30000, 0) != 0) // how many bytes we want to read?
+							{
+								std::cout << "READ AND EXECUTE: Thre is something to read => " << std::endl;
+								
+								// //TESTINT
+								char cwd[PATH_MAX];
+								if (getcwd(cwd, sizeof(cwd)) != NULL) {
+								}
+								else 
+								{
+									perror("getcwd() error");
+								}
+								std::string path;
+								path.append(cwd);
+
+								std::map<std::string, std::vector<std::string> >	config;
+								std::vector<std::string> 							buf_vec;
+
+								buf_vec.push_back(path);
+								// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
+								std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
+								config.insert(pair);
+								buf_vec.clear();
+								buf_vec.push_back("index.htm");
+								buf_vec.push_back("index.html");
+								pair = std::make_pair("index", buf_vec);
+								config.insert(pair);
+								buf_vec.clear();
+								buf_vec.push_back("error.html");
+								pair = std::make_pair("error404", buf_vec);
+								config.insert(pair);
+								//TESTING
+
+								// Parsing of the request and excecuting should happen here
+								//_executeEventSequence(it->fd);
+								ResponseMessage responseObj(config, _buffer);
+								responseStr = responseObj.createResponse();
+
+								_client_sockets.find(it->fd)->second.setSocketRequest(true);
+								//_client_sockets.at(it->fd).setSocketRequest(true);
+								std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
+							}
 							it->revents = 0;
 							ready--;
 							break;
@@ -369,6 +418,7 @@ void    TestServer::launch()
 						default:
 							break;
 					}
+					index++;
 				}	
 			break;
 		}
