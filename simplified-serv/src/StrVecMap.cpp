@@ -94,7 +94,7 @@ std::string StrVecMap::get( std::string parameter, size_t n )
 		// return "";
 	}
 	size = it->second.size();
-	if ( n > size )
+	if ( n >= size )
 	{
 		std::string error = "value_not_found";
 		throw error;

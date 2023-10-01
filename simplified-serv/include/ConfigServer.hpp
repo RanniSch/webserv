@@ -20,6 +20,7 @@ class ConfigServer {
 		size_t	size( std::string str );
 		size_t	size( size_t i );
 		size_t	size( size_t loc, std::string parameter );
+		std::string	get( std::string parameter, size_t n );
 
 	private:
 		StrVecMap							_commonServerConf;

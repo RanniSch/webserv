@@ -178,7 +178,7 @@ size_t	ConfigServer::size( size_t loc, std::string parameter )
 // 	 get _commonServerConfig
 //  ------------------------
 
-// std::string	ConfigServer::get( std::string parameter, size_t n )
-// {
-// 	_commonServerConf.get
-// }
+std::string	ConfigServer::get( std::string parameter, size_t n )
+{
+	return (_commonServerConf.get( parameter, n ) );
+}

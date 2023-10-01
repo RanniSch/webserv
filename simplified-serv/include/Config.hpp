@@ -78,6 +78,7 @@ class Config: protected ParseableObject {
 		//  ------------------------
 		// 		GO INTO SERVER
 		//  ------------------------
+		std::string	get( size_t server, std::string parameter, size_t n );
 
 	private:
 		std::string						_commentDelimiter;

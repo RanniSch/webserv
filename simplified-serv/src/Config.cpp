@@ -409,12 +409,35 @@ std::string	Config::get( std::string parameter, size_t n )
  * @param n 
  * @return std::string 
  */
-// std::string	Config::get( size_t server, std::string parameter, size_t n )
-// {
-// 	size_t count_server = _server_vector.size();
-// 	if ( server > count_server )
-// 		return "";
-// 	_server_vector.at(server)
+std::string	Config::get( size_t server, std::string parameter, size_t n )
+{
+	// std::string result;
+	size_t count_server = _server_vector.size();
+	if ( server > count_server )
+		return "";
+	// _server_vector.at(server)
+
+	try
+	{
+		return ( _server_vector.at(server).get( parameter , n ) );
+	}
+	catch( std::string str )
+	{
+		if (str == "parameter_not_found")
+		{
+			// if you cannot find the parameter in the _commonServerConf
+			// look into the _commonConfig
+			return ( get( parameter, n ) );
+		}
+		else if (str == "value_not_found")
+			return ("");
+		return ("");
+	}
+	catch (...)
+	{
+		std::cout << "some unknown config.get is causing an error" << std::endl;
+		return ("");
+	}
 
 // 	for ( ; count_server > 0; count_server--)
 // 	{
@@ -431,5 +454,5 @@ std::string	Config::get( std::string parameter, size_t n )
 // 		}
 // 	}
 // 	return (_commonConfig.get( parameter, n) );
-// }
+}
 

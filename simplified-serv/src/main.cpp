@@ -15,14 +15,17 @@ int main(int argc, char **argv)
 	Config config(argv[1]);
 	
 	//testung
-	size_t hat = config.size("server");
-	hat = config.size("allowed_Methods3");
-	std::string ha = config.get("allowed_Methods", 1);
-	std::string hah = config.get("allowed_Methods", 10);
-	std::string han = config.get("allowed_methods", 1);
-	std::string haha = config.get("allowed_methods", 2);
-	if ( hat ) 
-		hat = 3;
+
+	// size_t hat = config.size("server");
+	// hat = config.size("allowed_Methods3");
+	// std::string ha = config.get("allowed_Methods", 1);
+	std::string ha = config.get(1, "listen", 0);
+	ha = config.get(1, "root1", 0);
+	// std::string hah = config.get("allowed_Methods", 10);
+	// std::string han = config.get("allowed_methods", 1);
+	// std::string haha = config.get("allowed_methods", 2);
+	// if ( hat ) 
+	// 	hat = 3;
 	//testung
 
     TestServer server;
