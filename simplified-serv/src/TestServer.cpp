@@ -228,11 +228,13 @@ void    signalHandler(int signum)
 // }
 
 
-int		checkPollAction(short revents, std::map<int, Socket> &sockets, int fd)
+int		TestServer::checkPollAction(short revents, int fd)
 {
+	if (revents & POLLIN && _socket_arr.find(fd)->second.getType() == "Listening socket")
+		return (0);
 	if (revents & POLLIN)
 		return (1);
-	if (revents & POLLOUT && sockets.find(fd)->second.getSocketRequest() == true)
+	if (revents & POLLOUT && _socket_arr.find(fd)->second.getSocketRequest() == true && _socket_arr.find(fd)->second.getRequestHeader() == true)
 		return (2);
 	if (revents & POLLHUP)
 	{
@@ -244,68 +246,171 @@ int		checkPollAction(short revents, std::map<int, Socket> &sockets, int fd)
 		std::cout << RED "closing the socket  eeeeee" BLANK << std::endl;
 		return (4);
 	}
-	return (0);
+	return (-1);
 }
 
 
-void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, std::string &_responseStr)
+void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, std::string _responseStr)
 {
 	std::cout << "RESPONDING BY WRITING => " << std::endl;
 	std::cout << "responseStr: " << _responseStr << std::endl;
 	write(_it->fd, _responseStr.c_str(), _responseStr.length());
 	_socket_arr.find(_it->fd)->second.setSocketRequest(false);
+	_socket_arr.find(_it->fd)->second.setRequestHeader(false);
 }
 
-// void	TestServer::_pollReading(std::vector<pollfd>::iterator &_it, std::string &_responseStr)
-// {
-// 	if (_it < _sockets_for_poll.begin() + _nbr_of_ports)
-// 	{
-// 		std::cout << "ACCEPT CONNECTION => " << std::endl;
-// 		_acceptConnection(std::distance(_sockets_for_poll.begin(), _it));
-// 		std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
-// 	}
-// 	else if (recv(_it->fd, _buffer, 30000, 0) != 0) // how many bytes we want to read?
-// 	{
-// 		std::cout << "READ AND EXECUTE: Thre is something to read => " << std::endl;
-		
-// 		// //TESTINT
-// 		char cwd[PATH_MAX];
-// 		if (getcwd(cwd, sizeof(cwd)) != NULL) {
-// 		}
-// 		else 
-// 		{
-// 			perror("getcwd() error");
-// 		}
-// 		std::string path;
-// 		path.append(cwd);
+std::string	checkRequestType(std::string str)
+{
+	std::pair<int, std::string> result;
+	if (str.find("GET") != std::string::npos)
+	{
+		std::cout << GREEN <<  "ITS A GET REQUEST" << BLANK << std::endl;
+		return ("GET");
+	}
+	else if (str.find("POST") != std::string::npos)
+	{
+		std::cout << GREEN <<  "ITS A POST REQUEST" << BLANK << std::endl;
+		return ("POST");
+	}
+	else if (str.find("DELETE") != std::string::npos)
+	{
+		std::cout << GREEN << "ITS A DELETE REQEUST" << BLANK << std::endl;
+		return ("DELETE");
+	}
+	std::cout << RED << "ITS A WRONG REQEUST" << BLANK << std::endl;
+	return ("WRONG REQUEST");
+}
 
-// 		std::map<std::string, std::vector<std::string> >	config;
-// 		std::vector<std::string> 							buf_vec;
+int checkFullRequestHeader(std::string str, std::string request_type)
+{
+	int			count = 0;
+	std::size_t	found = str.find("\r\n\r\n");
+	while (found != std::string::npos)
+	{
+		count++;
+		found = str.find("\r\n\r\n", found + 4);
+	}
 
-// 		buf_vec.push_back(path);
-// 		// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
-// 		std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
-// 		config.insert(pair);
-// 		buf_vec.clear();
-// 		buf_vec.push_back("index.htm");
-// 		buf_vec.push_back("index.html");
-// 		pair = std::make_pair("index", buf_vec);
-// 		config.insert(pair);
-// 		buf_vec.clear();
-// 		buf_vec.push_back("error.html");
-// 		pair = std::make_pair("error404", buf_vec);
-// 		config.insert(pair);
-// 		//TESTING
+	if (request_type == "GET" && count == 1)
+	{
+		return (0);
+	}
+	if (request_type == "POST" && count == 2)
+	{
+		return (0);
+	}
+	return (-1);
+}
 
-// 		// Parsing of the request and excecuting should happen here
-// 		//_executeEventSequence(it->fd);
-// 		ResponseMessage responseObj(config, _buffer);
-// 		_responseStr = responseObj.createResponse();
 
-// 		_client_sockets.at(_it->fd).setSocketRequest(true);
-// 		std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
-// 	}
-// }
+void	TestServer::_GetRequest(int fd)
+{
+	std::map<int, Socket>::iterator correct_socket_it = _socket_arr.find(fd);
+	if ( checkFullRequestHeader(_buffer, "GET") == 0)
+	{
+		//GET REQUEST
+		correct_socket_it->second.setRequestHeader(true);
+		correct_socket_it->second.setSocketRequest(true);
+		correct_socket_it->second.setRequestMethod("GET");
+		//PARSING REQUEST
+
+		std::string tmp_buffer = _buffer;
+		std::size_t	start_position = 0;
+		std::size_t	end_position = tmp_buffer.find("\r\n\r\n");
+
+		correct_socket_it->second.setRequestHeaderStr(tmp_buffer.substr(start_position, end_position));
+		correct_socket_it->second.setRequestBodyStr(tmp_buffer.substr(end_position + 4, tmp_buffer.size() - 1));
+
+		std::cout << "HEADER STR:\n[" << correct_socket_it->second.getRequestHeaderStr() << "]" <<  std::endl;
+		std::cout << "BODY STR\n[" << correct_socket_it->second.getRequestBodyStr() << "]" << std::endl;
+
+		std::cout << "1Header str:\n[" << _socket_arr.find(fd)->second.getRequestHeaderStr() << "]" << std::endl;
+		std::cout << "1Body str:\n[" << _socket_arr.find(fd)->second.getRequestBodyStr() << "]" << std::endl;
+
+		char cwd[PATH_MAX];
+		if (getcwd(cwd, sizeof(cwd)) != NULL) {
+		}
+		else 
+		{
+			perror("getcwd() error");
+		}
+		std::string path;
+		path.append(cwd);
+
+		std::map<std::string, std::vector<std::string> >	config;
+		std::vector<std::string> 							buf_vec;
+
+		buf_vec.push_back(path);
+		// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
+		std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
+		config.insert(pair);
+		buf_vec.clear();
+		buf_vec.push_back("index.htm");
+		buf_vec.push_back("index.html");
+		pair = std::make_pair("index", buf_vec);
+		config.insert(pair);
+		buf_vec.clear();
+		buf_vec.push_back("error.html");
+		pair = std::make_pair("error404", buf_vec);
+		config.insert(pair);
+		//TESTING
+
+		// Parsing of the request and excecuting should happen here
+		//_executeEventSequence(it->fd);
+		//CREATING RESPONSE
+		ResponseMessage responseObj(config, _buffer);
+		correct_socket_it->second.setResponseStr(responseObj.createResponse());
+	}
+	else
+	{
+		//ERROR REQUEST HEADER NOT CLOSED
+	}
+}
+
+void	TestServer::_PostRequest(int fd)
+{
+	std::map<int, Socket>::iterator correct_socket_it = _socket_arr.find(fd);
+	if (checkFullRequestHeader(_buffer, "POST") == 0)
+	{
+		//POST REQUEST
+		correct_socket_it->second.setRequestHeader(true);
+		correct_socket_it->second.setRequestMethod("POST");
+	}
+	else
+	{
+		//ERROR REQUEST HEADER NOT CLOSED
+	}
+}
+
+void	TestServer::_DeleteRequest(int fd)
+{
+	(void)fd;
+}
+
+void	TestServer::_readAndParseHeader(int fd)
+{
+	if (recv(fd, _buffer, 300000, 0) != 0)
+	{
+		std::string	found = checkRequestType(_buffer);
+		if (found == "WRONG REQUEST")
+		{
+			std::cout << RED << "ERROR: Wrong request type we only accept GET POST DELETE" << BLANK << std::endl;
+		}
+		if (found == "GET")
+		{
+			_GetRequest(fd);
+		}
+		else if (found == "POST")
+		{
+			_PostRequest(fd);
+		}
+		else if (found == "DELETE")
+		{
+			//NOT IMPLEMENTED YET
+			_DeleteRequest(fd);
+		}
+	}
+}
 
 void    TestServer::launch()
 {
@@ -336,66 +441,24 @@ void    TestServer::launch()
 				int index = 0;
 				for (std::vector<pollfd>::iterator it = _sockets_for_poll.begin(); it != _sockets_for_poll.end() && ready != 0; it++)
 				{
-					int	action = checkPollAction(it->revents, _socket_arr, it->fd);
+					int	action = checkPollAction(it->revents, it->fd);
 					//std::cout << "action that has to be taken: " << action << std::endl;
 					switch(action)
 					{
+						case(ACCEPT_CLIENT):
+							std::cout << "ACCEPT CONNECTION => " << std::endl;
+							_acceptConnection(it->fd);
+							std::cout << GREEN "DONE" BLANK << std::endl << std::endl;	
+							it->revents = 0;
+							ready--;
+							break;
 						case(READING):
-							//_pollReading(it, responseStr);
-							if (it < _sockets_for_poll.begin() + _nbr_of_ports && _socket_arr.find(it->fd)->second.getType() == "Listening socket")
-							{
-								
-								std::cout << "ACCEPT CONNECTION => " << std::endl;
-								_acceptConnection(it->fd);
-								std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
-							}
-							else if (recv(it->fd, _buffer, 300000, 0) != 0) // how many bytes we want to read?
-							{
-								std::cout << "READ AND EXECUTE: Thre is something to read => " << std::endl;
-								
-								// //TESTINT
-								char cwd[PATH_MAX];
-								if (getcwd(cwd, sizeof(cwd)) != NULL) {
-								}
-								else 
-								{
-									perror("getcwd() error");
-								}
-								std::string path;
-								path.append(cwd);
-
-								std::map<std::string, std::vector<std::string> >	config;
-								std::vector<std::string> 							buf_vec;
-
-								buf_vec.push_back(path);
-								// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
-								std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
-								config.insert(pair);
-								buf_vec.clear();
-								buf_vec.push_back("index.htm");
-								buf_vec.push_back("index.html");
-								pair = std::make_pair("index", buf_vec);
-								config.insert(pair);
-								buf_vec.clear();
-								buf_vec.push_back("error.html");
-								pair = std::make_pair("error404", buf_vec);
-								config.insert(pair);
-								//TESTING
-
-								// Parsing of the request and excecuting should happen here
-								//_executeEventSequence(it->fd);
-								ResponseMessage responseObj(config, _buffer);
-								responseStr = responseObj.createResponse();
-
-								_socket_arr.find(it->fd)->second.setSocketRequest(true);
-								//_client_sockets.at(it->fd).setSocketRequest(true);
-								std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
-							}
+							_readAndParseHeader(it->fd);
 							it->revents = 0;
 							ready--;
 							break;
 						case(WRITING):// The connection is ready for writing
-							_pollWriting(it, responseStr);
+							_pollWriting(it, _socket_arr.find(it->fd)->second.getResponseStr());
 							it->revents = 0;
 							ready--;
 							std::cout << GREEN "DONE" BLANK << std::endl << std::endl;

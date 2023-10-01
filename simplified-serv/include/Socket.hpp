@@ -25,19 +25,36 @@ class Socket
 		void			setPort(int port);
 		void			setSocketFd(int value);
 		void			setSocketRequest(bool value);
+		void			setRequestHeader(bool value);
+		void			setType(std::string type);
+		void			setRequestMethod(std::string method);
+		void			setResponseStr(std::string response);
+		void			setRequestHeaderStr(std::string	request_header);
+		void			setRequestBodyStr(std::string request_body);
 
 		sockaddr_in&	getSockAddr(void);
 		int				getPort(void);
 		int				getSocketFd(void);
 		bool			getSocketRequest(void);
-
-		void			setType(std::string type);
+		bool			getRequestHeader(void);
 		std::string		getType(void);
+		std::string		getRequestMethod(void);
+		std::string		getResponseStr(void);
+		std::string		getRequestHeaderStr(void);
+		std::string		getRequestBodyStr(void);
+
 	private:
 		std::string			_socket_type;
+		std::string			_request_method;
+
+		std::string			_request_header;
+		std::string			_request_body;
+
+		std::string			_response_str;
 
 		//Client socket
 		struct sockaddr_in	_server_addr_client;
+		bool				_request_header_received;
 		bool				_request_fully_received;
 //		int					_client_socket_fd;
 		int 				_client_addr_len;

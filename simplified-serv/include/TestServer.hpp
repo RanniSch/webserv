@@ -7,6 +7,7 @@
 # include <csignal>
 # include <unistd.h>
 # include <iostream>
+# include <string>
 # include <fstream>     // for std::ifstream
 # include <sstream>      // for std::stringstream
 # include <vector>
@@ -42,17 +43,22 @@ class TestServer{
                 int                             _nbr_of_client_sockets;
                 int								_nbr_of_sockets_in_poll;
                 std::vector<int>      			_ports;
-//			    std::map<int, ClientSocket>		_client_sockets;	//Soon will change
                 std::map<int, Socket>           _socket_arr;
-//				std::vector<ListeningSocket>	_listening_sockets;
 
                 std::vector<pollfd>				_sockets_for_poll; // For now the most important bit
-
                 //void	_executeEventSequence(int &fd);
+				int		checkPollAction(short revents, int fd);
+
 				void	_executeCGI(void);
 
 				void	_pollReading(std::vector<pollfd>::iterator &_it, std::string &_responseStr);
-				void	_pollWriting(std::vector<pollfd>::iterator &_it, std::string &_responseStr);
+				void	_pollWriting(std::vector<pollfd>::iterator &_it, std::string _responseStr);
+
+				void	_GetRequest(int fd);
+				void	_PostRequest(int fd);
+				void	_DeleteRequest(int fd);
+
+				void	_readAndParseHeader(int fd);
 
                 void	_acceptConnection(int index);
                 void	_handler(void);
@@ -70,6 +76,7 @@ class TestServer{
 
 # define	DEBUG	1
 
+# define	ACCEPT_CLIENT	0
 # define    READING			1
 # define    WRITING			2
 # define    KILLING_CLIENT	3

@@ -4,6 +4,7 @@ Socket::Socket()
 {
 	//std::cout << "Socket constructor!" << std::endl;
 	_request_fully_received = false;
+	_request_header_received = false;
 	_client_addr_len = 0;
 
 	_port = -2;
@@ -83,23 +84,6 @@ int	Socket::getPort(void)
 	return (_port);
 }
 
-// void	ClientSocket::acceptConnection(void)
-// {
-// 	_client_addr_len = sizeof(_server_addr);
-
-// 	_client_socket_fd = accept(_listening_socket->getSocketFd(), (struct sockaddr *)&_server_addr, (socklen_t *)&_client_addr_len);
-// 	if (_client_socket_fd < 0)
-// 	{
-// 		std::cout << _client_socket_fd << std::endl;
-// 		perror("Accepting connection failed");
-// 	}
-// 	if (fcntl(_client_socket_fd, F_SETFL, O_NONBLOCK) < 0) 
-// 	{
-// 		perror(RED "ERROR: fcntl() setting has failed in clientSocket: " BLANK);
-// 		exit(-1);
-// 	}
-// }
-
 void	Socket::acceptConnection(int fd)
 {
 	_client_addr_len = sizeof(_server_addr_client);
@@ -127,12 +111,22 @@ void	Socket::setSocketRequest(bool value)
 	_request_fully_received = value;
 }
 
+void	Socket::setRequestHeader(bool value)
+{
+	_request_fully_received = value;
+}
+
 sockaddr_in&	Socket::getSockAddr(void)
 {
 	return (_server_addr_listening);
 }
 
 bool	Socket::getSocketRequest(void)
+{
+	return	(_request_fully_received); 
+}
+
+bool	Socket::getRequestHeader(void)
 {
 	return	(_request_fully_received); 
 }
@@ -150,4 +144,44 @@ void	Socket::setType(std::string type)
 std::string	Socket::getType(void)
 {
 	return (_socket_type);
+}
+
+void	Socket::setRequestMethod(std::string method)
+{
+	_request_method = method;
+}
+
+std::string	Socket::getRequestMethod(void)
+{
+	return (_request_method);
+}
+
+void	Socket::setResponseStr(std::string response)
+{
+	_response_str = response;
+}
+
+std::string	Socket::getResponseStr(void)
+{
+	return (_response_str);
+}
+
+void	Socket::setRequestHeaderStr(std::string request_header)
+{
+	_request_header  = request_header;
+}
+
+std::string	Socket::getRequestHeaderStr(void)
+{
+	return (_request_header);
+}
+
+void	Socket::setRequestBodyStr(std::string request_body)
+{
+	_request_body = request_body;
+}
+
+std::string	Socket::getRequestBodyStr(void)
+{
+	return (_request_body);
 }
