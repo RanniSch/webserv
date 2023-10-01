@@ -53,11 +53,11 @@ void	StrVecMap::_print_string_vector( std::vector <std::string> vec )
 	std::cout << std::endl;
 }
 
-size_t	StrVecMap::size( std::string str )
+size_t	StrVecMap::size( std::string parameter )
 {
 	std::map<std::string, std::vector<std::string> >::iterator	it;
 
-	it = _map.find(str);
+	it = _map.find(parameter);
 	if (it == _map.end() )
 		return 0;
 	return ( it->second.size() );

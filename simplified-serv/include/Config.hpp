@@ -76,8 +76,9 @@ class Config: protected ParseableObject {
 		std::string			get( std::string str, size_t n );
 		size_t				size( std::string str );
 		//  ------------------------
-		// 		GO INTO SERVER
+		// 		_commonServerConf
 		//  ------------------------
+		size_t		size( size_t server, std::string parameter );
 		std::string	get( size_t server, std::string parameter, size_t n );
 
 	private:

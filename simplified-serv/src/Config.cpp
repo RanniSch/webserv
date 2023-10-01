@@ -363,7 +363,7 @@ void	Config::_checkParametersWhereOnlyOneValueIsAllowed()
  */
 size_t	Config::size( std::string parameter )
 {
-	if ( parameter == "server")
+	if ( parameter == "server") // was ist wenn kein server da?
 		return( _server_vector.size() );
 	return (_commonConfig.size(parameter) );
 }
@@ -394,8 +394,16 @@ std::string	Config::get( std::string parameter, size_t n )
 }
 
 //  ------------------------
-// 		GO INTO SERVER
+// 		_commonServerConf
 //  ------------------------
+
+size_t	Config::size( size_t server, std::string parameter )
+{
+	size_t count_server = _server_vector.size();
+	if ( server >= count_server )
+		return 0;
+	return ( _server_vector.at(server).size(parameter) );
+}
 
 /**
  * @brief go into server
@@ -413,7 +421,7 @@ std::string	Config::get( size_t server, std::string parameter, size_t n )
 {
 	// std::string result;
 	size_t count_server = _server_vector.size();
-	if ( server > count_server )
+	if ( server >= count_server )
 		return "";
 	// _server_vector.at(server)
 
@@ -438,21 +446,8 @@ std::string	Config::get( size_t server, std::string parameter, size_t n )
 		std::cout << "some unknown config.get is causing an error" << std::endl;
 		return ("");
 	}
-
-// 	for ( ; count_server > 0; count_server--)
-// 	{
-// 		for ( size_t i = 0; i < count_para; i++)
-// 		{
-// 			result = _server_vector.at(count_server-1).size(parameters[i]);
-// 			if ( result > 1)
-// 			{
-// 				_error = ": parameter '";
-// 				_error += parameters[i];
-// 				_error += "' should only have one value";
-// 				throw _error;
-// 			}
-// 		}
-// 	}
-// 	return (_commonConfig.get( parameter, n) );
 }
 
+//  ------------------------
+// 		_location_map
+//  ------------------------
