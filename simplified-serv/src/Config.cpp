@@ -434,7 +434,7 @@ std::string	Config::get( size_t server, std::string parameter, size_t n )
 		if (str == "parameter_not_found")
 		{
 			// if you cannot find the parameter in the _commonServerConf
-			// look into the _commonConfig
+			// look into the _commonConfig, but then you don't know how many values you have !!!!!
 			return ( get( parameter, n ) );
 		}
 		else if (str == "value_not_found")
@@ -451,3 +451,35 @@ std::string	Config::get( size_t server, std::string parameter, size_t n )
 //  ------------------------
 // 		_location_map
 //  ------------------------
+
+size_t	Config::size( size_t server, std::string location,  std::string parameter)
+{
+	size_t count_server = _server_vector.size();
+	if ( server >= count_server )
+		return 0;
+	return ( _server_vector.at(server).size(location, parameter) );
+}
+
+std::string	Config::get( size_t server, std::string location, std::string parameter, size_t n )
+{
+	size_t count_server = _server_vector.size();
+	if ( server >= count_server )
+		return "";
+	try
+	{
+		return ( _server_vector.at(server).get( location, parameter, n ) );
+	}
+	catch( std::string str ) 
+	{
+		if (str == "parameter_not_found" || str == "location_not_found")
+		{
+			return ( get( server, parameter, n ) );
+		}
+		return "";
+	}
+	catch (...)
+	{
+		std::cout << "some unknown config.get is causing an error" << std::endl;
+		return ("");
+	}
+}

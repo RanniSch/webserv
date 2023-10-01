@@ -80,6 +80,12 @@ class Config: protected ParseableObject {
 		//  ------------------------
 		size_t		size( size_t server, std::string parameter );
 		std::string	get( size_t server, std::string parameter, size_t n );
+		//  ------------------------
+		// 		_location_map
+		//  ------------------------
+		size_t		size( size_t server, std::string location,  std::string parameter);
+		std::string	get( size_t server, std::string location, std::string parameter, size_t n );
+
 
 	private:
 		std::string						_commentDelimiter;
