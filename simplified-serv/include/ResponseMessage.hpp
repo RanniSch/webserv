@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <cctype>
+#include <cstdlib>
 #include <sys/types.h> // check for directory
 #include <sys/stat.h> // check for directory
 

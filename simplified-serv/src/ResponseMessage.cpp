@@ -138,6 +138,85 @@ void	ResponseMessage::_PostMethod( void )
 			// wenn bild korrekt erhalten wurde korrekten response erstellen (mit Max)
 		}
 	// Ende Beispiel für Ranja
+
+			std::cout << "here comes the post method" << std::endl;
+
+			// reads the POST data (file content)
+
+			std::string len = _request_map.find("Content-Length")->second; // länge
+			int length = atoi(len.c_str());
+			if (length) 		// weg, nur für compiler
+				length = 2; 	// weg, nur für compiler
+			std::string content_disposition = _request_map.find("Content-Disposition")->second;
+			std::string content_type = _request_map.find("Content-Type")->second; // aus den String musst du noch den type heraussuchen
+			
+
+
+			char* postData = new char[_content.length()];
+			std::cin.read(postData, _content.length());
+
+			// Saves the uploaded file to a desired location
+			if ( _fileType == "jpg" || _fileType == "jpeg")
+			{
+				std::ofstream outputFile("/www/uploaded_file.jpg", std::ios::binary);
+				if (outputFile.is_open())
+				{
+					outputFile.write(postData, _content.length());
+					outputFile.close();
+					std::cout << "File uploaded successfully!" << std::endl;
+				}
+				else
+					std::cout << "Error saving the file!" << std::endl;
+				delete[] postData;
+			}
+			else if (_fileType == "png")
+			{
+				std::ofstream outputFile("/www/uploaded_file.png", std::ios::binary);
+				if (outputFile.is_open())
+				{
+					outputFile.write(postData, _content.length());
+					outputFile.close();
+					std::cout << "File uploaded successfully!" << std::endl;
+				}
+				else
+					std::cout << "Error saving the file!" << std::endl;
+				delete[] postData;
+			}
+			else if (_fileType == "gif")
+			{
+				std::ofstream outputFile("/www/uploaded_file.gif", std::ios::binary);
+				if (outputFile.is_open())
+				{
+					outputFile.write(postData, _content.length());
+					outputFile.close();
+					std::cout << "File uploaded successfully!" << std::endl;
+				}
+				else
+					std::cout << "Error saving the file!" << std::endl;
+				delete[] postData;
+			}
+			else
+			{
+				std::ofstream outputFile("/www/uploaded_file", std::ios::binary);
+				if (outputFile.is_open())
+				{
+					outputFile.write(postData, _content.length());
+					outputFile.close();
+					std::cout << "File uploaded successfully!" << std::endl;
+				}
+				else
+					std::cout << "Error saving the file!" << std::endl;
+				delete[] postData;
+			}
+			// break;
+
+
+
+
+
+
+
+
 }
 
 void	ResponseMessage::_GetMethod( void )
