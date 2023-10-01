@@ -72,3 +72,33 @@ size_t	StrVecMap::size( void )
 {
 	return ( _map.size() );
 }
+
+/**
+ * @brief gets you the value number n from parameter from _commonConfig
+ * when the parameter does not exist, returns ""
+ * when n is bigger than count of values, returns ""
+ * @param str 
+ * @param n 
+ * @return std::string 
+ */
+std::string StrVecMap::get( std::string parameter, size_t n )
+{
+	std::map<std::string, std::vector<std::string> >::iterator		it;
+	size_t															size;
+
+	it = _map.find(parameter);
+	if (it == _map.end() )
+	{
+		std::string error = "parameter_not_found";
+		throw error;
+		// return "";
+	}
+	size = it->second.size();
+	if ( n > size )
+	{
+		std::string error = "value_not_found";
+		throw error;
+		// return "";
+	}
+	return ( it->second.at(n) );
+}

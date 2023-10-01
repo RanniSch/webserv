@@ -11,13 +11,14 @@ class StrVecMap {
 		// StrVecMap();
 		// StrVecMap= overload();
 		~StrVecMap();
-		void	push( std::string str );
-		void	vec_clear();
-		void	insert( std::string key );
-		void	print_vec();
-		void	print();
-		size_t	size( std::string str );
-		size_t	size( void );
+		void			push( std::string str );
+		void			vec_clear();
+		void			insert( std::string key );
+		void			print_vec();
+		void			print();
+		size_t			size( std::string str );
+		size_t			size( void );
+		std::string 	get( std::string str, size_t n );
 	
 	private:
 		std::map<std::string, std::vector<std::string> >	_map;
