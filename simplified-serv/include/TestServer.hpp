@@ -15,12 +15,15 @@
 # include <netinet/in.h>
 
 # include <poll.h>
+# include "Socket.hpp"
 # include "ClientSocket.hpp"
 # include "ListeningSocket.hpp"
 # include "ResponseMessage.hpp"
 # include "RequestObj.hpp"
 # include "Config.hpp"
 # include "utils.h"
+
+#include <map>
 
 class TestServer{
         public:
@@ -39,8 +42,9 @@ class TestServer{
                 int                             _nbr_of_client_sockets;
                 int								_nbr_of_sockets_in_poll;
                 std::vector<int>      			_ports;
-			    std::map<int, ClientSocket>		_client_sockets;	//Soon will change
-				std::vector<ListeningSocket>	_listening_sockets;
+//			    std::map<int, ClientSocket>		_client_sockets;	//Soon will change
+                std::map<int, Socket>           _socket_arr;
+//				std::vector<ListeningSocket>	_listening_sockets;
 
                 std::vector<pollfd>				_sockets_for_poll; // For now the most important bit
 

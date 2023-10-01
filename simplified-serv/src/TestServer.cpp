@@ -12,22 +12,21 @@ TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3), _nbr_of_client_sock
 	_ports.push_back(8080);
 	_ports.push_back(8090);
 
-	ListeningSocket	tmp_listening_socket;
+	Socket	tmp_listening_socket;
 
-	for (int i = 0; i < _nbr_of_ports; i++)
+	for(int i = 0; i < _nbr_of_ports; i++)
 	{
-		tmp_listening_socket.setPort(static_cast <int> (_ports[i]));
-		_listening_sockets.push_back(tmp_listening_socket);
+		tmp_listening_socket.setPort(_ports[i]);
+		tmp_listening_socket.startListening();
+		tmp_listening_socket.setType("Listening socket");
+		_socket_arr.insert(std::pair<int, Socket>(tmp_listening_socket.getSocketFd(), tmp_listening_socket));
 	}
-
-	for (int i = 0; i < _nbr_of_ports; i++)
-		_listening_sockets[i].startListening();
 
 	//Creating Pollfd stuct
 	struct pollfd	tmp_pollfd;
-	for (int i = 0; i < _nbr_of_ports; i++)
+	for (std::map<int, Socket>::iterator it = _socket_arr.begin(); it != _socket_arr.end(); it++)
 	{
-		tmp_pollfd.fd = _listening_sockets[i].getSocketFd();
+		tmp_pollfd.fd = it->first;
 		tmp_pollfd.events = POLLIN | POLLHUP | POLLERR;
 		tmp_pollfd.revents = 0;
 		_sockets_for_poll.push_back(tmp_pollfd);
@@ -39,24 +38,10 @@ TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3), _nbr_of_client_sock
 TestServer::~TestServer(void)
 {
 	std::cout << "Destructor for TestServer called!" << std::endl;
-
-	for (std::map<int, ClientSocket>::iterator it = _client_sockets.begin(); it != _client_sockets.end(); it++)
+	for (std::map<int, Socket>::iterator it = _socket_arr.begin(); it != _socket_arr.end(); it++)
 	{
-		std::cout << GREY "\nClosing client socket: " << it->second.getSocketFd() << BLANK << std::endl;
-		if (it->second.getSocketFd() == -2)
-			std::cout << GREEN "Client socket already closed!" BLANK << std::endl;
-		else
-		{
-			if (close(it->second.getSocketFd()) < 0)
-				perror(RED "ERROR: Client closing failed: " BLANK);
-			else
-				std::cout << GREEN "Client socket closed succesfully." BLANK << std::endl;
-		}
-	}
-	for (int i = 0; i < _nbr_of_ports; i++)
-	{
-		std::cout << GREY "\nClosing listening socket for port: " << _listening_sockets[i].getPort() << BLANK << std::endl;
-		if (close(_listening_sockets[i].getSocketFd()) < 0)
+		std::cout << GREY "\nClosing socket for port: " << it->second.getPort() << " fd: " << it->first << " Socket type: " << it->second.getType() << std::endl;
+		if (close(it->first) < 0)
 			perror(RED "ERROR: Listening socket closing failed: " BLANK);
 		else
 			std::cout << GREEN "Listening socket closed succesfully." BLANK << std::endl;
@@ -111,21 +96,21 @@ TestServer::~TestServer(void)
 
 //}
 
-void    TestServer::_acceptConnection(int index)
+void    TestServer::_acceptConnection(int fd)
 {
-	ClientSocket tmp;
-
-	tmp.setListeningSocketPtr(this->_listening_sockets[index]);
-	tmp.acceptConnection();
+	Socket tmp;
+	tmp.acceptConnection(fd);
 
 	struct pollfd tmp_pollfd;
 
+	tmp.setType("Client socket");
+	tmp.setPort(_socket_arr.find(fd)->second.getPort());
 	tmp_pollfd.fd = tmp.getSocketFd();
 	tmp_pollfd.events = POLLIN | POLLOUT | POLLHUP | POLLERR; // POLLERR POLLHUP
 	tmp_pollfd.revents = 0;
 
 	this->_sockets_for_poll.push_back(tmp_pollfd);
-	this->_client_sockets.insert(std::pair<int, ClientSocket>(tmp.getSocketFd(), tmp));
+	this->_socket_arr.insert(std::pair<int, Socket>(tmp.getSocketFd(), tmp));
 
 	_nbr_of_sockets_in_poll++;
 	_nbr_of_client_sockets++;
@@ -243,11 +228,11 @@ void    signalHandler(int signum)
 // }
 
 
-int		checkPollAction(short revents, std::map<int, ClientSocket> &client_sockets, int fd)
+int		checkPollAction(short revents, std::map<int, Socket> &sockets, int fd)
 {
 	if (revents & POLLIN)
 		return (1);
-	if (revents & POLLOUT && client_sockets.find(fd)->second.getSocketRequest() == true)
+	if (revents & POLLOUT && sockets.find(fd)->second.getSocketRequest() == true)
 		return (2);
 	if (revents & POLLHUP)
 	{
@@ -268,7 +253,7 @@ void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, std::string &_
 	std::cout << "RESPONDING BY WRITING => " << std::endl;
 	std::cout << "responseStr: " << _responseStr << std::endl;
 	write(_it->fd, _responseStr.c_str(), _responseStr.length());
-	_client_sockets.find(_it->fd)->second.setSocketRequest(false);
+	_socket_arr.find(_it->fd)->second.setSocketRequest(false);
 }
 
 // void	TestServer::_pollReading(std::vector<pollfd>::iterator &_it, std::string &_responseStr)
@@ -328,8 +313,8 @@ void    TestServer::launch()
 	signal(SIGINT, signalHandler);
 	// DEBUGGING
 	std::cout <<GREEN "Finished creating the ports:" BLANK << std::endl;		
-	for (int i = 0; i < _nbr_of_ports; i++)
-		std::cout << GREY "Listening Socket onject for Port: " << _listening_sockets[i].getPort() << " succesfully created!" BLANK << std::endl;
+	for (std::map<int, Socket>::iterator it = _socket_arr.begin(); it != _socket_arr.end(); it++)
+		std::cout << GREY "Listening Socket onject for Port: " << it->second.getPort() << "fd: " << it->first << " succesfully created!" BLANK << std::endl;
 	// DEBUGGING
 
 	int	ready = 0;
@@ -351,15 +336,17 @@ void    TestServer::launch()
 				int index = 0;
 				for (std::vector<pollfd>::iterator it = _sockets_for_poll.begin(); it != _sockets_for_poll.end() && ready != 0; it++)
 				{
-					int	action = checkPollAction(it->revents, _client_sockets, it->fd);
+					int	action = checkPollAction(it->revents, _socket_arr, it->fd);
+					//std::cout << "action that has to be taken: " << action << std::endl;
 					switch(action)
 					{
 						case(READING):
 							//_pollReading(it, responseStr);
-							if (it < _sockets_for_poll.begin() + _nbr_of_ports)
+							if (it < _sockets_for_poll.begin() + _nbr_of_ports && _socket_arr.find(it->fd)->second.getType() == "Listening socket")
 							{
+								
 								std::cout << "ACCEPT CONNECTION => " << std::endl;
-								_acceptConnection(index);
+								_acceptConnection(it->fd);
 								std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
 							}
 							else if (recv(it->fd, _buffer, 300000, 0) != 0) // how many bytes we want to read?
@@ -400,7 +387,7 @@ void    TestServer::launch()
 								ResponseMessage responseObj(config, _buffer);
 								responseStr = responseObj.createResponse();
 
-								_client_sockets.find(it->fd)->second.setSocketRequest(true);
+								_socket_arr.find(it->fd)->second.setSocketRequest(true);
 								//_client_sockets.at(it->fd).setSocketRequest(true);
 								std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
 							}
@@ -419,7 +406,7 @@ void    TestServer::launch()
 							break;
 					}
 					index++;
-				}	
+				}
 			break;
 		}
 	}
