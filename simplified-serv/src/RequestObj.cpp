@@ -105,8 +105,7 @@ std::map<std::string, std::string> *RequestObj::ParseIntoMap(std::map<std::strin
 
 	lexer(_StartLineDelimiter);
 	deleteChars(" ");
-	_it = 
-	_stapel.begin();
+	_it = _stapel.begin();
 	_parseStartLine();
 	_stapel.clear();
 	lexer(_defaultDelimiter);

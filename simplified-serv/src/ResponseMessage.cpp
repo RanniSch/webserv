@@ -73,7 +73,7 @@ void	ResponseMessage::_chooseMethod( void ) // take from config file which metho
 			break;
 	}
 	switch (i)
-	{
+			{
 		case 0:
 			_PostMethod();
 			break;

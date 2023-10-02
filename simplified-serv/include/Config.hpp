@@ -5,6 +5,7 @@
 #include "ConfigServer.hpp"
 #include "utils.h"
 #include <stdlib.h>
+# include <unistd.h>
 
 #include <map>
 #include <vector>
@@ -69,6 +70,7 @@ class Config: protected ParseableObject {
 	public:
 		Config( const char* path_config_file);//, std::map<std::string, std::vector<std::string> > &config_map );
 		~Config();
+		std::string get_cwd();
 
 		//  ------------------------
 		// 		_commonConfig
@@ -88,6 +90,8 @@ class Config: protected ParseableObject {
 
 
 	private:
+		
+		std::string						_cwd;
 		std::string						_commentDelimiter;
 		std::string						_contentDelimiter;
 		const char* 					_path_config_file;

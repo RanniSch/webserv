@@ -11,6 +11,16 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 	// oder alle variablen einzeln speichern?
 
 	//check if it is a textfile // for example first line should be "! webserve config file !" or something
+	char cwd[PATH_MAX];
+	if (getcwd(cwd, sizeof(cwd)) != NULL) 
+	{
+	}
+	else 
+	{
+		perror("getcwd() error");
+	}
+	std::string _cwd;
+	_cwd.append(cwd);
 	try
 	{
 		std::list<std::string>::iterator 	start;
@@ -86,6 +96,11 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 
 Config::~Config()
 {}
+
+std::string Config::get_cwd()
+{
+	return (_cwd);
+}
 
 void	Config::_read_in_config_file()
 {
