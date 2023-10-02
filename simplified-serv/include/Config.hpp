@@ -5,6 +5,7 @@
 #include "ConfigServer.hpp"
 #include "utils.h"
 #include <stdlib.h>
+#include <limits.h>
 # include <unistd.h>
 
 #include <map>
