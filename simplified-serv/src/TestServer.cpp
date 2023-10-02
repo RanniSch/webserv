@@ -385,6 +385,8 @@ void    TestServer::launch()
 								// Parsing of the request and excecuting should happen here
 								//_executeEventSequence(it->fd);
 								ResponseMessage responseObj(config, _buffer);
+								int length = responseObj.get_content_length();
+								(void) length;
 								responseStr = responseObj.createResponse();
 
 								_socket_arr.find(it->fd)->second.setSocketRequest(true);

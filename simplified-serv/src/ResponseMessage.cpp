@@ -393,13 +393,13 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string target, 
 	_fileType = fileExtension;
 }
 
-size_t	ResponseMessage::get_content_length()
+int	ResponseMessage::get_content_length()
 {
 	std::map<std::string, std::string>::iterator it;
 
 	it = _request_map.find("Content-Length");
 	if ( it == _request_map.end() )
-		return 0;
+		return -1;
 
 	std::string len = it->second; // länge
 	size_t length = atoi(len.c_str());
