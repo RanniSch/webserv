@@ -21,6 +21,18 @@ class ConfigServer {
 		size_t	size( size_t i );
 		size_t	size( size_t loc, std::string parameter );
 
+		//  ------------------------
+		// 	 get _commonServerConfig
+		//  ------------------------
+		std::string	get( std::string parameter, size_t n );
+
+		//  ------------------------
+		// 		_location_map
+		//  ------------------------
+		size_t		size( std::string location, std::string parameter );
+		std::string	get( std::string location, std::string parameter, size_t n);
+
+
 	private:
 		StrVecMap							_commonServerConf;
 		std::string							_error;

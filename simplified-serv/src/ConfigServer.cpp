@@ -178,7 +178,36 @@ size_t	ConfigServer::size( size_t loc, std::string parameter )
 // 	 get _commonServerConfig
 //  ------------------------
 
-// std::string	ConfigServer::get( std::string parameter, size_t n )
-// {
-// 	_commonServerConf.get
-// }
+std::string	ConfigServer::get( std::string parameter, size_t n )
+{
+	return (_commonServerConf.get( parameter, n ) );
+}
+
+//  ------------------------
+// 		_location_map
+//  ------------------------
+
+size_t	ConfigServer::size( std::string location, std::string parameter )
+{
+	std::map<std::string, StrVecMap >::iterator		it;
+
+	it = _location_map.find(location);
+	if ( it == _location_map.end() )
+	{
+		return 0;
+	}
+	return ( _location_map.find(location)->second.size(parameter) );
+}
+
+std::string	ConfigServer::get( std::string location, std::string parameter, size_t n)
+{
+	std::map<std::string, StrVecMap >::iterator		it;
+
+	it = _location_map.find(location);
+	if ( it == _location_map.end() )
+	{
+		std::string error = "location_not_found";
+		throw error;
+	}
+	return ( it->second.get( parameter, n ) );
+}
