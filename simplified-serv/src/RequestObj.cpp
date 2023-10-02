@@ -103,6 +103,11 @@ std::map<std::string, std::string> *RequestObj::ParseIntoMap(std::map<std::strin
 {
 	_map = &input_map;
 
+	if (_input == "")
+	{
+		_error = "empty input";
+		throw _error;
+	}
 	lexer(_StartLineDelimiter);
 	deleteChars(" ");
 	_it = _stapel.begin();

@@ -120,3 +120,23 @@ std::list<std::string>::iterator ParseableObject::_find( std::string str, std::l
 	}
 	return ( _stapel.end() );
 }
+
+/**
+ * @brief returns an iterator to _stapel where it finds an element that contains str
+ * for example str="na" found element="naja" 
+ * 
+ * @param str 
+ * @param start 
+ * @return std::list<std::string>::iterator 
+ */
+std::list<std::string>::iterator ParseableObject::_findSubStr( std::string str, std::list<std::string>::iterator start)
+{
+	std::string skjfd;
+	for ( ; start != _stapel.end(); start++)
+	{
+		skjfd = *start; // testung
+		if (start->find(str) != std::string::npos)
+			return start;
+	}
+	return ( _stapel.end() );
+}

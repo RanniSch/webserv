@@ -18,6 +18,11 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 		if (str == "no valid request")
 			std::cout << "maybe it's data" << std::endl; // for Ranja
 			// do something with it or make buffer bigger?
+		if ( str == "empty input" )
+		{
+			_error = str;
+			throw _error;
+		}
 	}
 	catch(...)
 	{

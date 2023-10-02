@@ -42,6 +42,7 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 		lexer(" \n\t{};");
 		deleteChars(" ");
 		deleteChars("\t");
+		_checkTokensInFrontOfLineBreak();
 		deleteChars("\n");
 		_checkTokensInFrontOfCurlyBrackets();
 		start = _find("server");
@@ -204,25 +205,91 @@ bool	Config::_checkCurlyBrackets( const std::string &input ) const
 	return ( true );
 }
 
+void	Config::_checkTokensInFrontOfLineBreak()
+{
+	std::list<std::string>::iterator 	it;//, buf;
+
+	// _error = ": wrong usage of an opening curly bracket '{'. Only 'server' or 'location <with_a_location>' has to come right before '{'. It is case sensitive.";
+
+	// int i = 0; // testung
+	// if( i )		// testen weg!!!
+	// {
+	// 	i+=1;
+	// 	i-=1;
+	// }
+
+	for ( it = _stapel.begin() ; it != _stapel.end() ; it++)
+	{
+		it = _findSubStr("\n", it);
+		// i = find_me(_stapel.begin(), it); // testung
+		if ( it == _stapel.end() )
+			return;
+		// buf = it;
+		_checkTokensInFrontOf_One_LineBreak( it );
+	}
+
+}
+
+/**
+ * @brief In front of a line break should only be: 
+ * "server \n" or 
+ * "...{ \n" or 
+ * "...} \n" or
+ * "location <a_location> \n" or
+ * "; \n" or
+ * "\n  \n" // is possible in stapel when a tab for example is inbetween
+ * to prevent that ; will be forgotten at the end of a parameter and value
+ * 
+ * @param it 
+ */
+void	Config::_checkTokensInFrontOf_One_LineBreak( std::list<std::string>::iterator it )
+{
+	_error = ": after a parameter and it's values has to be a ; before the line breaks.";
+
+	// int i = find_me(_stapel.begin(), it); // testen
+	// if( i )		// testen weg!!!
+	// {
+	// 	i+=1;
+	// 	i-=1;
+	// }
+
+	if ( it == _stapel.begin() )
+		return;
+	it--;
+	// it is now one before '\n'
+	if ( *it == "server" || *it == "{" || *it == "}" || *it == ";" )
+		return;
+	if ( it->find("\n") != std::string::npos )
+		return;
+	if ( it == _stapel.begin())
+		return;
+	it--;
+	// it is now two before '{'
+	if ( *it == "location" )
+		return;
+	throw _error;
+}
+
+
 void	Config::_checkTokensInFrontOfCurlyBrackets()
 {
 	std::list<std::string>::iterator 	it;//, buf;
 
 	_error = ": wrong usage of an opening curly bracket '{'. Only 'server' or 'location <with_a_location>' has to come right before '{'. It is case sensitive.";
 
-	int i = 0; // testung
+	// int i = 0; // testung
 
 	for ( it = _stapel.begin() ; it != _stapel.end() ; it++)
 	{
 		it = _find("{", it);
-		i = find_me(_stapel.begin(), it); // testung
+		// i = find_me(_stapel.begin(), it); // testung
 		if ( it == _stapel.end() )
 			return;
 		// buf = it;
 		_checkTokensInFrontOf_One_CurlyBracket( it );
 	}
-	if ( i ) // testung
-		return;
+	// if ( i ) // testung
+	// 	return;
 
 }
 

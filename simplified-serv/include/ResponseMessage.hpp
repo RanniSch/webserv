@@ -34,6 +34,7 @@ class ResponseMessage {
 		std::string		_fileType;
 		std::string		_filePath;
 		std::string		_location;
+		std::string		_error;
 		int				_statusCode;
 		
 

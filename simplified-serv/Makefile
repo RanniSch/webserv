@@ -80,7 +80,7 @@ fclean: clean
 	fi;
 
 e:	$(NAME)
-	./$(NAME)
+	./$(NAME) conf/webserve.conf
 
 ### re Rule ###
 re: fclean all

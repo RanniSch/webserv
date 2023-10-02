@@ -104,6 +104,8 @@ class Config: protected ParseableObject {
 		void								_deleteComments();
 		void								_checkAllowedCharacters();
 		bool								_checkCurlyBrackets( const std::string &input ) const;
+		void								_checkTokensInFrontOfLineBreak();
+		void								_checkTokensInFrontOf_One_LineBreak( std::list<std::string>::iterator it );
 		void								_checkTokensInFrontOfCurlyBrackets();
 		void								_checkTokensInFrontOf_One_CurlyBracket( std::list<std::string>::iterator it );
 		std::list<std::string>::iterator	_newServer( std::list<std::string>::iterator &start );
