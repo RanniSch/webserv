@@ -37,7 +37,7 @@ class TestServer{
         
         private:
                 int								_loop_counter;
-                char							_buffer[300000];
+                char							_buffer[8000];
 
                 int								_nbr_of_ports;
                 int                             _nbr_of_client_sockets;
