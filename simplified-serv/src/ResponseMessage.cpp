@@ -28,7 +28,6 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	{
 		std::cout << "bad request" << std::endl; // for Max (send request again oder so)
 	}
-
 }
 
 ResponseMessage::~ResponseMessage( void )
@@ -151,7 +150,10 @@ void	ResponseMessage::_PostMethod( void )
 			std::string len = _request_map.find("Content-Length")->second; // länge
 			int length = atoi(len.c_str());
 			if (length) 		// weg, nur für compiler
-				length = 2; 	// weg, nur für compiler
+			{
+				length+=1;
+				length-=1;
+			}
 			std::string content_disposition = _request_map.find("Content-Disposition")->second;
 			std::string content_type = _request_map.find("Content-Type")->second; // aus den String musst du noch den type heraussuchen
 			
@@ -214,14 +216,6 @@ void	ResponseMessage::_PostMethod( void )
 				delete[] postData;
 			}
 			// break;
-
-
-
-
-
-
-
-
 }
 
 void	ResponseMessage::_GetMethod( void )
@@ -399,3 +393,15 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string target, 
 	_fileType = fileExtension;
 }
 
+size_t	ResponseMessage::get_content_length()
+{
+	std::map<std::string, std::string>::iterator it;
+
+	it = _request_map.find("Content-Length");
+	if ( it == _request_map.end() )
+		return 0;
+
+	std::string len = it->second; // länge
+	size_t length = atoi(len.c_str());
+	return (length);
+}

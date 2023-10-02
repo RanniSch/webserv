@@ -49,4 +49,5 @@ class ResponseMessage {
 		std::string		_lookForFileFromConfigMap( std::string dir_to_look_for, const std::string &config_map_key );
 		bool			_FileExists( const std::string &path );
 		void			_getProperFilePathAndPrepareResponse( std::string target, std::string path, std::string cwd);
+		size_t			get_content_length();
 };
