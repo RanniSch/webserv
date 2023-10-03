@@ -17,6 +17,9 @@
 #include <sys/stat.h> // check for directory
 
 #include "RequestObj.hpp"
+#include "Config.hpp"
+
+extern Config *g_config; // muss auch weg!!! dafür config dem Objekt direkt übergeben
 
 // canonnical form!!!
 class ResponseMessage {
@@ -37,9 +40,10 @@ class ResponseMessage {
 		std::string		_location;
 		std::string		_error;
 		int				_statusCode;
+		Config			&_config;
 		
 
-		const std::map<std::string, std::vector<std::string> >		&_config;
+		const std::map<std::string, std::vector<std::string> >		&_config_old;
 		std::map<std::string, std::string>							_request_map;
 
 		void			_chooseMethod( void );

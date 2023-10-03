@@ -2,7 +2,7 @@
 
 ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::string> > &config,\
  char* request_cstr )
-: _request_cstr(request_cstr), _statusCode(0), _config(config)
+: _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _config_old(config)
 {
 	_location = "";
 	std::string request;
@@ -28,6 +28,7 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	{
 		std::cout << "bad request" << std::endl; // for Max (send request again oder so)
 	}
+
 }
 
 ResponseMessage::~ResponseMessage( void )
@@ -225,8 +226,9 @@ void	ResponseMessage::_GetMethod( void )
 		std::string							buf;
 		std::string							cwd;
 
-		path_vec = _config.find("cwd")->second; // verändern wir config cwd mit path? weil &path?
-		std::string	&path = path_vec.front();
+		// path_vec = _config_old.find("cwd")->second; // verändern wir config cwd mit path? weil &path?
+		// std::string	&path = path_vec.front();
+		std::string	path = _config.get_cwd(); // redirection happens here
 
 		path.append("/www");
 		buf =  _request_map.find("Target")->second;
@@ -291,12 +293,12 @@ std::string	ResponseMessage::_lookForFileFromConfigMap( std::string dir_to_look_
 	size_t								size;
 	unsigned int 						i = 0;
 
-	if (_config.find(config_map_key) == _config.end())
+	if (_config_old.find(config_map_key) == _config_old.end())
 	{
-		std::cout << "Key not found in _configMap" << std::endl;
+		std::cout << "Key not found in _config_Map" << std::endl;
 		return ( "" );
 	}
-	buf_vec = _config.find(config_map_key)->second;
+	buf_vec = _config_old.find(config_map_key)->second;
 	size = buf_vec.size();
 	
 	while ( i < size )
