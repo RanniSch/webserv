@@ -270,7 +270,6 @@ void	Config::_checkTokensInFrontOf_One_LineBreak( std::list<std::string>::iterat
 	throw _error;
 }
 
-
 void	Config::_checkTokensInFrontOfCurlyBrackets()
 {
 	std::list<std::string>::iterator 	it;//, buf;
@@ -534,6 +533,14 @@ std::string	Config::get( size_t server, std::string parameter, size_t n )
 // 		_location_map
 //  ------------------------
 
+/**
+ * @brief gives you the size how many values the parameter in location has. If it can't find the parameter returns 0
+ * 
+ * @param server 
+ * @param location 
+ * @param parameter 
+ * @return size_t 
+ */
 size_t	Config::size( size_t server, std::string location,  std::string parameter)
 {
 	size_t count_server = _server_vector.size();
