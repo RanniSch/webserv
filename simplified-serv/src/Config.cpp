@@ -19,7 +19,6 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 	{
 		perror("getcwd() error");
 	}
-	std::string _cwd;
 	_cwd.append(cwd);
 	try
 	{

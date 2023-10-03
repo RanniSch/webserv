@@ -40,7 +40,9 @@ class ResponseMessage {
 		std::string		_location;
 		std::string		_error;
 		int				_statusCode;
-		Config			&_config;
+		Config			&_config;		//should be given when creating
+		size_t			_server;		//should be given when creating
+		std::string		_location_from_config;		//should be given when creating
 		
 
 		const std::map<std::string, std::vector<std::string> >		&_config_old;
@@ -51,7 +53,7 @@ class ResponseMessage {
 		void			_GetMethod( void );
 		// std::string		_createStartLine( void );
 		std::string		_createContentFromFile( std::string filepath, int statusCode );
-		std::string		_lookForFileFromConfigMap( std::string dir_to_look_for, const std::string &config_map_key );
+		std::string		_lookForFileFromConfig( std::string dir_to_look_for, const std::string &config_map_key );
 		bool			_FileExists( const std::string &path );
 		void			_getProperFilePathAndPrepareResponse( std::string target, std::string path, std::string cwd);
 };

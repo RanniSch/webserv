@@ -1,8 +1,7 @@
 #include "../include/ResponseMessage.hpp"
 
-ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::string> > &config,\
- char* request_cstr )
-: _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _config_old(config)
+ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, char* request_cstr )
+: _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _server(0), _location_from_config("/"), _config_old(config)
 {
 	_location = "";
 	std::string request;
@@ -28,6 +27,7 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	{
 		std::cout << "bad request" << std::endl; // for Max (send request again oder so)
 	}
+	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
 
 }
 
@@ -286,25 +286,29 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath, int 
 	}
 }
 
-std::string	ResponseMessage::_lookForFileFromConfigMap( std::string dir_to_look_for, const std::string &config_map_key )
+std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for, const std::string &config_map_key )
 {
 	std::vector<std::string>			buf_vec;
 	std::string							buf;
-	size_t								size;
+	std::string							file = "start";
+	// size_t								size;
 	unsigned int 						i = 0;
 
-	if (_config_old.find(config_map_key) == _config_old.end())
-	{
-		std::cout << "Key not found in _config_Map" << std::endl;
-		return ( "" );
-	}
-	buf_vec = _config_old.find(config_map_key)->second;
-	size = buf_vec.size();
+	// if (_config_old.find(config_map_key) == _config_old.end())
+	// {
+	// 	std::cout << "Key not found in _config_Map" << std::endl;
+	// 	return ( "" );
+	// }
+	// buf_vec = _config_old.find(config_map_key)->second;
+	// size = buf_vec.size();
 	
-	while ( i < size )
+	// while ( i < size )
+	while ( file != "" )
 	{
 		buf = dir_to_look_for;
-		buf.append(buf_vec.at(i));
+		// buf.append(buf_vec.at(i));
+		file = _config.get(_server, _location_from_config, config_map_key, i);
+		buf.append(file);
 		if(_FileExists(buf))
 			return (buf);
 		i++;
@@ -352,13 +356,13 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string target, 
 	}
 	// gucken ob original path jetzt anders ist
 	if (target == "/")
-		path = _lookForFileFromConfigMap( path, "index" );
+		path = _lookForFileFromConfig( path, "index" );
 
 	if(!_FileExists(path) || (path.find("..") != std::string::npos))
 	{
 		error = true;
 		cwd.append("/"); // look in config map were to find the error pages
-		path = _lookForFileFromConfigMap( cwd, "error404" );
+		path = _lookForFileFromConfig( cwd, "error404" );
 		if ( path == "") //stadard error when no file provided or not found
 		{
 			_contentType = "Content-type: text/plain\r\n";
