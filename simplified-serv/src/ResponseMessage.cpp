@@ -1,7 +1,7 @@
 #include "../include/ResponseMessage.hpp"
 
 ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, char* request_cstr )
-: _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _server(0), _location_from_config("/"), _config_old(config)
+: _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _server(0), _config_old(config)
 {
 	_location = "";
 	std::string request;
@@ -19,16 +19,19 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 			// do something with it or make buffer bigger?
 		if ( str == "empty input" )
 		{
-			_error = str;
-			throw _error;
+			// _error = str; // use it ? 
+			// throw _error;
+			return;
 		}
 	}
 	catch(...)
 	{
 		std::cout << "bad request" << std::endl; // for Max (send request again oder so)
 	}
-	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
+	_check_and_set_config_location();
 
+
+	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
 }
 
 ResponseMessage::~ResponseMessage( void )
@@ -38,30 +41,38 @@ ResponseMessage::~ResponseMessage( void )
 
 void	ResponseMessage::_check_and_set_config_location ( void )
 {
-	std::string		target;
 	std::string		config_location;
 
-	target =  _request_map.find("Target")->second;
-	while()
+	// kann /subdir/subsub/index.html sein
+	// oder subdir  -> wird nicht behandelt
+	// oder /subdir -> wird behandelt
+	// oder /subdir/subsub/
+	config_location =  _request_map.find("Target")->second;
+	while(42)
 	{
 		try
 		{
-			config_location = _config.get(_server, target)
+			config_location = _config.get(_server, config_location);
+			break;
 		}
 		catch( std::string str)
 		{
 			if ( str == "location_not_found" )
 			{
-				strip_path( target );
+				if ( config_location == "/" )
+				{
+					config_location.pop_back();
+					break;
+				}
+				config_location = strip_path( config_location );
 			}
 		}
 		catch( ... )
 		{
-			std::cout << "unknown config error in ResponseMessage." << std::cout;
+			std::cout << "unknown config error in ResponseMessage." << std::endl;
 		}
-
 	}
-
+	_config_location = config_location;
 }
 
 
@@ -336,7 +347,7 @@ std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for
 	{
 		buf = dir_to_look_for;
 		// buf.append(buf_vec.at(i));
-		file = _config.get(_server, _location_from_config, config_map_key, i);
+		file = _config.get(_server, _config_location, config_map_key, i);
 		buf.append(file);
 		if(_FileExists(buf))
 			return (buf);

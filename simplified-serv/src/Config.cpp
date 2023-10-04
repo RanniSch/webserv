@@ -571,3 +571,11 @@ std::string	Config::get( size_t server, std::string location, std::string parame
 		return ("");
 	}
 }
+
+std::string	Config::get( size_t server, std::string location )
+{
+	size_t count_server = _server_vector.size();
+	if ( server >= count_server )
+		return "";
+	return ( _server_vector.at(server).get( location ) );
+}

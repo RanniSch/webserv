@@ -96,29 +96,42 @@ int	find_me( std::list<std::string>::iterator start, std::list<std::string>::ite
 /**
  * @brief it strips a path to the next smaler one
  * "removes the filepath down to..."
- * /subdir/subsub/index.html -> /subdir/subsub/
+ * /subdir/subsub/index.html -> 
+ * /subdir/subsub/ -> /subdir/subsub
+ * strips maximum till "/" when there is one in the front
  * 
  * @return std::string 
  */
 std::string strip_path( std::string path )
 {
 	std::string::iterator	it;
+	size_t					size;
+	bool					first_char_flag = true;
 	
 	// kann /subdir/subsub/index.html sein
-	// oder subdir
+	// oder subdir -> wird nicht behandelt
+	// oder /subdir -> wird behandelt
 	// oder /subdir/subsub/
 	while (42)
 	{
 		if ( path.size() <= 0 )
 			break;
-		it = path.end();
-		if ( *it == '/' )
+		if ( path.size() == 1 && path == "/" )
+			break;
+		size = path.size();
+		if ( path.at(size-1) == '/' && first_char_flag)
 		{
+			first_char_flag = false;
 			path.pop_back();
 			break;
 		}
+		else if ( path.at(size-1) == '/' )
+			break;
 		else
+		{
+			first_char_flag = false;
 			path.pop_back();
+		}
 	}
 	return path;
 }

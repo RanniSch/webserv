@@ -18,6 +18,7 @@
 
 #include "RequestObj.hpp"
 #include "Config.hpp"
+#include "utils.hpp"
 
 extern Config *g_config; // muss auch weg!!! dafür config dem Objekt direkt übergeben
 
@@ -42,12 +43,13 @@ class ResponseMessage {
 		int				_statusCode;
 		Config			&_config;		//should be given when creating
 		size_t			_server;		//should be given when creating
-		std::string		_location_from_config;		//should be given when creating
+		std::string		_config_location; // when no config_location is found for this request_location -> ""
 		
 
 		const std::map<std::string, std::vector<std::string> >		&_config_old;
 		std::map<std::string, std::string>							_request_map;
 
+		void			_check_and_set_config_location ( void );
 		void			_chooseMethod( void );
 		void			_PostMethod( void );
 		void			_GetMethod( void );

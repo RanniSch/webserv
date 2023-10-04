@@ -3,7 +3,7 @@
 #include "ParseableObject.hpp"
 #include "StrVecMap.hpp"
 #include "ConfigServer.hpp"
-#include "utils.h"
+#include "utils.hpp"
 #include <stdlib.h>
 #include <limits.h>
 # include <unistd.h>
@@ -88,6 +88,7 @@ class Config: protected ParseableObject {
 		//  ------------------------
 		size_t		size( size_t server, std::string location,  std::string parameter);
 		std::string	get( size_t server, std::string location, std::string parameter, size_t n );
+		std::string	get( size_t server, std::string location );
 
 
 	private:
