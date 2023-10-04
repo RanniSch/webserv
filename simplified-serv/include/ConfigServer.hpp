@@ -30,7 +30,8 @@ class ConfigServer {
 		// 		_location_map
 		//  ------------------------
 		size_t		size( std::string location, std::string parameter );
-		std::string	get( std::string location, std::string parameter, size_t n);
+		std::string	get( std::string location, std::string parameter, size_t n );
+		std::string	get( std::string location );
 
 
 	private:
@@ -39,5 +40,3 @@ class ConfigServer {
 
 		std::map<std::string, StrVecMap>	_location_map;
 };
-
-

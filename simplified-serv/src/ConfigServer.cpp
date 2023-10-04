@@ -211,3 +211,17 @@ std::string	ConfigServer::get( std::string location, std::string parameter, size
 	}
 	return ( it->second.get( parameter, n ) );
 }
+
+std::string	ConfigServer::get( std::string location )
+{
+	std::map<std::string, StrVecMap >::iterator		it;
+
+	it = _location_map.find(location);
+	if ( it == _location_map.end() )
+	{
+		std::string error = "location_not_found";
+		throw error;
+	}
+	return ( it->first );
+}
+

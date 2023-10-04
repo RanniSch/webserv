@@ -36,6 +36,35 @@ ResponseMessage::~ResponseMessage( void )
 
 }
 
+void	ResponseMessage::_check_and_set_config_location ( void )
+{
+	std::string		target;
+	std::string		config_location;
+
+	target =  _request_map.find("Target")->second;
+	while()
+	{
+		try
+		{
+			config_location = _config.get(_server, target)
+		}
+		catch( std::string str)
+		{
+			if ( str == "location_not_found" )
+			{
+				strip_path( target );
+			}
+		}
+		catch( ... )
+		{
+			std::cout << "unknown config error in ResponseMessage." << std::cout;
+		}
+
+	}
+
+}
+
+
 std::string	ResponseMessage::createResponse( void )
 {
 	_chooseMethod();
