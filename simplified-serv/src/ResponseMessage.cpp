@@ -47,7 +47,7 @@ void	ResponseMessage::_check_and_set_config_location ( void )
 	// oder subdir  -> wird nicht behandelt
 	// oder /subdir -> wird behandelt
 	// oder /subdir/subsub/
-	config_location =  _request_map.find("Target")->second;
+	config_location =  _request_map.find("request_location")->second;
 	while(42)
 	{
 		try
@@ -271,7 +271,7 @@ void	ResponseMessage::_GetMethod( void )
 		std::string	path = _config.get_cwd(); // redirection happens here
 
 		path.append("/www");
-		buf =  _request_map.find("Target")->second;
+		buf =  _request_map.find("request_location")->second;
 		cwd = path;
 		path.append(buf);
 		_getProperFilePathAndPrepareResponse(buf, path, cwd);
@@ -369,7 +369,7 @@ bool	ResponseMessage::_FileExists( const std::string &filepath )
 	return false;
 }
 
-void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string target, std::string path, std::string cwd)
+void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string request_location, std::string path, std::string cwd)
 {
 	bool 			error = false;
 	size_t 			num;
@@ -386,16 +386,16 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string target, 
 			// 301 redirect
 			_contentType = "";
 			_location = "location: http://localhost:8000"; // get from config
-			_location += target + "/\r\n";
+			_location += request_location + "/\r\n";
 			_statusCode = 301;
 			_fileType = "";
 			_filePath = "";
 			return;
 		}
-		target = "/";
+		request_location = "/";
 	}
 	// gucken ob original path jetzt anders ist
-	if (target == "/")
+	if (request_location == "/")
 		path = _lookForFileFromConfig( path, "index" );
 
 	if(!_FileExists(path) || (path.find("..") != std::string::npos))

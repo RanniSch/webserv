@@ -31,7 +31,7 @@ void	RequestObj::_parseStartLine( void )
 	}
 	_pair = std::make_pair("Method", *_it++);
 	_map->insert(_pair);
-	_pair = std::make_pair("Target", *_it++); // wenn eines davon fehlt absturz
+	_pair = std::make_pair("request_location", *_it++); // wenn eines davon fehlt absturz
 	_map->insert(_pair);
 	_pair = std::make_pair("Version", *_it++);
 	_map->insert(_pair);
