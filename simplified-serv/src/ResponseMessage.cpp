@@ -83,6 +83,7 @@ void	ResponseMessage::_fill_status_line_and_default_error_page( void )
  */
 void	ResponseMessage::_check_and_set_config_location( void )
 {
+	size_t			len;
 	std::string		config_location;
 
 	config_location =  _request_map.find("request_location")->second;
@@ -99,7 +100,9 @@ void	ResponseMessage::_check_and_set_config_location( void )
 			{
 				if ( config_location == "/" )
 				{
-					config_location.pop_back();
+					len = config_location.size();
+					config_location.erase(len-1);
+					// config_location.pop_back();
 					break;
 				}
 				config_location = strip_path( config_location );
@@ -232,6 +235,12 @@ std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std:
 	return path_one;
 }
 
+/**
+ * @brief returns a full response String for status_code
+ * 
+ * @param status_code 
+ * @return std::string 
+ */
 std::string	ResponseMessage::createResponse( size_t status_code )
 {
 	// easy version for testing

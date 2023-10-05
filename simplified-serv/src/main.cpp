@@ -17,8 +17,6 @@ int main(int argc, char **argv)
 	Config config(argv[1]);
 	g_config = &config; // raus
 
-	ResponseMessage rm;
-	std::string str = rm.createResponse(400);
 
     TestServer server;
 

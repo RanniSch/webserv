@@ -104,7 +104,7 @@ int	find_me( std::list<std::string>::iterator start, std::list<std::string>::ite
  */
 std::string strip_path( std::string path )
 {
-	std::string::iterator	it;
+	size_t					len;
 	size_t					size;
 	bool					first_char_flag = true;
 	
@@ -122,7 +122,9 @@ std::string strip_path( std::string path )
 		if ( path.at(size-1) == '/' && first_char_flag)
 		{
 			first_char_flag = false;
-			path.pop_back();
+			len = path.size();
+			path.erase(len-1);
+			// path.pop_back();
 			break;
 		}
 		else if ( path.at(size-1) == '/' )
@@ -130,7 +132,9 @@ std::string strip_path( std::string path )
 		else
 		{
 			first_char_flag = false;
-			path.pop_back();
+			len = path.size();
+			path.erase(len-1);
+			// path.pop_back();
 		}
 	}
 	return path;
