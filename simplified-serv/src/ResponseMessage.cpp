@@ -58,7 +58,6 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 
 	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
 
-	std::string str = createResponse(400);
 }
 
 ResponseMessage::~ResponseMessage( void )
