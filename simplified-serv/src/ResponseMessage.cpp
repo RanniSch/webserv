@@ -29,7 +29,8 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 		std::cout << "bad request" << std::endl; // for Max (send request again oder so)
 	}
 	_check_and_set_config_location();
-
+	_cwd = _config.get_cwd();
+	_set_root_directory();
 
 	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
 }
@@ -39,7 +40,7 @@ ResponseMessage::~ResponseMessage( void )
 
 }
 
-void	ResponseMessage::_check_and_set_config_location ( void )
+void	ResponseMessage::_check_and_set_config_location( void )
 {
 	std::string		config_location;
 
@@ -75,6 +76,14 @@ void	ResponseMessage::_check_and_set_config_location ( void )
 	_config_location = config_location;
 }
 
+void	ResponseMessage::_set_root_directory( void )
+{
+	std::string		config_root;
+
+	config_root = _config.get(_server, _config_location, "root", 0);
+	_cwd += config_root;
+
+}
 
 std::string	ResponseMessage::createResponse( void )
 {
@@ -264,7 +273,7 @@ void	ResponseMessage::_GetMethod( void )
 		std::vector<std::string>			path_vec;
 		std::vector<std::string>			buf_vec;
 		std::string							buf;
-		std::string							cwd;
+		std::string							cwd; // change to _cwd !!!! und die anderen auch!!!
 
 		// path_vec = _config_old.find("cwd")->second; // verändern wir config cwd mit path? weil &path?
 		// std::string	&path = path_vec.front();

@@ -44,12 +44,14 @@ class ResponseMessage {
 		Config			&_config;		//should be given when creating
 		size_t			_server;		//should be given when creating
 		std::string		_config_location; // when no config_location is found for this request_location -> ""
+		std::string		_cwd;
 		
 
 		const std::map<std::string, std::vector<std::string> >		&_config_old;
 		std::map<std::string, std::string>							_request_map;
 
 		void			_check_and_set_config_location ( void );
+		void			_set_root_directory( void );
 		void			_chooseMethod( void );
 		void			_PostMethod( void );
 		void			_GetMethod( void );
