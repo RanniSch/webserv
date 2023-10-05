@@ -31,7 +31,7 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	_check_and_set_config_location();
 	_cwd = _config.get_cwd();
 	_set_root_directory();
-
+	_check_redirect_and_set_target_path();
 	_check_index_and_set_target_path(); // davor aber erst redirect machen!!!
 
 	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
@@ -87,6 +87,50 @@ void	ResponseMessage::_set_root_directory( void )
 }
 
 /**
+ * @brief 
+ * _cwd could be ..../one_dir/alt_dir/one_dir/second_dir
+ *  then you don't know which one_dir to replace
+ * 
+ * at this point _cwd is where the binary is + root directory
+ * locations come right after that now
+ *
+ * for example:
+ * location /one
+ * {
+ * 		return /two;
+ * }
+ * 	request_path is: 		/one/sub/index.html
+ * 	new path should be 		/two/sub/index.html
+ * 	old_sub_path			/one
+ * 	new_sub_path			/two
+ * 
+ */
+void	ResponseMessage::_check_redirect_and_set_target_path( void )
+{
+	std::string										request_path;
+	std::string										old_sub_path;
+	size_t											len_old_sub_path;
+	std::string										new_sub_path;
+	// size_t											start_old;
+	std::map<std::string, std::string>::iterator	it;
+
+	it = _request_map.find("request_location"); // maybe throw error and when an unknown error catched then respond corresponding error code request unrecognized oder so
+	if ( it == _request_map.end() )
+		return;
+	request_path = it->second;
+
+	old_sub_path = _config_location;
+
+	len_old_sub_path = _config_location.size();
+
+	new_sub_path = _config.get( _server, _config_location, "return", 0 );
+
+	// start_old = _cwd.find( _config_location );
+	request_path.replace( 0, len_old_sub_path, new_sub_path);
+	_target_path = _cwd + request_path;
+}
+
+/**
  * @brief look if _cwd + request_location (from _request_map) are a file or a directory
  * if it's a directory then look into _config for index files
  * take the first one that exists in that directory
@@ -99,12 +143,7 @@ void	ResponseMessage::_check_index_and_set_target_path()
 	std::map<std::string, std::string>::iterator	it;
 	struct stat										info;
 
-	// return if can't find request_location in request_map 
-	it = _request_map.find("request_location");
-	if ( it == _request_map.end() )
-		return;
-	target_path = _cwd + it->second;
-	// is the target_path a directory?
+	target_path = _target_path;	// is the target_path a directory?
 	// if not, or have no permission, return
 	const char *path_ptr = target_path.c_str();
 	if (stat(path_ptr, &info) != 0 || !S_ISDIR(info.st_mode))
@@ -132,12 +171,30 @@ std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string 
 	{
 		buf = dir_to_look_for;
 		file = _config.get(_server, _config_location, config_parameter, i);
-		buf.append(file);
+		// buf.append(file);
+		buf = _path_one_plus_path_two(buf, file);
 		if(_FileExists(buf))
 			return (buf);
 		i++;
 	}
 	return ( "" );
+}
+
+std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std::string path_two )
+{
+	// std::string::iterator		it;
+	size_t		act_char;
+
+	path_one.append("/");
+	path_one.append(path_two);
+	while (42)
+	{
+		act_char = path_one.find("//");
+		if ( act_char == std::string::npos )
+			break;
+		path_one.erase(act_char, 1);
+	}
+	return path_one;
 }
 
 std::string	ResponseMessage::createResponse( void )

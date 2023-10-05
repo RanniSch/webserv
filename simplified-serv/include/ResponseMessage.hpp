@@ -49,13 +49,15 @@ class ResponseMessage {
 		std::string		_target_path;
 		
 
-		const std::map<std::string, std::vector<std::string> >		&_config_old;
+		const std::map<std::string, std::vector<std::string> >		&_config_old; // rausnehmen
 		std::map<std::string, std::string>							_request_map;
 
 		void			_check_and_set_config_location ( void );
 		void			_set_root_directory( void );
+		void			_check_redirect_and_set_target_path( void );
 		void			_check_index_and_set_target_path();
 		std::string		_look_for_file_in_dir_based_on_config( std::string dir_to_look_for, const std::string &config_parameter );
+		std::string		_path_one_plus_path_two( std::string path_one, std::string path_two );
 
 		void			_chooseMethod( void );
 		void			_PostMethod( void );
