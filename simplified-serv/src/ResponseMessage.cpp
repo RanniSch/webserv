@@ -3,27 +3,7 @@
 ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, char* request_cstr )
 : _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _server(0), _config_old(config)
 {
-	/*
-			-------------	fill status lines to status codes	-------------
-	*/
-	_status_line.insert( std::pair<size_t, std::string>(200, "OK") );
-	_status_line.insert( std::pair<size_t, std::string>(301, "Moved Permanently") );
-	_status_line.insert( std::pair<size_t, std::string>(400, "Bad Request") );
-	_status_line.insert( std::pair<size_t, std::string>(404, "Not Found") );
-	_status_line.insert( std::pair<size_t, std::string>(405, "Method Not Allowed") );
-	_status_line.insert( std::pair<size_t, std::string>(413, "Payload Too Large") );
-	_status_line.insert( std::pair<size_t, std::string>(500, "Internal Server Error") );
-	/*
-			-------------	fill default error pages to status codes	-------------
-	*/
-	_default_error_page.insert( std::pair<size_t, std::string>(400, "<!DOCTYPE html><html><head><title>400 Bad Request</title></head><body><h1>Bad Request</h1><p>Your browser sent a request that this server could not understand.</p></body></html>") );
-
-
-
-	/*
-			-------------	end of filling	-------------
-	*/
-	
+	_fill_status_line_and_default_error_page();
 	
 	_location = "";
 	std::string request;
@@ -60,9 +40,38 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 
 }
 
+ResponseMessage::ResponseMessage( void ):_config(*g_config), _config_old(_config_for_compiler) // get rid of global variable and of config old
+{
+		_fill_status_line_and_default_error_page();
+}
+
 ResponseMessage::~ResponseMessage( void )
 {
 
+}
+
+void	ResponseMessage::_fill_status_line_and_default_error_page( void )
+{
+	/*
+			-------------	fill status lines to status codes	-------------
+	*/
+	_status_line.insert( std::pair<size_t, std::string>(200, "OK") );
+	_status_line.insert( std::pair<size_t, std::string>(301, "Moved Permanently") );
+	_status_line.insert( std::pair<size_t, std::string>(400, "Bad Request") );
+	_status_line.insert( std::pair<size_t, std::string>(404, "Not Found") );
+	_status_line.insert( std::pair<size_t, std::string>(405, "Method Not Allowed") );
+	_status_line.insert( std::pair<size_t, std::string>(413, "Payload Too Large") );
+	_status_line.insert( std::pair<size_t, std::string>(500, "Internal Server Error") );
+	/*
+			-------------	fill default error pages to status codes	-------------
+	*/
+	_default_error_page.insert( std::pair<size_t, std::string>(400, "<!DOCTYPE html><html><head><title>400 Bad Request</title></head><body><h1>Bad Request</h1><p>Your browser sent a request that this server could not understand.</p></body></html>") );
+
+
+
+	/*
+			-------------	end of filling	-------------
+	*/
 }
 
 /**
