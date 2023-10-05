@@ -41,10 +41,12 @@ class ResponseMessage {
 		std::string		_location;
 		std::string		_error;
 		int				_statusCode;
+		// ab hier überarbeitet
 		Config			&_config;		//should be given when creating
 		size_t			_server;		//should be given when creating
 		std::string		_config_location; // when no config_location is found for this request_location -> ""
 		std::string		_cwd;
+		std::string		_target_path;
 		
 
 		const std::map<std::string, std::vector<std::string> >		&_config_old;
@@ -52,6 +54,9 @@ class ResponseMessage {
 
 		void			_check_and_set_config_location ( void );
 		void			_set_root_directory( void );
+		void			_check_index_and_set_target_path();
+		std::string		_look_for_file_in_dir_based_on_config( std::string dir_to_look_for, const std::string &config_parameter );
+
 		void			_chooseMethod( void );
 		void			_PostMethod( void );
 		void			_GetMethod( void );

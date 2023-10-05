@@ -32,6 +32,8 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	_cwd = _config.get_cwd();
 	_set_root_directory();
 
+	_check_index_and_set_target_path(); // davor aber erst redirect machen!!!
+
 	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
 }
 
@@ -82,7 +84,60 @@ void	ResponseMessage::_set_root_directory( void )
 
 	config_root = _config.get(_server, _config_location, "root", 0);
 	_cwd += config_root;
+}
 
+/**
+ * @brief look if _cwd + request_location (from _request_map) are a file or a directory
+ * if it's a directory then look into _config for index files
+ * take the first one that exists in that directory
+ * and set the _target_path to this file
+ */
+void	ResponseMessage::_check_index_and_set_target_path()
+{
+	std::string										index;
+	std::string										target_path;
+	std::map<std::string, std::string>::iterator	it;
+	struct stat										info;
+
+	// return if can't find request_location in request_map 
+	it = _request_map.find("request_location");
+	if ( it == _request_map.end() )
+		return;
+	target_path = _cwd + it->second;
+	// is the target_path a directory?
+	// if not, or have no permission, return
+	const char *path_ptr = target_path.c_str();
+	if (stat(path_ptr, &info) != 0 || !S_ISDIR(info.st_mode))
+		return;
+	// look for index file in target_path
+	target_path = _look_for_file_in_dir_based_on_config( target_path, "index" );
+	if ( target_path != "" )
+		_target_path = target_path;
+}
+
+/**
+ * @brief returns "" if can't find a correct file
+ * 
+ * @param dir_to_look_for 
+ * @param config_parameter 
+ * @return std::string 
+ */
+std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string dir_to_look_for, const std::string &config_parameter )
+{
+	std::string							buf;
+	std::string							file = "start";
+	unsigned int 						i = 0;
+
+	while ( file != "" )
+	{
+		buf = dir_to_look_for;
+		file = _config.get(_server, _config_location, config_parameter, i);
+		buf.append(file);
+		if(_FileExists(buf))
+			return (buf);
+		i++;
+	}
+	return ( "" );
 }
 
 std::string	ResponseMessage::createResponse( void )
@@ -273,17 +328,18 @@ void	ResponseMessage::_GetMethod( void )
 		std::vector<std::string>			path_vec;
 		std::vector<std::string>			buf_vec;
 		std::string							buf;
-		std::string							cwd; // change to _cwd !!!! und die anderen auch!!!
+		std::string							path;
+		// std::string							cwd; // change to _cwd !!!! und die anderen auch!!!
 
 		// path_vec = _config_old.find("cwd")->second; // verändern wir config cwd mit path? weil &path?
 		// std::string	&path = path_vec.front();
-		std::string	path = _config.get_cwd(); // redirection happens here
+		// std::string	path = _config.get_cwd(); // redirection happens here
 
-		path.append("/www");
+		// path.append("/www");
 		buf =  _request_map.find("request_location")->second;
-		cwd = path;
+		path = _cwd;
 		path.append(buf);
-		_getProperFilePathAndPrepareResponse(buf, path, cwd);
+		_getProperFilePathAndPrepareResponse(buf, path, _cwd);
 }
 
 std::string		ResponseMessage::_createContentFromFile( std::string filepath, int statusCode )
@@ -367,14 +423,21 @@ std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for
 
 bool	ResponseMessage::_FileExists( const std::string &filepath )
 {
+	struct stat 	info;
+
 	if (filepath == "")
 		return false;
-	std::ifstream file(filepath.c_str());
-	if (file.is_open())
-	{
-		file.close();
+	const char *path_ptr = filepath.c_str();
+	// can get the info && Is a regular File
+	if (stat(path_ptr, &info) == 0 && S_ISREG(info.st_mode))
 		return true;
-	}
+
+	// std::ifstream file(filepath.c_str());
+	// if (file.is_open())
+	// {
+	// 	file.close();
+	// 	return true;
+	// }
 	return false;
 }
 
