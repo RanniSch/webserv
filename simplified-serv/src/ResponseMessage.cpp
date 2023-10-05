@@ -3,6 +3,28 @@
 ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, char* request_cstr )
 : _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _server(0), _config_old(config)
 {
+	/*
+			-------------	fill status lines to status codes	-------------
+	*/
+	_status_line.insert( std::pair<size_t, std::string>(200, "OK") );
+	_status_line.insert( std::pair<size_t, std::string>(301, "Moved Permanently") );
+	_status_line.insert( std::pair<size_t, std::string>(400, "Bad Request") );
+	_status_line.insert( std::pair<size_t, std::string>(404, "Not Found") );
+	_status_line.insert( std::pair<size_t, std::string>(405, "Method Not Allowed") );
+	_status_line.insert( std::pair<size_t, std::string>(413, "Payload Too Large") );
+	_status_line.insert( std::pair<size_t, std::string>(500, "Internal Server Error") );
+	/*
+			-------------	fill default error pages to status codes	-------------
+	*/
+	_default_error_page.insert( std::pair<size_t, std::string>(400, "<!DOCTYPE html><html><head><title>400 Bad Request</title></head><body><h1>Bad Request</h1><p>Your browser sent a request that this server could not understand.</p></body></html>") );
+
+
+
+	/*
+			-------------	end of filling	-------------
+	*/
+	
+	
 	_location = "";
 	std::string request;
 	request = request_cstr;
@@ -35,6 +57,8 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	_check_index_and_set_target_path(); // davor aber erst redirect machen!!!
 
 	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
+
+	std::string str = createResponse(400);
 }
 
 ResponseMessage::~ResponseMessage( void )
@@ -42,14 +66,17 @@ ResponseMessage::~ResponseMessage( void )
 
 }
 
+/**
+ * @brief 
+ * // kann /subdir/subsub/index.html sein
+ *	// oder subdir  -> wird nicht behandelt
+ *	// oder /subdir -> wird behandelt
+ *	// oder /subdir/subsub/ 
+ */
 void	ResponseMessage::_check_and_set_config_location( void )
 {
 	std::string		config_location;
 
-	// kann /subdir/subsub/index.html sein
-	// oder subdir  -> wird nicht behandelt
-	// oder /subdir -> wird behandelt
-	// oder /subdir/subsub/
 	config_location =  _request_map.find("request_location")->second;
 	while(42)
 	{
@@ -195,6 +222,52 @@ std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std:
 		path_one.erase(act_char, 1);
 	}
 	return path_one;
+}
+
+std::string	ResponseMessage::createResponse( size_t status_code )
+{
+	// easy version for testing
+	std::string			message_body;
+	// int					content_len;
+	std::string			output;
+
+	std::map<size_t, std::string>::iterator			it;
+
+	// erst gucken ob ich den code hab
+
+	it = _default_error_page.find( 400 ); // dynamisch machen
+	if ( it == _default_error_page.end() )
+		return "ne";						// überlegen was hier
+	message_body = it->second;
+	/*
+			-------------	first line	-------------
+	*/
+	output = "";
+	output.append("HTTP/1.1 ");
+	std::stringstream ss;
+	ss << status_code; 
+	output.append(ss.str());
+	output.append(" ");
+	it = _status_line.find( status_code );
+	if ( it == _status_line.end() )
+		return "ne";						// überlegen was hier
+	output.append(it->second);
+	output.append("\r\n");
+	/*
+			-------------	second line	-------------
+	*/
+	output.append("Content-Type: text/html; charset=UTF-8\r\n");
+	/*
+			-------------	third line	-------------
+	*/
+	output.append("Content-Length: ");
+	std::stringstream st;
+	st << message_body.length();
+	output.append(st.str());
+	output.append("\r\n\r\n");
+
+	output.append(message_body);
+	return output;
 }
 
 std::string	ResponseMessage::createResponse( void )

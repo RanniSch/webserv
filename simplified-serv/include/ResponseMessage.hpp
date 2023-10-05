@@ -29,6 +29,7 @@ class ResponseMessage {
 		// ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, const std::map<std::string, std::string> &request_map );
 		~ResponseMessage( void );
 		std::string	createResponse( void );
+		std::string	createResponse( size_t status_code );
 		int			get_content_length();
 
 	private:
@@ -41,7 +42,9 @@ class ResponseMessage {
 		std::string		_location;
 		std::string		_error;
 		int				_statusCode;
-		// ab hier überarbeitet
+		/*
+				---------  New variables  ---------
+		*/
 		Config			&_config;		//should be given when creating
 		size_t			_server;		//should be given when creating
 		std::string		_config_location; // when no config_location is found for this request_location -> ""
@@ -50,14 +53,23 @@ class ResponseMessage {
 		
 
 		const std::map<std::string, std::vector<std::string> >		&_config_old; // rausnehmen
+		std::map<size_t, std::string>								_status_line;
+		std::map<size_t, std::string>								_default_error_page;
 		std::map<std::string, std::string>							_request_map;
 
+		/*
+				---------  New functions  ---------
+		*/
 		void			_check_and_set_config_location ( void );
 		void			_set_root_directory( void );
 		void			_check_redirect_and_set_target_path( void );
 		void			_check_index_and_set_target_path();
 		std::string		_look_for_file_in_dir_based_on_config( std::string dir_to_look_for, const std::string &config_parameter );
 		std::string		_path_one_plus_path_two( std::string path_one, std::string path_two );
+
+		/*
+				---------  Old functions, get rid of over long term  ---------
+		*/
 
 		void			_chooseMethod( void );
 		void			_PostMethod( void );
