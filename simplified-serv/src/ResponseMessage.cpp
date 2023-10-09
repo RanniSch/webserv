@@ -86,7 +86,7 @@ void	ResponseMessage::_check_and_set_config_location( void )
 	size_t			len;
 	std::string		config_location;
 
-	config_location =  _request_map.find("request_location")->second;
+	config_location =  _request_map.find("request_location")->second; // was wenn nicht gefunden
 	while(42)
 	{
 		try
@@ -121,7 +121,8 @@ void	ResponseMessage::_set_root_directory( void )
 	std::string		config_root;
 
 	config_root = _config.get(_server, _config_location, "root", 0);
-	_cwd += config_root;
+	_cwd = _path_one_plus_path_two(_cwd, config_root);
+	// _cwd += config_root;
 }
 
 /**
@@ -218,6 +219,14 @@ std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string 
 	return ( "" );
 }
 
+/**
+ * @brief makes sure that between the paths is a '/' 
+ * and removes all '//' from the new path that it returns
+ * 
+ * @param path_one 
+ * @param path_two 
+ * @return std::string 
+ */
 std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std::string path_two )
 {
 	// std::string::iterator		it;
