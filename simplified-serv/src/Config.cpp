@@ -621,6 +621,8 @@ std::string	Config::get( size_t server, std::string location, std::string parame
 	{
 		if (str == "parameter_not_found" || str == "location_not_found")
 		{
+			if (parameter == "return")
+				return "";
 			return ( get( server, parameter, n ) );
 		}
 		return "";
@@ -632,6 +634,13 @@ std::string	Config::get( size_t server, std::string location, std::string parame
 	}
 }
 
+/**
+ * @brief returns the location itself, to check if this location exists
+ * 
+ * @param server 
+ * @param location 
+ * @return std::string 
+ */
 std::string	Config::get( size_t server, std::string location )
 {
 	size_t count_server = _server_vector.size();
