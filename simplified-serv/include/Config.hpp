@@ -100,11 +100,13 @@ class Config: protected ParseableObject {
 		std::string						_error;
 		StrVecMap						_commonConfig;
 		std::vector<ConfigServer>		_server_vector;
+		std::string						_allowed_general;
 
 		void								_read_in_config_file();
 		bool								_checkAndDeleteConfigHeader();
 		void								_deleteComments();
 		void								_checkAllowedCharacters();
+		void								_checkAllowedCharactersInSpecialValues();
 		bool								_checkCurlyBrackets( const std::string &input ) const;
 		void								_checkTokensInFrontOfLineBreak();
 		void								_checkTokensInFrontOf_One_LineBreak( std::list<std::string>::iterator it );

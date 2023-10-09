@@ -4,6 +4,22 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 : _commentDelimiter("#"), _contentDelimiter("\t "), _path_config_file(path_config_file) //, _config_map(config_map), _input(""), _defaultDelimiter("\r\n")
 
 {
+	/*
+
+			------------	count the Values of the parameters, for the parameters in the array, only one value is allowed	------------*/
+							// set in _checkParametersWhereOnlyOneValueIsAllowed()
+
+/*
+
+			------------	for the whole input, only these characters are allowed	------------*/
+							// set in _checkAllowedCharacters()
+	/*
+
+			------------	for the parameter values in the array, only these characters are allowed	------------ */
+							// set in _checkAllowedCharactersInSpecialValues()
+
+	// set standart values if config doesn't provide them
+
 	// std::vector < std::string > valueVec;
 
 	// valueVec.push_back("80");
@@ -42,6 +58,7 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 		deleteChars(" ");
 		deleteChars("\t");
 		_checkTokensInFrontOfLineBreak();
+		_checkAllowedCharactersInSpecialValues();
 		deleteChars("\n");
 		_checkTokensInFrontOfCurlyBrackets();
 		start = _find("server");
@@ -163,9 +180,9 @@ void	Config::_checkAllowedCharacters()
 {
 	size_t result = 0;
 	// std::string allowed = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ äüö ÄÜÖ ß 0123456789 {} _ ; \\ ~ \n\t\r /:.\0 -";
-	std::string allowed = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 {} _ ; \\ ~ \n\t\r /:.\0 -";
+	std::string _allowed_general = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 {} _ ; \\ ~ \n\t\r /:.\0 -";
 
-	result = _input.find_first_not_of(allowed);
+	result = _input.find_first_not_of(_allowed_general);
 	if (result != std::string::npos)
 	{
 		_error = ": not allowed character in config file '";
@@ -174,6 +191,49 @@ void	Config::_checkAllowedCharacters()
 		throw _error;
 	}
 
+}
+
+/**
+ * @brief this function has to come after _checkTokensInFrontOf_One_LineBreak
+ * 
+ */
+void	Config::_checkAllowedCharactersInSpecialValues()
+{
+	const int 		count_para = 2;
+	std::string		parameters[count_para] = 	{"listen", "root"}; // set the right ones
+	std::string		allowed_char[count_para] = 	{"0123456789", "rwootabc/"}; // set the right ones
+	size_t			result;
+
+	std::list<std::string>::iterator it;
+
+	int find_me_; // weg !!
+
+	for ( int para = 0; para < count_para; para++ ) // go through parameter
+	{
+		it = _stapel.begin();
+		while (42) // you can have one parameter multiple times in _stapel
+		{
+			it = _find(parameters[para], it);
+			find_me_ = find_me(_stapel.begin(), it); // weg !!
+			(void) find_me_;
+			if (it == _stapel.end())
+				break;
+			it++;
+			for ( ; *it != ";" ; it++ ) // go through _stapel till you hit ";" (look through the values)
+			{
+				result = it->find_first_not_of(allowed_char[para]);
+				if (result != std::string::npos)
+				{
+					_error = ": not allowed character in config file, value: ";
+					_error += *it;
+					_error += ". Allowed chars are:'";
+					_error += allowed_char[para];
+					_error += "'";
+					throw _error;
+				}
+			}
+		}
+	}
 }
 
 // returns true  when everything is allright
