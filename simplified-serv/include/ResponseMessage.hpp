@@ -37,7 +37,7 @@ class ResponseMessage {
 		std::string		_output;
 		std::string		_content;
 		std::string		_contentType;
-		std::string		_fileType;
+		std::string		_fileType; // weg
 		std::string		_filePath;
 		std::string		_location;
 		std::string		_error;

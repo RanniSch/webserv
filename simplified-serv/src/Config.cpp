@@ -200,8 +200,8 @@ void	Config::_checkAllowedCharacters()
 void	Config::_checkAllowedCharactersInSpecialValues()
 {
 	const int 		count_para = 2;
-	std::string		parameters[count_para] = 	{"listen", "root"}; // set the right ones
-	std::string		allowed_char[count_para] = 	{"0123456789", "rwootabc/"}; // set the right ones
+	std::string		parameters[count_para] = 	{"listen"}; // set the right ones
+	std::string		allowed_char[count_para] = 	{"0123456789"}; // set the right ones
 	size_t			result;
 
 	std::list<std::string>::iterator it;
@@ -436,7 +436,7 @@ void	Config::_checkParametersWhereOnlyOneValueIsAllowed()
 	size_t	 		count_server;
 	size_t	 		count_location;
 	const int 		count_para = 4;
-	std::string		parameters[count_para] = {"listen", "Root1", "root1", "root2"}; // set the right ones
+	std::string		parameters[count_para] = {"listen", "return"}; // set the right ones
 
 	// for the common config
 	for ( size_t i = 0; i < count_para; i++ )

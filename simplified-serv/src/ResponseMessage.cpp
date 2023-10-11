@@ -34,7 +34,7 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	_cwd = _config.get_cwd();
 	_set_root_directory();
 	_check_redirect_and_set_target_path();
-	_check_index_and_set_target_path(); // davor aber erst redirect machen!!!
+	_check_index_and_set_target_path(); // hiervor aber erst redirect machen!!!
 
 	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
 
@@ -75,7 +75,13 @@ void	ResponseMessage::_fill_status_line_and_default_error_page( void )
 }
 
 /**
- * @brief 
+ * @brief it looks if the requested file is in a directory that is 
+ * configured in config as a location
+ * 
+ * for example location /directory {}
+ * request is /directory/subdir/file.end
+ * -> then this function sets the variable _config_location to "/directory"
+ * 
  * // kann /subdir/subsub/index.html sein
  *	// oder subdir  -> wird nicht behandelt
  *	// oder /subdir -> wird behandelt
@@ -126,7 +132,12 @@ void	ResponseMessage::_set_root_directory( void )
 }
 
 /**
- * @brief 
+ * @brief a redirect is in config configured with "return"
+ * it causes that for the requested location the requested file
+ * is gonna be searched in another location
+ * -> that's why the target path is set here to the redirected location
+ * 
+ * 
  * _cwd could be ..../one_dir/alt_dir/one_dir/second_dir
  *  then you don't know which one_dir to replace
  * 
@@ -163,10 +174,16 @@ void	ResponseMessage::_check_redirect_and_set_target_path( void )
 	len_old_sub_path = _config_location.size();
 
 	new_sub_path = _config.get( _server, _config_location, "return", 0 );
+	if (new_sub_path == "") // no redirection configured
+	{
+		_target_path = _path_one_plus_path_two(_cwd, request_path);
+		return;
+	}
 
 	// start_old = _cwd.find( _config_location );
 	request_path.replace( 0, len_old_sub_path, new_sub_path);
-	_target_path = _cwd + request_path;
+	_target_path = _path_one_plus_path_two(_cwd, request_path);
+	// _target_path = _cwd + request_path;
 }
 
 /**
@@ -481,23 +498,84 @@ void	ResponseMessage::_PostMethod( void )
 
 void	ResponseMessage::_GetMethod( void )
 {
-		std::vector<std::string>			path_vec;
-		std::vector<std::string>			buf_vec;
-		std::string							buf;
-		std::string							path;
-		// std::string							cwd; // change to _cwd !!!! und die anderen auch!!!
+	std::string		filePath;
 
-		// path_vec = _config_old.find("cwd")->second; // verändern wir config cwd mit path? weil &path?
-		// std::string	&path = path_vec.front();
-		// std::string	path = _config.get_cwd(); // redirection happens here
+	if (_FileExists(_target_path))
+		
 
-		// path.append("/www");
-		buf =  _request_map.find("request_location")->second;
-		path = _cwd;
-		path.append(buf);
-		_getProperFilePathAndPrepareResponse(buf, path, _cwd);
+		// std::vector<std::string>			path_vec;
+		// std::vector<std::string>			buf_vec;
+		// std::string							buf;
+		// std::string							path;
+		// // std::string							cwd; // change to _cwd !!!! und die anderen auch!!!
+
+		// // path_vec = _config_old.find("cwd")->second; // verändern wir config cwd mit path? weil &path?
+		// // std::string	&path = path_vec.front();
+		// // std::string	path = _config.get_cwd(); // redirection happens here
+
+		// // path.append("/www");
+		// buf =  _request_map.find("request_location")->second;
+		// path = _cwd;
+		// path.append(buf);
+		// _getProperFilePathAndPrepareResponse(buf, path, _cwd);
 }
 
+std::string		ResponseMessage::_createContentFromFile( std::string filepath )
+{
+	size_t 			num;
+	std::string 	fileExtension;
+	
+	if ( filepath == "")
+		return ("");
+
+	num = filepath.find_last_of(".");
+	num++;
+	fileExtension = filepath.substr(num, std::string::npos);
+
+
+	if ( fileExtension == "jpg" || fileExtension == "jpeg" || fileExtension == "png" || fileExtension == "gif")
+	{
+		std::ifstream picture(filepath.c_str());
+		if (!(picture.is_open()))
+    	{
+			std::cout << "Error: failed to open picture" << std::endl;
+			return ("");
+		}
+		std::stringstream pic;
+		pic << picture.rdbuf();
+		std::string data(pic.str());
+		picture.close();
+		return (data);
+	}
+	else if(fileExtension == "html" || fileExtension == "htm")
+	{
+		std::ifstream file(filepath.c_str());
+		if (!file.is_open())
+		{
+			std::cout << "Error: failed to open file" << std::endl;   // 
+			//exit(-1);						//   handle better? server still should run
+		}
+		std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
+		file.close();
+		return (content);
+	}
+	else
+	{
+		std::ifstream ifs_file(filepath.c_str(), std::ios::binary);
+		if (!(ifs_file.is_open()))
+    	{
+			std::cout << "Error: failed to open file" << std::endl;
+			return ("");
+		}
+		std::stringstream ss_file;
+		ss_file << ifs_file.rdbuf();
+		std::string data(ss_file.str());
+		ifs_file.close();
+		return (data);
+	}
+}
+
+/*  old one delete
 std::string		ResponseMessage::_createContentFromFile( std::string filepath, int statusCode )
 {
 	if ( filepath == "" && statusCode == 404)
@@ -545,8 +623,9 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath, int 
 		ifs_file.close();
 		return (data);
 	}
-}
+}*/
 
+/* old delete
 std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for, const std::string &config_map_key )
 {
 	std::vector<std::string>			buf_vec;
@@ -576,6 +655,7 @@ std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for
 	}
 	return ( "" );
 }
+*/
 
 bool	ResponseMessage::_FileExists( const std::string &filepath )
 {
@@ -597,6 +677,7 @@ bool	ResponseMessage::_FileExists( const std::string &filepath )
 	return false;
 }
 
+/*  old, delete 
 void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string request_location, std::string path, std::string cwd)
 {
 	bool 			error = false;
@@ -637,7 +718,7 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string request_
 			_statusCode = 404;
 			_fileType = "";
 			_filePath = "";
-			return;
+			return; 
 		}
 	}
 	num = path.find_last_of(".");
@@ -666,6 +747,7 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string request_
 	_contentType += "\r\n";
 	_fileType = fileExtension;
 }
+*/
 
 int	ResponseMessage::get_content_length()
 {
