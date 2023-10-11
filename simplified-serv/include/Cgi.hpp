@@ -22,6 +22,9 @@
 # include "ClientSocket.hpp"
 # include "ResponseMessage.hpp"
 
+# define WRITE_END 1    // marks the end like in subject asked for
+# define READ_END 0
+
 class Cgi
 {
     public:
@@ -43,7 +46,7 @@ class Cgi
             bool    _python3Installed();
 
             ClientSocket &              _client;
-            std::vector<std::string>    _environmentals;
+            //std::vector<std::string>    _environmentals;
 };
 
 #endif
