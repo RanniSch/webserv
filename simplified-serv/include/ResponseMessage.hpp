@@ -35,6 +35,7 @@ class ResponseMessage {
 		std::string	get_fileExtension( void );
 		std::string	get_target_path( void );
 		bool		is_Cgi( bool act_Cgi_flag );
+		std::string	get_relative_path_to_target_dir( void );
 
 	private:
 		/*
@@ -85,6 +86,7 @@ class ResponseMessage {
 		std::string		_response_content_type( std::string content_type );
 		std::string		_response_content_length( const std::string &content );
 		bool			_FileExists( const std::string &path );
+		bool			_DirExists( const std::string &filepath );
 		size_t			_statusCodeHirarchy( size_t act_code, size_t new_code);
 
 		/*

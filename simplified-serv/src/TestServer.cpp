@@ -384,9 +384,17 @@ void    TestServer::launch()
 								// first create and give the request or use the allready created one
 								if (responseObj.is_Cgi( false )) // as argument has to come the actual Cgi_flag
 									std::cout << "oh cute, it's a CGI" << std::endl;
-								// config has-> cgi_ext .py .sh; ... responseObj.get_fileExtension() == ".py" or ".sh" -> returns true
+								// config has-> cgi_ext .py .sh; ... if requested extension is ".py" or ".sh" -> returns true
 								// if not returns act_Cgi_flag (here only "false")
 
+								//  ------------   .get_relative_path_to_target_dir()   ------------ cgiPath --> "www/cgi-bin/"
+								// first create and give the request or use the allready created one
+								target_path = responseObj.get_relative_path_to_target_dir();
+								// http://localhost:8000/cgi-bin/first_cgi.py -> "www/cgi-bin/" 
+								// (www in front of it because we also have a root argument in the config that directs to www/)
+								// if target file does not exist returns ""
+								// every getter here respects redirections (return in config) and root in config file
+								
 
 								responseStr = responseObj.createResponse();
 

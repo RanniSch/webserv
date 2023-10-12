@@ -871,13 +871,19 @@ bool	ResponseMessage::_FileExists( const std::string &filepath )
 	// can get the info && Is a regular File
 	if (stat(path_ptr, &info) == 0 && S_ISREG(info.st_mode))
 		return true;
+	return false;
+}
 
-	// std::ifstream file(filepath.c_str());
-	// if (file.is_open())
-	// {
-	// 	file.close();
-	// 	return true;
-	// }
+bool	ResponseMessage::_DirExists( const std::string &filepath )
+{
+		struct stat 	info;
+
+	if (filepath == "")
+		return false;
+	const char *path_ptr = filepath.c_str();
+	// can get the info && Is a directory
+	if (stat(path_ptr, &info) == 0 && S_ISDIR(info.st_mode))
+		return true;
 	return false;
 }
 
@@ -1033,4 +1039,25 @@ bool	ResponseMessage::is_Cgi( bool act_Cgi_flag )
 			return true;
 	}
 	return act_Cgi_flag;
+}
+
+std::string	ResponseMessage::get_relative_path_to_target_dir( void )
+{
+	std::string		buf;
+	size_t			len;
+
+	buf = _config.get_cwd();
+	len = buf.size();
+	len++;
+	if( _target_path.size() < len)
+		return "";
+	buf = _target_path.substr(len, std::string::npos);
+	while (42)
+	{
+		if ( _DirExists(buf) )
+			return buf;
+		buf = strip_path( buf );
+		if (buf == "/" || buf == "")
+			return buf;
+	}
 }
