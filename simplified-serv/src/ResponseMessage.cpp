@@ -3,9 +3,9 @@
 ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, char* request_cstr )
 : _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _server(0), _config_old(config)
 {
-	_fill_status_line_and_default_error_page();
-	
-	_location = "";
+	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
+
+	_config_location = "";
 	std::string request;
 	request = request_cstr;
 	std::cout << request_cstr << std::endl;   // testing
@@ -17,11 +17,11 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	catch(std::string str)
 	{
 		if (str == "no valid request")
-			std::cout << "maybe it's data" << std::endl; // for Ranja
-			// do something with it or make buffer bigger?
+			std::cout << "maybe it's data" << std::endl; 
+			// hier etwas für ausdenken, was machen wenn der request komisch ist
 		if ( str == "empty input" )
 		{
-			// _error = str; // use it ? 
+			// _error = str; // use it ?
 			// throw _error;
 			return;
 		}
@@ -30,11 +30,18 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	{
 		std::cout << "bad request" << std::endl; // for Max (send request again oder so)
 	}
+	// _check_method()  !!!!
 	_check_and_set_config_location();
 	_cwd = _config.get_cwd();
 	_set_root_directory();
-	_check_redirect_and_set_target_path();
-	_check_index_and_set_target_path(); // hiervor aber erst redirect machen!!!
+	// the target path should be the file that will be send back, html, index, error page or picture...
+	// if the file does not exist target path should be empty
+	_target_path = _check_redirect_and_return_target_path();
+	_target_path = _check_index_and_return_target_path(); // hiervor aber erst redirect machen!!!
+	// special error codes to target path here permission denied or so... 
+	_target_path = _check_target_path_for_existence_replace_with_error_file(); 
+
+
 
 	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
 
@@ -42,7 +49,7 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 
 ResponseMessage::ResponseMessage( void ):_config(*g_config), _config_old(_config_for_compiler) // get rid of global variable and of config old
 {
-		_fill_status_line_and_default_error_page();
+	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
 }
 
 ResponseMessage::~ResponseMessage( void )
@@ -50,7 +57,11 @@ ResponseMessage::~ResponseMessage( void )
 
 }
 
-void	ResponseMessage::_fill_status_line_and_default_error_page( void )
+/**
+ * @brief here comes the standard values and stuff -- like an initialization
+ * status code with a lower index is more important
+ */
+void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_hirarchy( void )
 {
 	/*
 			-------------	fill status lines to status codes	-------------
@@ -65,9 +76,14 @@ void	ResponseMessage::_fill_status_line_and_default_error_page( void )
 	/*
 			-------------	fill default error pages to status codes	-------------
 	*/
-	_default_error_page.insert( std::pair<size_t, std::string>(400, "<!DOCTYPE html><html><head><title>400 Bad Request</title></head><body><h1>Bad Request</h1><p>Your browser sent a request that this server could not understand.</p></body></html>") );
-
-
+	_default_error_page.insert( std::pair<size_t, std::string>(400, "<!DOCTYPE html><html><head><title>400 Bad Request</title></head><body><h1>400 Bad Request</h1><p>Your browser sent a request that this server could not understand.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(404, "<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>Your browser sent a request for a file that this server could not find.</p></body></html>") );
+	/*
+			-------------	fill status code hirarchy	-------------
+	*/
+	_status_code_hirarchy.clear();
+	_status_code_hirarchy.push_back(404);
+	_status_code_hirarchy.push_back(200);
 
 	/*
 			-------------	end of filling	-------------
@@ -75,17 +91,17 @@ void	ResponseMessage::_fill_status_line_and_default_error_page( void )
 }
 
 /**
- * @brief it looks if the requested file is in a directory that is 
+ * @brief it looks if the requested file is in a directory that is
  * configured in config as a location
- * 
+ *
  * for example location /directory {}
  * request is /directory/subdir/file.end
  * -> then this function sets the variable _config_location to "/directory"
- * 
+ *
  * // kann /subdir/subsub/index.html sein
  *	// oder subdir  -> wird nicht behandelt
  *	// oder /subdir -> wird behandelt
- *	// oder /subdir/subsub/ 
+ *	// oder /subdir/subsub/
  */
 void	ResponseMessage::_check_and_set_config_location( void )
 {
@@ -136,11 +152,11 @@ void	ResponseMessage::_set_root_directory( void )
  * it causes that for the requested location the requested file
  * is gonna be searched in another location
  * -> that's why the target path is set here to the redirected location
- * 
- * 
+ *
+ *
  * _cwd could be ..../one_dir/alt_dir/one_dir/second_dir
  *  then you don't know which one_dir to replace
- * 
+ *
  * at this point _cwd is where the binary is + root directory
  * locations come right after that now
  *
@@ -153,9 +169,9 @@ void	ResponseMessage::_set_root_directory( void )
  * 	new path should be 		/two/sub/index.html
  * 	old_sub_path			/one
  * 	new_sub_path			/two
- * 
+ *
  */
-void	ResponseMessage::_check_redirect_and_set_target_path( void )
+std::string	ResponseMessage::_check_redirect_and_return_target_path( void )
 {
 	std::string										request_path;
 	std::string										old_sub_path;
@@ -166,7 +182,7 @@ void	ResponseMessage::_check_redirect_and_set_target_path( void )
 
 	it = _request_map.find("request_location"); // maybe throw error and when an unknown error catched then respond corresponding error code request unrecognized oder so
 	if ( it == _request_map.end() )
-		return;
+		return _target_path;
 	request_path = it->second;
 
 	old_sub_path = _config_location;
@@ -176,46 +192,67 @@ void	ResponseMessage::_check_redirect_and_set_target_path( void )
 	new_sub_path = _config.get( _server, _config_location, "return", 0 );
 	if (new_sub_path == "") // no redirection configured
 	{
-		_target_path = _path_one_plus_path_two(_cwd, request_path);
-		return;
+		// _target_path = _path_one_plus_path_two(_cwd, request_path);
+		return ( _path_one_plus_path_two(_cwd, request_path) );
 	}
 
-	// start_old = _cwd.find( _config_location );
 	request_path.replace( 0, len_old_sub_path, new_sub_path);
-	_target_path = _path_one_plus_path_two(_cwd, request_path);
-	// _target_path = _cwd + request_path;
+	// _target_path = _path_one_plus_path_two(_cwd, request_path);
+	return ( _path_one_plus_path_two(_cwd, request_path) );
 }
 
 /**
  * @brief look if _cwd + request_location (from _request_map) are a file or a directory
  * if it's a directory then look into _config for index files
  * take the first one that exists in that directory
- * and set the _target_path to this file
+ * and return the path to this file
  */
-void	ResponseMessage::_check_index_and_set_target_path()
+std::string	ResponseMessage::_check_index_and_return_target_path()
 {
 	std::string										index;
 	std::string										target_path;
 	std::map<std::string, std::string>::iterator	it;
 	struct stat										info;
 
-	target_path = _target_path;	// is the target_path a directory?
-	// if not, or have no permission, return
+	target_path = _target_path;	
 	const char *path_ptr = target_path.c_str();
-	if (stat(path_ptr, &info) != 0 || !S_ISDIR(info.st_mode))
-		return;
+	// is the target_path a directory? if not, or have no permission, return
+	if (stat(path_ptr, &info) != 0 || !S_ISDIR(info.st_mode)) // if path is not valid or path is not a directory
+		return _target_path;
 	// look for index file in target_path
 	target_path = _look_for_file_in_dir_based_on_config( target_path, "index" );
 	if ( target_path != "" )
-		_target_path = target_path;
+		return target_path;
+	return _target_path;
 }
 
 /**
- * @brief returns "" if can't find a correct file
- * 
- * @param dir_to_look_for 
- * @param config_parameter 
+ * @brief and if the error file does not exist, delete the target path
+ * if the initial file does not exist set _statusCode to 404
  * @return std::string 
+ */
+std::string	ResponseMessage::_check_target_path_for_existence_replace_with_error_file()
+{
+	std::string	error_file_path;
+
+	if(_FileExists(_target_path))
+	{
+		_statusCode = _statusCodeHirarchy( _statusCode, 200 ); // permanent redirect höher als 200!!
+		return _target_path;
+	}
+	_statusCode = _statusCodeHirarchy( _statusCode, 404 );
+	error_file_path = _config.get(_server, _config_location, "error404", 0);
+	error_file_path = _path_one_plus_path_two( _cwd, error_file_path );
+	if(_FileExists(error_file_path))
+		return error_file_path;
+	return "";
+}
+
+/**
+ * @brief looks in config for the keyword config_parameter -> for example index or error404
+ * there can be more values than one for that parameter, for example index.htm index.html
+ * looks for all the values in dir_to_look_for
+ * returns "" if can't find a correct file
  */
 std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string dir_to_look_for, const std::string &config_parameter )
 {
@@ -237,12 +274,12 @@ std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string 
 }
 
 /**
- * @brief makes sure that between the paths is a '/' 
+ * @brief makes sure that between the paths is a '/'
  * and removes all '//' from the new path that it returns
- * 
- * @param path_one 
- * @param path_two 
- * @return std::string 
+ *
+ * @param path_one
+ * @param path_two
+ * @return std::string
  */
 std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std::string path_two )
 {
@@ -263,9 +300,9 @@ std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std:
 
 /**
  * @brief returns a full response String for status_code
- * 
- * @param status_code 
- * @return std::string 
+ *
+ * @param status_code
+ * @return std::string
  */
 std::string	ResponseMessage::createResponse( size_t status_code )
 {
@@ -288,7 +325,7 @@ std::string	ResponseMessage::createResponse( size_t status_code )
 	output = "";
 	output.append("HTTP/1.1 ");
 	std::stringstream ss;
-	ss << status_code; 
+	ss << status_code;
 	output.append(ss.str());
 	output.append(" ");
 	it = _status_line.find( status_code );
@@ -315,6 +352,33 @@ std::string	ResponseMessage::createResponse( size_t status_code )
 
 std::string	ResponseMessage::createResponse( void )
 {
+	std::string		output;
+	std::string		content;
+	std::string		ct;
+	std::string		*content_type = &ct;
+
+
+
+	// only for get method
+	// diese funktion nur aufrufen können wenn _config und _request map da sind !!
+
+	// the content will be filled here, html, error, picture, binary...
+	// based on the target path
+	content = "";
+	content += _create_content_from_file( _target_path, content_type );
+	// _content = _content_from_file() // wenn target path leer ist "" zurück geben /content type setzen
+	content += _return_default_status_code_html_if_needed( _target_path, content_type, _statusCode);
+	
+	output = "";
+	output += _response_first_line( _statusCode );
+	output += _response_content_type( ct );
+	output += _response_content_length( content );
+
+	output.append("\r\n");
+	output += content;
+	output.append("\r\n");
+	return output;
+	/*
 	_chooseMethod();
 
 	std::stringstream	ss;
@@ -337,9 +401,178 @@ std::string	ResponseMessage::createResponse( void )
 	_output.append(ss.str());
 	_output.append("\n\n");
 	_output.append(_content);
-	
+
 	return (_output);
+	*/
 }
+
+/**
+ * @brief return the content from a file
+ * set the content type appropriate
+ * if filepath is empty return "" -> no content type change
+ * @return std::string 
+ */
+std::string		ResponseMessage::_create_content_from_file( std::string filepath, std::string *content_type )
+{
+	size_t 			num;
+	std::string 	fileExtension;
+
+	if ( filepath == "")
+		return ("");
+	
+	num = filepath.find_last_of(".");
+	num++;
+	fileExtension = filepath.substr(num, std::string::npos); // File ohne Endung???
+	*content_type = fileExtension;
+
+	if ( fileExtension == "jpg" || fileExtension == "jpeg" || fileExtension == "png" || fileExtension == "gif")
+	{
+		std::ifstream picture(filepath.c_str());
+		if (!(picture.is_open()))
+    	{
+			std::cout << "Error: failed to open picture" << std::endl;
+			return ("");
+		}
+		std::stringstream pic;
+		pic << picture.rdbuf();
+		std::string data(pic.str());
+		picture.close();
+		return (data);
+	}
+	else if(fileExtension == "html" || fileExtension == "htm")
+	{
+		std::ifstream file(filepath.c_str());
+		if (!file.is_open())
+		{
+			std::cout << "Error: failed to open file" << std::endl;   //
+			//exit(-1);						//   handle better? server still should run
+		}
+		std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
+		file.close();
+		return (content);
+	}
+	else
+	{
+		std::ifstream ifs_file(filepath.c_str(), std::ios::binary);
+		if (!(ifs_file.is_open()))
+    	{
+			std::cout << "Error: failed to open file" << std::endl; // überlegen was hier
+			return ("");
+		}
+		*content_type = "binary";
+		std::stringstream ss_file;
+		ss_file << ifs_file.rdbuf();
+		std::string data(ss_file.str());
+		ifs_file.close();
+		return (data);
+	}
+}
+
+/**
+ * @brief if filepath is empty return a default html for the status code
+ * set the content type to html
+ * @return std::string 
+ */
+std::string		ResponseMessage::_return_default_status_code_html_if_needed( std::string filepath, std::string *content_type, size_t status_code)
+{
+	std::map<size_t, std::string>::iterator	it;
+
+	if (filepath != "")
+		return "";
+	*content_type = "html";
+	it = _default_error_page.find(status_code);
+	if ( it == _default_error_page.end() )
+	{
+		std::cout << "no matching status code in _default_error_page in ResponseMessage, I take 404" << std::endl; //weg!!
+		it = _default_error_page.find( 404 );
+	}
+	return ( it->second );
+}
+
+/**
+ * @brief return "HTTP/1.1 404 Not Found\r\n"
+ * appropriate to the status Code
+ */
+std::string	ResponseMessage::_response_first_line( size_t status_code )
+{
+	std::string			output;
+
+	std::map<size_t, std::string>::iterator			it;
+
+	output = "";
+	output.append("HTTP/1.1 ");
+	std::stringstream ss;
+	ss << status_code;
+	output.append(ss.str());
+	output.append(" ");
+	it = _status_line.find( status_code );
+	if ( it == _status_line.end() )
+	{
+		std::cout << "no matching status code in _status_line in ResponseMessage, I take 404" << std::endl; //weg!!
+		return ("HTTP/1.1 404 Not Found\r\n"); 
+	}
+	output.append(it->second);
+	output.append("\r\n");
+	return output;
+}
+
+/**
+ * @brief return "Content-Type: text/html\r\n"
+ * appropriate to the content type
+ */
+std::string	ResponseMessage::_response_content_type( std::string content_type )
+{
+	std::string			output;
+
+	std::map<size_t, std::string>::iterator			it;
+
+	output = "";
+	output.append("Content-Type: ");
+
+	if (content_type == "jpg" || content_type == "jpeg" || content_type == "png" || content_type == "gif")
+		output += "image/";
+	else if (content_type == "html" || content_type == "htm")
+		output += "text/";
+	else // binary
+	{
+		output += "application/";
+		content_type = "octet-stream";
+	}
+	output += content_type;
+	if (content_type == "html" || content_type == "htm")
+		output += "; charset=UTF-8";
+	output += "\r\n";
+	return output;
+
+
+
+	// std::stringstream ss;
+	// ss << status_code;
+	// output.append(ss.str());
+	// output.append(" ");
+	// it = _status_line.find( status_code );
+	// if ( it == _status_line.end() )
+	// {
+	// 	std::cout << "no matching status code in _status_line in ResponseMessage, I take 404" << std::endl; //weg!!
+	// 	return ("HTTP/1.1 404 Not Found\r\n"); 
+	// }
+	// output.append(it->second);
+	// output.append("\r\n");
+	// return output;
+}
+
+std::string	ResponseMessage::_response_content_length( const std::string &content )
+{
+	std::string			output;
+	std::stringstream	ss;
+
+	output.append("Content-Length: ");
+	ss << content.length();
+	output.append(ss.str());
+	output.append("\r\n");
+	return output;
+}
+
 
 void	ResponseMessage::_chooseMethod( void ) // take from config file which methods we want to accept
 {
@@ -411,9 +644,9 @@ void	ResponseMessage::_PostMethod( void )
 		}
 		char* jpegDataStart = &_request_cstr[++i];
 		std::ofstream outFile("uploaded.jpg", std::ios::binary);
-		if (outFile.is_open()) 
+		if (outFile.is_open())
 		{
-			
+
 			outFile.write(jpegDataStart, 3000); // die Dateigrösse müsste in der request map stehen und auch der dateiname
 			// wenn zu viel byte hier oben angegeben werden als der buffer gross ist dann gibts segfault
 			outFile.close();	// aber der buffer in testserver hat nicht so viel platz
@@ -434,7 +667,7 @@ void	ResponseMessage::_PostMethod( void )
 			}
 			std::string content_disposition = _request_map.find("Content-Disposition")->second;
 			std::string content_type = _request_map.find("Content-Type")->second; // aus den String musst du noch den type heraussuchen
-			
+
 
 
 			char* postData = new char[_content.length()];
@@ -498,13 +731,13 @@ void	ResponseMessage::_PostMethod( void )
 
 void	ResponseMessage::_GetMethod( void )
 {
-	std::string		filePath;
+	(void)(1+1);
+	// std::string		filePath;
 
-	if (_FileExists(_target_path))
-		
+	// if (_FileExists(_target_path))
 
-		// std::vector<std::string>			path_vec;
-		// std::vector<std::string>			buf_vec;
+		// // std::vector<std::string>			path_vec;
+		// // std::vector<std::string>			buf_vec;
 		// std::string							buf;
 		// std::string							path;
 		// // std::string							cwd; // change to _cwd !!!! und die anderen auch!!!
@@ -520,62 +753,8 @@ void	ResponseMessage::_GetMethod( void )
 		// _getProperFilePathAndPrepareResponse(buf, path, _cwd);
 }
 
-std::string		ResponseMessage::_createContentFromFile( std::string filepath )
-{
-	size_t 			num;
-	std::string 	fileExtension;
-	
-	if ( filepath == "")
-		return ("");
 
-	num = filepath.find_last_of(".");
-	num++;
-	fileExtension = filepath.substr(num, std::string::npos);
-
-
-	if ( fileExtension == "jpg" || fileExtension == "jpeg" || fileExtension == "png" || fileExtension == "gif")
-	{
-		std::ifstream picture(filepath.c_str());
-		if (!(picture.is_open()))
-    	{
-			std::cout << "Error: failed to open picture" << std::endl;
-			return ("");
-		}
-		std::stringstream pic;
-		pic << picture.rdbuf();
-		std::string data(pic.str());
-		picture.close();
-		return (data);
-	}
-	else if(fileExtension == "html" || fileExtension == "htm")
-	{
-		std::ifstream file(filepath.c_str());
-		if (!file.is_open())
-		{
-			std::cout << "Error: failed to open file" << std::endl;   // 
-			//exit(-1);						//   handle better? server still should run
-		}
-		std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
-		file.close();
-		return (content);
-	}
-	else
-	{
-		std::ifstream ifs_file(filepath.c_str(), std::ios::binary);
-		if (!(ifs_file.is_open()))
-    	{
-			std::cout << "Error: failed to open file" << std::endl;
-			return ("");
-		}
-		std::stringstream ss_file;
-		ss_file << ifs_file.rdbuf();
-		std::string data(ss_file.str());
-		ifs_file.close();
-		return (data);
-	}
-}
-
-/*  old one delete
+//  old one delete
 std::string		ResponseMessage::_createContentFromFile( std::string filepath, int statusCode )
 {
 	if ( filepath == "" && statusCode == 404)
@@ -602,7 +781,7 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath, int 
 		std::ifstream file(filepath.c_str());
 		if (!file.is_open())
 		{
-			std::cout << "Error: failed to open file" << std::endl;   // 
+			std::cout << "Error: failed to open file" << std::endl;   //
 			//exit(-1);						//   handle better? server still should run
 		}
 		std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
@@ -623,7 +802,7 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath, int 
 		ifs_file.close();
 		return (data);
 	}
-}*/
+}
 
 /* old delete
 std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for, const std::string &config_map_key )
@@ -641,7 +820,7 @@ std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for
 	// }
 	// buf_vec = _config_old.find(config_map_key)->second;
 	// size = buf_vec.size();
-	
+
 	// while ( i < size )
 	while ( file != "" )
 	{
@@ -677,7 +856,27 @@ bool	ResponseMessage::_FileExists( const std::string &filepath )
 	return false;
 }
 
-/*  old, delete 
+/**
+ * @brief goes through _status_code_hirarchy 
+ * and compares with act_code and new_code
+ * the first one it finds, it returns
+ * when it can't find both it returns the new code
+ */
+size_t	ResponseMessage::_statusCodeHirarchy( size_t act_code, size_t new_code)
+{
+	size_t size;
+
+	size = _status_code_hirarchy.size();
+
+	for ( size_t i = 0; i < size; i++ )
+	{
+		if ( _status_code_hirarchy[i] == act_code || _status_code_hirarchy[i] == new_code )
+			return ( _status_code_hirarchy[i] );
+	}
+	return new_code;
+}
+
+/*  old, delete
 void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string request_location, std::string path, std::string cwd)
 {
 	bool 			error = false;
@@ -718,13 +917,13 @@ void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string request_
 			_statusCode = 404;
 			_fileType = "";
 			_filePath = "";
-			return; 
+			return;
 		}
 	}
 	num = path.find_last_of(".");
 	num++;
 	fileExtension = path.substr(num, std::string::npos);
-	
+
 	_filePath = path;
 	if (error)
 		_statusCode = 404;
