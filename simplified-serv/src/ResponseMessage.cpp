@@ -1,7 +1,8 @@
 #include "../include/ResponseMessage.hpp"
 
-ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, char* request_cstr )
-: _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _server(0), _config_old(config)
+//const std::map<std::string, std::vector<std::string> > &config, char* request_cstr )
+ResponseMessage::ResponseMessage( char* request_cstr )
+: _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _server(0)//, _config_old(config)
 {
 	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
 
@@ -31,6 +32,7 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 		std::cout << "bad request" << std::endl; // for Max (send request again oder so)
 	}
 	// _check_method()  !!!!
+	_separate_query();
 	_check_and_set_config_location();
 	_cwd = _config.get_cwd();
 	_set_root_directory();
@@ -43,11 +45,11 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 
 
 
-	(void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
+	// (void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
 
 }
 
-ResponseMessage::ResponseMessage( void ):_config(*g_config), _config_old(_config_for_compiler) // get rid of global variable and of config old
+ResponseMessage::ResponseMessage( void ):_config(*g_config)//, _config_old(_config_for_compiler) // get rid of global variable and of config old
 {
 	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
 }
@@ -88,6 +90,29 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	/*
 			-------------	end of filling	-------------
 	*/
+}
+
+void	ResponseMessage::_separate_query( void )
+{
+	std::map<std::string, std::string>::iterator	it;
+	std::string										request_location;
+	std::string										buf;
+	size_t											query_start;
+
+	it = _request_map.find("request_location"); // maybe throw error and when an unknown error catched then respond corresponding error code request unrecognized oder so
+	if ( it == _request_map.end() )
+		return ; // bad request ? 
+	request_location = it->second;
+	query_start = request_location.find_first_of("?");
+	if ( query_start == std::string::npos )
+		return;
+	query_start++;
+	buf = request_location.substr(query_start, std::string::npos);
+	_request_map.insert( std::pair<std::string, std::string>("query", buf) );
+	query_start--;
+	buf = request_location.substr(0, query_start);
+	_request_map.erase ( it );
+	_request_map.insert( std::pair<std::string, std::string>("request_location", buf) );
 }
 
 /**
@@ -959,4 +984,27 @@ int	ResponseMessage::get_content_length()
 	std::string len = it->second; // länge
 	size_t length = atoi(len.c_str());
 	return (length);
+}
+
+
+std::string	ResponseMessage::get_query( void )
+{
+	std::map<std::string, std::string>::iterator	it;
+
+	it = _request_map.find("query");
+	if ( it == _request_map.end() )
+		return "";
+	return it->second;
+}
+
+std::string	ResponseMessage::get_fileExtension( void )
+{
+	std::string		output;
+	size_t			dot;
+
+	if( _target_path == "" )
+		return "";
+	dot = _target_path.find_last_of(".");
+	output = _target_path.substr( dot, std::string::npos );
+	return output;
 }

@@ -353,40 +353,23 @@ void    TestServer::launch()
 							{
 								std::cout << "READ AND EXECUTE: Thre is something to read => " << std::endl;
 								
-								// //TESTINT
-								char cwd[PATH_MAX];
-								if (getcwd(cwd, sizeof(cwd)) != NULL) {
-								}
-								else 
-								{
-									perror("getcwd() error");
-								}
-								std::string path;
-								path.append(cwd);
-
-								std::map<std::string, std::vector<std::string> >	config;
-								std::vector<std::string> 							buf_vec;
-
-								buf_vec.push_back(path);
-								// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
-								std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
-								config.insert(pair);
-								buf_vec.clear();
-								buf_vec.push_back("index.htm");
-								buf_vec.push_back("index.html");
-								pair = std::make_pair("index", buf_vec);
-								config.insert(pair);
-								buf_vec.clear();
-								buf_vec.push_back("error.html");
-								pair = std::make_pair("error404", buf_vec);
-								config.insert(pair);
-								//TESTING
-
 								// Parsing of the request and excecuting should happen here
 								//_executeEventSequence(it->fd);
-								ResponseMessage responseObj(config, _buffer);
-								int length = responseObj.get_content_length();
-								(void) length;
+
+
+								// first create and give the request
+								ResponseMessage responseObj(_buffer); // if it's a bad request we better throw an exception at this point and send an error
+								std::string query = responseObj.get_query();
+								// http://localhost:8000/ka/subsub?query=example&category=web&page=1 -> "query=example&category=web&page=1"
+								// http://localhost:8000/ka/subsub -> ""
+
+								// first create and give the request
+								ResponseMessage respObj(_buffer); // if it's a bad request we better throw an exception at this point and send an error
+								std::string fileExt = respObj.get_fileExtension();
+								// http://localhost:8000/cgi-bin/first_cgi.py -> ".py"
+								// http://localhost:8000/cgi-bin/not_existing_file.py -> "" // when the file does not exist
+								// http://localhost:8000/index.html -> ".html"
+
 								responseStr = responseObj.createResponse();
 
 								_socket_arr.find(it->fd)->second.setSocketRequest(true);

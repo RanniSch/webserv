@@ -25,12 +25,14 @@ extern Config *g_config; // muss auch weg!!! dafür config dem Objekt direkt üb
 // canonnical form!!!
 class ResponseMessage {
 	public:
-		ResponseMessage( const std::map<std::string, std::vector<std::string> > &config, char* request_cstr );
+		ResponseMessage( char* request_cstr );
 		ResponseMessage( void );
 		~ResponseMessage( void );
 		std::string	createResponse( void );
 		std::string	createResponse( size_t status_code );
 		int			get_content_length();
+		std::string	get_query( void );
+		std::string	get_fileExtension( void );
 
 	private:
 		/*
@@ -56,8 +58,8 @@ class ResponseMessage {
 		std::string		_target_path;
 		
 		
-		std::map<std::string, std::vector<std::string> >		_config_for_compiler; // rausnehmen
-		const std::map<std::string, std::vector<std::string> >		&_config_old; // rausnehmen
+		// std::map<std::string, std::vector<std::string> >		_config_for_compiler; // rausnehmen
+		// const std::map<std::string, std::vector<std::string> >		&_config_old; // rausnehmen
 		std::map<size_t, std::string>								_status_line;
 		std::map<size_t, std::string>								_default_error_page;
 		std::vector<size_t>											_status_code_hirarchy;
@@ -67,6 +69,7 @@ class ResponseMessage {
 				---------  New functions  ---------
 		*/
 		void			_fill_status_line_and_default_error_page_and_status_code_hirarchy( void );
+		void			_separate_query( void );
 		void			_check_and_set_config_location ( void );
 		void			_set_root_directory( void );
 		std::string		_check_redirect_and_return_target_path( void );
