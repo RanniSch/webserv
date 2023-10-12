@@ -9,9 +9,10 @@
 
 int main(int argc, char **argv)
 {
-	std::string												path_config_file;
+	//std::string												path_config_file;
 	if ( argc > 2)
 		std::cout << "Error: please give me the config file as argument" << std::endl;
+	(void)argv;
 	Config config(argv[1]);
 	
 	//testung
@@ -23,7 +24,7 @@ int main(int argc, char **argv)
 	std::string haha = config.get("allowed_methods", 2);
 	if ( hat ) 
 		hat = 3;
-	//testung
+	// //testung
 
     TestServer server;
 

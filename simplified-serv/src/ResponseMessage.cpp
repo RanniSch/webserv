@@ -7,7 +7,7 @@ ResponseMessage::ResponseMessage( const std::map<std::string, std::vector<std::s
 	_location = "";
 	std::string request;
 	request = request_cstr;
-	std::cout << request_cstr << std::endl;   // testing
+	//std::cout << request_cstr << std::endl;   // testing
 	RequestObj 							reqObj(request);
 	try
 	{
@@ -30,7 +30,7 @@ ResponseMessage::~ResponseMessage( void )
 {
 
 }
-
+ 
 std::string	ResponseMessage::createResponse( void )
 {
 	_chooseMethod();
@@ -209,14 +209,6 @@ void	ResponseMessage::_PostMethod( void )
 				delete[] postData;
 			}
 			// break;
-
-
-
-
-
-
-
-
 }
 
 void	ResponseMessage::_GetMethod( void )

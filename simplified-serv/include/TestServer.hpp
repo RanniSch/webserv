@@ -12,8 +12,10 @@
 # include <sstream>      // for std::stringstream
 # include <vector>
 # include <map>
+# include <fstream>
 # include <exception>
 # include <netinet/in.h>
+# include <algorithm>    // std::search
 
 # include <poll.h>
 # include "Socket.hpp"
@@ -36,10 +38,11 @@ class TestServer{
                 void	launch();
         
         private:
-                int								_loop_counter;
-                char							_buffer[8000];
+                int	_loop_counter;
+                uint8_t	_buffer[9216];
+				std::vector<uint8_t> _buffer_vector;
 
-                int								_nbr_of_ports;
+                int     _nbr_of_ports;
                 int                             _nbr_of_client_sockets;
                 int								_nbr_of_sockets_in_poll;
                 std::vector<int>      			_ports;
@@ -47,37 +50,44 @@ class TestServer{
 
                 std::vector<pollfd>				_sockets_for_poll; // For now the most important bit
                 //void	_executeEventSequence(int &fd);
-				int		checkPollAction(short revents, int fd);
+		int	checkPollAction(short revents, int fd);
+				bool	_checkIfRequestHeaderCameInFull(Socket &_socket, std::string stringBuffer);
+				void	_checkForBodyTrail(Socket &_socket, std::string stringBuffer);
 
-				void	_executeCGI(void);
+	    void	_executeCGI(void);
 
-				void	_pollReading(std::vector<pollfd>::iterator &_it, std::string &_responseStr);
-				void	_pollWriting(std::vector<pollfd>::iterator &_it, std::string _responseStr);
+		void	_pollReading(std::vector<pollfd>::iterator &_it, std::string &_responseStr);
+	    void	_pollWriting(std::vector<pollfd>::iterator &_it, std::string _responseStr);
+		void	_findSecondHeader(Socket &_socket);
 
-				void	_GetRequest(int fd);
-				void	_PostRequest(int fd);
-				void	_DeleteRequest(int fd);
+	    void	_GetRequest(std::map<int, Socket>::iterator &_tmp_socket_it);
+		void	_PostRequest(std::map<int, Socket>::iterator &_tmp_socket_it);
+	    void	_DeleteRequest(int fd);
 
-				void	_readAndParseHeader(int fd);
+		void	_readAndParseHeader(Socket &socket, std::string strBuffer);
+		void	_readAndParseSecondHeader(Socket &socket, std::string strBuffer);
+        int		_checkForBoundaryStr(Socket &socket, std::string &boundary_to_find, std::string indentifier);
 
-                void	_acceptConnection(int index);
-                void	_handler(void);
+
+		void	_POSTrequestSaveBodyToFile(Socket &socket, std::vector<uint8_t>::iterator start, std::string &boundary_str);
+
+        void	_acceptConnection(int index);
+        void	_handler(void);
 
                 //void	_responder(std::string indentifier, int &fd);
                 //void	_respondImage(int &fd);
                // void	_respondStatic(int &fd);
-				//void	_respondFileUpload(void);
-				//void	_respondError(int &fd);
-
-				//void	processRequest( std::string &request);
+		//void	_respondFileUpload(void);
+		//void	_respondError(int &fd);
+		//void	processRequest( std::string &request);
 
 		void	_RequestIp(sockaddr_in *address);
 };
 
-# define	DEBUG	1
+# define        DEBUG	1
 
 # define	ACCEPT_CLIENT	0
-# define    READING			1
+# define        READING			1
 # define    WRITING			2
 # define    KILLING_CLIENT	3
 
