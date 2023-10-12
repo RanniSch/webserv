@@ -74,12 +74,22 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	_status_line.insert( std::pair<size_t, std::string>(404, "Not Found") );
 	_status_line.insert( std::pair<size_t, std::string>(405, "Method Not Allowed") );
 	_status_line.insert( std::pair<size_t, std::string>(413, "Payload Too Large") );
+	_status_line.insert( std::pair<size_t, std::string>(414, "URI Too Long") );
 	_status_line.insert( std::pair<size_t, std::string>(500, "Internal Server Error") );
+	_status_line.insert( std::pair<size_t, std::string>(505, "HTTP Version Not Supported") );
 	/*
 			-------------	fill default error pages to status codes	-------------
 	*/
+	_default_error_page.insert( std::pair<size_t, std::string>(301, "<!DOCTYPE html><html><head><title>301 Moved Permanently</title></head><body><h1>301 Moved Permanently</h1><p>This resource has been permanently moved to a new location.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(400, "<!DOCTYPE html><html><head><title>400 Bad Request</title></head><body><h1>400 Bad Request</h1><p>Your browser sent a request that this server could not understand.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(403, "<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body><h1>403 Forbidden</h1><p>You don't have permission to access this resource.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(404, "<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>Your browser sent a request for a file that this server could not find.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(405, "<!DOCTYPE html><html><head><title>405 Method Not Allowed</title></head><body><h1>405 Method Not Allowed</h1><p>The requested method is not allowed for this resource.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(413, "<!DOCTYPE html><html><head><title>413 Payload Too Large</title></head><body><h1>413 Payload Too Large</h1><p>The data you are trying to send in the request is too large and exceeds the server's limit.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(414, "<!DOCTYPE html><html><head><title>414 URI Too Long</title></head><body><h1>414 URI Too Long</h1><p>The URI (Uniform Resource Identifier) provided in the request is too long for the server to process.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(500, "<!DOCTYPE html><html><head><title>500 Internal Server Error</title></head><body><h1>500 Internal Server Error</h1><p>An unexpected server error occurred. Please try again later.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(505, "<!DOCTYPE html><html><head><title>505 HTTP Version Not Supported</title></head><body><h1>505 HTTP Version Not Supported</h1><p>The requested HTTP version is not supported by this server.</p></body></html>") );
+
 	/*
 			-------------	fill status code hirarchy	-------------
 	*/
