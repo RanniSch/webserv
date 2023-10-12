@@ -25,6 +25,8 @@
 
 #include <map>
 
+extern Config *g_config;
+
 class TestServer{
         public:
                 // Constructor

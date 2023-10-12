@@ -20,7 +20,7 @@
 #include "Config.hpp"
 #include "utils.hpp"
 
-extern Config *g_config; // muss auch weg!!! dafür config dem Objekt direkt übergeben
+extern Config *g_config;
 
 // canonnical form!!!
 class ResponseMessage {
@@ -33,6 +33,8 @@ class ResponseMessage {
 		int			get_content_length();
 		std::string	get_query( void );
 		std::string	get_fileExtension( void );
+		std::string	get_target_path( void );
+		bool		is_Cgi( bool act_Cgi_flag );
 
 	private:
 		/*

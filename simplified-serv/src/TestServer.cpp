@@ -356,19 +356,37 @@ void    TestServer::launch()
 								// Parsing of the request and excecuting should happen here
 								//_executeEventSequence(it->fd);
 
-
-								// first create and give the request
+								//  ------------   .get_query()   ------------
+								// first create and give the request or use the allready created one
 								ResponseMessage responseObj(_buffer); // if it's a bad request we better throw an exception at this point and send an error
 								std::string query = responseObj.get_query();
 								// http://localhost:8000/ka/subsub?query=example&category=web&page=1 -> "query=example&category=web&page=1"
 								// http://localhost:8000/ka/subsub -> ""
 
-								// first create and give the request
-								ResponseMessage respObj(_buffer); // if it's a bad request we better throw an exception at this point and send an error
-								std::string fileExt = respObj.get_fileExtension();
+								//  ------------   .get_fileExtension()   ------------
+								// first create and give the request or use the allready created one
+								std::string fileExt = responseObj.get_fileExtension();
 								// http://localhost:8000/cgi-bin/first_cgi.py -> ".py"
 								// http://localhost:8000/cgi-bin/not_existing_file.py -> "" // when the file does not exist
 								// http://localhost:8000/index.html -> ".html"
+
+								//  ------------   .get_target_path()   ------------ (path on the server of the requested file)
+								// first create and give the request or use the allready created one
+								std::string target_path = responseObj.get_target_path();
+								// http://localhost:8000/cgi-bin/first_cgi.py (on my machine)
+								// -> "/Users/maxrehberg/Documents/42Wolfsburg/webserv/webserve/simplified-serv/www/cgi-bin/first_cgi.py"
+								// http://localhost:8000/cgi-bin/not_existing_file.py -> "" // when the file does not exist
+								// http://localhost:8000/index.html (on my machine)
+								// -> "/Users/maxrehberg/Documents/42Wolfsburg/webserv/webserve/simplified-serv/www/index.html"
+
+								//  ------------   .is_Cgi()   ------------ looks through the file extensions (cgi_ext) in the config file 
+								// and if it finds our target extension in that it returns true, else it returns the act_Cgi_flag
+								// first create and give the request or use the allready created one
+								if (responseObj.is_Cgi( false )) // as argument has to come the actual Cgi_flag
+									std::cout << "oh cute, it's a CGI" << std::endl;
+								// config has-> cgi_ext .py .sh; ... responseObj.get_fileExtension() == ".py" or ".sh" -> returns true
+								// if not returns act_Cgi_flag (here only "false")
+
 
 								responseStr = responseObj.createResponse();
 

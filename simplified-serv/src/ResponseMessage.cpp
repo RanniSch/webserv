@@ -1008,3 +1008,29 @@ std::string	ResponseMessage::get_fileExtension( void )
 	output = _target_path.substr( dot, std::string::npos );
 	return output;
 }
+
+std::string	ResponseMessage::get_target_path( void )
+{
+	return( _target_path );
+}
+
+/**
+ * @brief looks through the file extensions (cgi_ext) in the config file
+ * and if it finds our target extension in that it returns true
+ * else it returns the act_Cgi_flag
+ */
+bool	ResponseMessage::is_Cgi( bool act_Cgi_flag )
+{
+	std::string target_file_Ext;
+	std::string conf_file_Ext = "start";
+
+	target_file_Ext = get_fileExtension();
+
+	for (size_t i = 0; conf_file_Ext != ""; i++)
+	{
+		conf_file_Ext = _config.get(_server, _config_location, "cgi_ext", i);
+		if ( target_file_Ext == conf_file_Ext )
+			return true;
+	}
+	return act_Cgi_flag;
+}

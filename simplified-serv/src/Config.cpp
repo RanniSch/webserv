@@ -5,16 +5,12 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 
 {
 	/*
-
 			------------	count the Values of the parameters, for the parameters in the array, only one value is allowed	------------*/
 							// set in _checkParametersWhereOnlyOneValueIsAllowed()
-
 /*
-
 			------------	for the whole input, only these characters are allowed	------------*/
 							// set in _checkAllowedCharacters()
 	/*
-
 			------------	for the parameter values in the array, only these characters are allowed	------------ */
 							// set in _checkAllowedCharactersInSpecialValues()
 
@@ -179,8 +175,8 @@ void	Config::_deleteComments()
 void	Config::_checkAllowedCharacters()
 {
 	size_t result = 0;
-	// std::string allowed = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ äüö ÄÜÖ ß 0123456789 {} _ ; \\ ~ \n\t\r /:.\0 -";
-	std::string _allowed_general = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 {} _ ; \\ ~ \n\t\r /:.\0 -";
+	// std::string allowed = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ äüö ÄÜÖ ß 0123456789 {} _ ; \\ ~ - \n\t\r /:.\0"; nothing after \0
+	std::string _allowed_general = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 {} _ ; \\ ~ - \n\t\r /:.\0";
 
 	result = _input.find_first_not_of(_allowed_general);
 	if (result != std::string::npos)
