@@ -74,6 +74,7 @@ class ResponseMessage {
 				---------  New functions  ---------
 		*/
 		void			_fill_status_line_and_default_error_page_and_status_code_hirarchy( void );
+		bool			_server_number_valid( void );
 		void			_check_URI_len( void );
 		void			_separate_query( void );
 		void			_check_for_allowed_request_method( void );

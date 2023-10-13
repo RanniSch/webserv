@@ -11,6 +11,11 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 	request = request_cstr;
 	if ( request == "" )
 		return;
+	if ( !_server_number_valid() )
+	{
+		std::cout << "server number not valid in ResponseMessage!" << std::endl;
+		return;
+	}
 	std::cout << request_cstr << std::endl;   // testing
 	RequestObj 							reqObj(request);
 	try
@@ -108,6 +113,16 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	/*
 			-------------	end of filling	-------------
 	*/
+}
+
+bool	ResponseMessage::_server_number_valid( void )
+{
+	size_t count_server;
+	
+	count_server = _config.size("server");
+	if ( _server >= count_server )
+		return false;
+	return true;
 }
 
 void	ResponseMessage::_check_URI_len( void )
