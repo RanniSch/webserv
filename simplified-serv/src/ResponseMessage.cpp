@@ -397,48 +397,52 @@ std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std:
  */
 std::string	ResponseMessage::createResponse( size_t status_code )
 {
-	// easy version for testing
-	std::string			message_body;
-	// int					content_len;
-	std::string			output;
+	_statusCode = status_code;
+	_target_path = _return_path_to_error_file( _statusCode );
+	return ( createResponse() );
 
-	std::map<size_t, std::string>::iterator			it;
+	// // easy version for testing
+	// std::string			message_body;
+	// // int					content_len;
+	// std::string			output;
 
-	// erst gucken ob ich den code hab
+	// std::map<size_t, std::string>::iterator			it;
 
-	it = _default_error_page.find( 400 ); // dynamisch machen
-	if ( it == _default_error_page.end() )
-		return "ne";						// überlegen was hier
-	message_body = it->second;
-	/*
-			-------------	first line	-------------
-	*/
-	output = "";
-	output.append("HTTP/1.1 ");
-	std::stringstream ss;
-	ss << status_code;
-	output.append(ss.str());
-	output.append(" ");
-	it = _status_line.find( status_code );
-	if ( it == _status_line.end() )
-		return "ne";						// überlegen was hier
-	output.append(it->second);
-	output.append("\r\n");
-	/*
-			-------------	second line	-------------
-	*/
-	output.append("Content-Type: text/html; charset=UTF-8\r\n");
-	/*
-			-------------	third line	-------------
-	*/
-	output.append("Content-Length: ");
-	std::stringstream st;
-	st << message_body.length();
-	output.append(st.str());
-	output.append("\r\n\r\n");
+	// // erst gucken ob ich den code hab
 
-	output.append(message_body);
-	return output;
+	// it = _default_error_page.find( 400 ); // dynamisch machen
+	// if ( it == _default_error_page.end() )
+	// 	return "ne";						// überlegen was hier
+	// message_body = it->second;
+	// /*
+	// 		-------------	first line	-------------
+	// */
+	// output = "";
+	// output.append("HTTP/1.1 ");
+	// std::stringstream ss;
+	// ss << status_code;
+	// output.append(ss.str());
+	// output.append(" ");
+	// it = _status_line.find( status_code );
+	// if ( it == _status_line.end() )
+	// 	return "ne";						// überlegen was hier
+	// output.append(it->second);
+	// output.append("\r\n");
+	// /*
+	// 		-------------	second line	-------------
+	// */
+	// output.append("Content-Type: text/html; charset=UTF-8\r\n");
+	// /*
+	// 		-------------	third line	-------------
+	// */
+	// output.append("Content-Length: ");
+	// std::stringstream st;
+	// st << message_body.length();
+	// output.append(st.str());
+	// output.append("\r\n\r\n");
+
+	// output.append(message_body);
+	// return output;
 }
 
 std::string	ResponseMessage::createResponse( void )
@@ -448,13 +452,10 @@ std::string	ResponseMessage::createResponse( void )
 	std::string		ct;
 	std::string		*content_type = &ct;
 	// only for get method
-	// diese funktion nur aufrufen können wenn _config und _request map da sind !!
+	// diese funktion nur aufrufen können wenn _config und _request map da sind !!  MOMENT, brauche ich die? diese Funktion wird auch aufgerufen von createResponse( size_t status_code ) ohne was worher zu machen
 
-	// the content will be filled here, html, error, picture, binary...
-	// based on the target path
 	content = "";
 	content += _create_content_from_file( _target_path, content_type );
-	// _content = _content_from_file() // wenn target path leer ist "" zurück geben /content type setzen
 	content += _return_default_status_code_html_if_needed( _target_path, content_type, _statusCode);
 	
 	output = "";
@@ -466,32 +467,6 @@ std::string	ResponseMessage::createResponse( void )
 	output += content;
 	output.append("\r\n");
 	return output;
-	/*
-	_chooseMethod();
-
-	std::stringstream	ss;
-	_output = "";
-	_output.append("HTTP/1.1 ");
-	if (_statusCode == 200)
-		_output.append("200 OK\r\n");
-	else if (_statusCode == 404)
-			_output.append("404 Not Found\r\n");
-	else if (_statusCode == 301)
-		_output.append("301 Moved Permanently\r\n");
-	// if (_location != "")
-	_output.append(_location);
-	_output.append(_contentType);
-	_content = "";
-	_content.append(_createContentFromFile(_filePath, _statusCode));
-	//wenn nicht html htm png gif, jpg oder jpeg is dann: Content-Transfer-Encoding: binary\r\n
-	_output.append("Content-Length: ");
-	ss << _content.length();
-	_output.append(ss.str());
-	_output.append("\n\n");
-	_output.append(_content);
-
-	return (_output);
-	*/
 }
 
 /**
