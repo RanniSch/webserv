@@ -36,6 +36,7 @@ class ResponseMessage {
 		std::string	get_target_path( void );
 		bool		is_Cgi( bool act_Cgi_flag );
 		std::string	get_relative_path_to_target_dir( void );
+		std::string	get_cgi_path( void );
 
 	private:
 		/*

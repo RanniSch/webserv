@@ -957,78 +957,6 @@ size_t	ResponseMessage::_statusCodeHirarchy( size_t old_code, size_t new_code)
 	return new_code;
 }
 
-/*  old, delete
-void	ResponseMessage::_getProperFilePathAndPrepareResponse( std::string request_location, std::string path, std::string cwd)
-{
-	bool 			error = false;
-	size_t 			num;
-	std::string 	fileExtension;
-	struct stat 	info;
-
-	// check for directory
-	const char *path_ptr = path.c_str();
-	if (stat(path_ptr, &info) == 0 && S_ISDIR(info.st_mode))
-	{
-		//The directory exists
-		if (path[path.length() - 1] != '/')
-		{
-			// 301 redirect
-			_contentType = "";
-			_location = "location: http://localhost:8000"; // get from config
-			_location += request_location + "/\r\n";
-			_statusCode = 301;
-			_fileType = "";
-			_filePath = "";
-			return;
-		}
-		request_location = "/";
-	}
-	// gucken ob original path jetzt anders ist
-	if (request_location == "/")
-		path = _lookForFileFromConfig( path, "index" );
-
-	if(!_FileExists(path) || (path.find("..") != std::string::npos))
-	{
-		error = true;
-		cwd.append("/"); // look in config map were to find the error pages
-		path = _lookForFileFromConfig( cwd, "error404" );
-		if ( path == "") //stadard error when no file provided or not found
-		{
-			_contentType = "Content-type: text/plain\r\n";
-			_statusCode = 404;
-			_fileType = "";
-			_filePath = "";
-			return;
-		}
-	}
-	num = path.find_last_of(".");
-	num++;
-	fileExtension = path.substr(num, std::string::npos);
-
-	_filePath = path;
-	if (error)
-		_statusCode = 404;
-	else
-		_statusCode = 200;
-
-	_contentType = "Content-type: ";
-	if (fileExtension == "jpg" || fileExtension == "jpeg" || fileExtension == "png" || fileExtension == "gif")
-		_contentType += "image/";
-	else if (fileExtension == "html" || fileExtension == "htm")
-		_contentType += "text/";
-	else // binary
-	{
-		_contentType += "application/";
-		fileExtension = "octet-stream";
-	}
-	_contentType += fileExtension;
-	if (fileExtension == "html" || fileExtension == "htm")
-		_contentType += "; charset=UTF-8";
-	_contentType += "\r\n";
-	_fileType = fileExtension;
-}
-*/
-
 int	ResponseMessage::get_content_length()
 {
 	std::map<std::string, std::string>::iterator it;
@@ -1110,4 +1038,23 @@ std::string	ResponseMessage::get_relative_path_to_target_dir( void )
 		if (buf == "/" || buf == "")
 			return buf;
 	}
+}
+
+std::string	ResponseMessage::get_cgi_path( void )
+{
+	std::string target_file_Ext;
+	std::string conf_file_Ext = "start";
+	std::string cgi_path;
+	size_t 		i = 0;
+
+	target_file_Ext = get_fileExtension();
+
+	for ( ; conf_file_Ext != ""; i++)
+	{
+		conf_file_Ext = _config.get(_server, _config_location, "cgi_ext", i);
+		if ( target_file_Ext == conf_file_Ext )
+			break;
+	}
+	cgi_path = _config.get( _server, _config_location, "cgi_path", i);
+	return ( cgi_path );
 }
