@@ -31,22 +31,26 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 	{
 		std::cout << "bad request" << std::endl; // for Max (send request again oder so)
 	}
-	// _check_method()  !!!!
-	_separate_query();
-	_check_and_set_config_location();
-	_cwd = _config.get_cwd();
-	_set_root_directory();
-	// the target path should be the file that will be send back, html, index, error page or picture...
-	// if the file does not exist target path should be empty
-	_target_path = _check_redirect_and_return_target_path();
-	_target_path = _check_index_and_return_target_path(); // hiervor aber erst redirect machen!!!
-	// special error codes to target path here permission denied or so... 
-	_target_path = _check_target_path_for_existence_replace_with_error_file(); 
-
-
-
-	// (void) _config_old; // weg !! consturctor anders und dann im testserver anders !!!
-
+	// hard errors will be thrown, like 404, 403, 500... (with an html document in return)
+	// statuses like 200 and 301 not
+	try 
+	{
+		_separate_query();
+		_check_and_set_config_location();
+		_check_for_allowed_request_method(); // has to come after we know the location
+		_cwd = _config.get_cwd();
+		_set_root_directory();
+		// the target path should be the file that will be send back, html, index, error page or picture...
+		// if the file does not exist target path should be empty
+		_target_path = _check_redirect_and_return_target_path();
+		_target_path = _check_index_and_return_target_path(); // hiervor aber erst redirect machen!!!
+		// special error codes to target path here permission denied or so... 
+		_target_path = _check_target_path_for_existence(); 
+	}
+	catch( size_t status_code )
+	{
+		_target_path = _return_path_to_error_file( _statusCode );
+	}
 }
 
 ResponseMessage::ResponseMessage( void ):_config(*g_config)//, _config_old(_config_for_compiler) // get rid of global variable and of config old
@@ -95,6 +99,7 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	*/
 	_status_code_hirarchy.clear();
 	_status_code_hirarchy.push_back(404);
+	_status_code_hirarchy.push_back(301);
 	_status_code_hirarchy.push_back(200);
 
 	/*
@@ -123,6 +128,36 @@ void	ResponseMessage::_separate_query( void )
 	buf = request_location.substr(0, query_start);
 	_request_map.erase ( it );
 	_request_map.insert( std::pair<std::string, std::string>("request_location", buf) );
+}
+
+void	ResponseMessage::_check_for_allowed_request_method( void )
+{
+	std::map<std::string, std::string>::iterator	it;
+	std::string										request_method;
+	std::string										method_from_config;
+	bool											found_method_flag;
+
+	found_method_flag = false;
+
+	it = _request_map.find("Method");
+	if ( it == _request_map.end() )
+	{
+		_statusCode = 400;
+		throw _statusCode;
+	}
+	request_method = it->second;
+	method_from_config = "start";
+	for( size_t i = 0; method_from_config != ""; i++)
+	{
+		method_from_config = _config.get( _server, _config_location, "allowed_Methods", i);
+		if (method_from_config == request_method)
+			found_method_flag = true;
+	}
+	if( !found_method_flag )
+	{
+		_statusCode = 405;
+		throw _statusCode;
+	}
 }
 
 /**
@@ -266,17 +301,38 @@ std::string	ResponseMessage::_check_index_and_return_target_path()
  * if the initial file does not exist set _statusCode to 404
  * @return std::string 
  */
-std::string	ResponseMessage::_check_target_path_for_existence_replace_with_error_file()
+std::string	ResponseMessage::_check_target_path_for_existence()//_replace_with_error_file()
 {
 	std::string	error_file_path;
 
 	if(_FileExists(_target_path))
 	{
-		_statusCode = _statusCodeHirarchy( _statusCode, 200 ); // permanent redirect höher als 200!!
+		_statusCode = _statusCodeHirarchy( _statusCode, 200 );
 		return _target_path;
 	}
-	_statusCode = _statusCodeHirarchy( _statusCode, 404 );
-	error_file_path = _config.get(_server, _config_location, "error404", 0);
+	_statusCode = 404;
+	throw _statusCode;
+
+	// _statusCode = _statusCodeHirarchy( _statusCode, 404 );
+	// error_file_path = _config.get(_server, _config_location, "error404", 0);
+	// error_file_path = _path_one_plus_path_two( _cwd, error_file_path );
+	// if(_FileExists(error_file_path))
+	// 	return error_file_path;
+	// return "";
+}
+
+/**
+ * @brief if the file does not exist or no permission
+ * return ""
+ */
+std::string	ResponseMessage::_return_path_to_error_file( size_t status_code )
+{
+	std::string	error_file_path;
+	std::string	error_code;
+
+	std::stringstream ss;
+	ss << "error" << status_code;
+	error_file_path = _config.get(_server, _config_location, ss.str(), 0);
 	error_file_path = _path_one_plus_path_two( _cwd, error_file_path );
 	if(_FileExists(error_file_path))
 		return error_file_path;
@@ -391,9 +447,6 @@ std::string	ResponseMessage::createResponse( void )
 	std::string		content;
 	std::string		ct;
 	std::string		*content_type = &ct;
-
-
-
 	// only for get method
 	// diese funktion nur aufrufen können wenn _config und _request map da sind !!
 
@@ -607,7 +660,6 @@ std::string	ResponseMessage::_response_content_length( const std::string &conten
 	output.append("\r\n");
 	return output;
 }
-
 
 void	ResponseMessage::_chooseMethod( void ) // take from config file which methods we want to accept
 {
@@ -901,19 +953,29 @@ bool	ResponseMessage::_DirExists( const std::string &filepath )
  * @brief goes through _status_code_hirarchy 
  * and compares with act_code and new_code
  * the first one it finds, it returns
+ * if it finds only the new code, it returns the new code
+ * when the new code does not exist, it returns the new code
  * when it can't find both it returns the new code
  */
-size_t	ResponseMessage::_statusCodeHirarchy( size_t act_code, size_t new_code)
+size_t	ResponseMessage::_statusCodeHirarchy( size_t old_code, size_t new_code)
 {
-	size_t size;
+	size_t	size;
+	bool	found_new_code;
+	bool	found_old_code_first;
 
+	found_old_code_first = false;
+	found_new_code = false;
 	size = _status_code_hirarchy.size();
 
 	for ( size_t i = 0; i < size; i++ )
 	{
-		if ( _status_code_hirarchy[i] == act_code || _status_code_hirarchy[i] == new_code )
-			return ( _status_code_hirarchy[i] );
+		if ( _status_code_hirarchy[i] == new_code )
+			found_new_code = true;
+		if ( _status_code_hirarchy[i] == old_code &&  !found_new_code )
+				found_old_code_first = true;
 	}
+	if ( found_old_code_first && found_new_code )
+		return old_code;
 	return new_code;
 }
 

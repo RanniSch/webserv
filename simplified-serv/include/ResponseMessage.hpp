@@ -48,17 +48,18 @@ class ResponseMessage {
 		std::string		_fileType; // weg
 		std::string		_filePath;
 		// std::string		_location; // weg
-		std::string		_error;
+		
 		
 		/*
 				---------  New variables  ---------
 		*/
-		int				_statusCode;
+		size_t				_statusCode;
 		Config			&_config;		//should be given when creating
 		size_t			_server;		//should be given when creating
 		std::string		_config_location; // when no config_location is found for this request_location -> ""
 		std::string		_cwd;
 		std::string		_target_path;
+		std::string		_error;
 		
 		
 		// std::map<std::string, std::vector<std::string> >		_config_for_compiler; // rausnehmen
@@ -73,11 +74,13 @@ class ResponseMessage {
 		*/
 		void			_fill_status_line_and_default_error_page_and_status_code_hirarchy( void );
 		void			_separate_query( void );
+		void			_check_for_allowed_request_method( void );
 		void			_check_and_set_config_location ( void );
 		void			_set_root_directory( void );
 		std::string		_check_redirect_and_return_target_path( void );
 		std::string		_check_index_and_return_target_path();
-		std::string		_check_target_path_for_existence_replace_with_error_file();
+		std::string		_check_target_path_for_existence();
+		std::string		_return_path_to_error_file( size_t status_code );
 		std::string		_look_for_file_in_dir_based_on_config( std::string dir_to_look_for, const std::string &config_parameter );
 		std::string		_path_one_plus_path_two( std::string path_one, std::string path_two );
 		std::string		_create_content_from_file( std::string filepath, std::string *content_type );
