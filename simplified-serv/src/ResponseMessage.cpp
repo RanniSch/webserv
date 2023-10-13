@@ -9,6 +9,8 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 	_config_location = "";
 	std::string request;
 	request = request_cstr;
+	if ( request == "" )
+		return;
 	std::cout << request_cstr << std::endl;   // testing
 	RequestObj 							reqObj(request);
 	try
@@ -19,7 +21,7 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 	{
 		if (str == "no valid request")
 			std::cout << "maybe it's data" << std::endl; 
-			// hier etwas für ausdenken, was machen wenn der request komisch ist
+			// hier etwas für ausdenken, was machen wenn der request komisch ist entweder 400 bad request oder 500 server error
 		if ( str == "empty input" )
 		{
 			// _error = str; // use it ?
@@ -35,7 +37,8 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 	// statuses like 200 and 301 not
 	try 
 	{
-		_separate_query();
+		_check_URI_len();
+		_separate_query(); // has to come after check uri len
 		_check_and_set_config_location();
 		_check_for_allowed_request_method(); // has to come after we know the location
 		_cwd = _config.get_cwd();
@@ -107,6 +110,26 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	*/
 }
 
+void	ResponseMessage::_check_URI_len( void )
+{
+	size_t	len;
+
+	std::map<std::string, std::string>::iterator	it;
+
+	it = _request_map.find("request_location");
+	if ( it == _request_map.end() )
+	{
+		_statusCode = 500;
+		throw _statusCode;
+	}
+	len = it->second.size();
+	if ( len > 2000 )
+	{
+		_statusCode = 414;
+		throw _statusCode;
+	}
+}
+
 void	ResponseMessage::_separate_query( void )
 {
 	std::map<std::string, std::string>::iterator	it;
@@ -116,7 +139,10 @@ void	ResponseMessage::_separate_query( void )
 
 	it = _request_map.find("request_location"); // maybe throw error and when an unknown error catched then respond corresponding error code request unrecognized oder so
 	if ( it == _request_map.end() )
-		return ; // bad request ? 
+	{
+		_statusCode = 500;
+		throw _statusCode;
+	}
 	request_location = it->second;
 	query_start = request_location.find_first_of("?");
 	if ( query_start == std::string::npos )
@@ -142,7 +168,7 @@ void	ResponseMessage::_check_for_allowed_request_method( void )
 	it = _request_map.find("Method");
 	if ( it == _request_map.end() )
 	{
-		_statusCode = 400;
+		_statusCode = 500;
 		throw _statusCode;
 	}
 	request_method = it->second;
@@ -330,6 +356,13 @@ std::string	ResponseMessage::_return_path_to_error_file( size_t status_code )
 	std::string	error_file_path;
 	std::string	error_code;
 
+	if ( _config_location == "" )
+		_config_location = "/";
+	if ( _cwd == "" )
+	{
+		_cwd = _config.get_cwd();
+		_set_root_directory();
+	}
 	std::stringstream ss;
 	ss << "error" << status_code;
 	error_file_path = _config.get(_server, _config_location, ss.str(), 0);
