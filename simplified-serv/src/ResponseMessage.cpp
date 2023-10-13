@@ -397,6 +397,9 @@ std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std:
  */
 std::string	ResponseMessage::createResponse( size_t status_code )
 {
+	_server = 0;
+	_cwd = _config.get_cwd();
+	_set_root_directory();
 	_statusCode = status_code;
 	_target_path = _return_path_to_error_file( _statusCode );
 	return ( createResponse() );

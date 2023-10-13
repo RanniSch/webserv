@@ -397,6 +397,8 @@ void    TestServer::launch()
 								
 
 								responseStr = responseObj.createResponse();
+								// ResponseMessage rm;
+								// responseStr = rm.createResponse( 500 );
 
 								_socket_arr.find(it->fd)->second.setSocketRequest(true);
 								//_client_sockets.at(it->fd).setSocketRequest(true);
