@@ -262,7 +262,7 @@ void	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 		// Parsing of the request and excecuting should happen here
 		//_executeEventSequence(it->fd);
 		//CREATING RESPONSE
-		ResponseMessage responseObj(config, (char *)socket.getRequestHeaderStr().c_str());
+		ResponseMessage responseObj((char *)socket.getRequestHeaderStr().c_str());
 		socket.setResponseStr(responseObj.createResponse());
 		socket.setSocketRequest(true);
 		std::cout << GREEN << "CRAFTED GET RESPONSE STR" << BLANK << std::endl;
