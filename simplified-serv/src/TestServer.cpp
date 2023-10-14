@@ -193,12 +193,12 @@ void	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 			}
 			else
 			{
-				//ERROR
+				//ERROR 400 Bad Request
 			}
 		}
 		else
 		{
-			//ERROR
+			//ERROR 400 Bad Request
 		}
 		if (socket.getRequestHeaderStr().find("multipart/form-data;") != std::string::npos)
 		{
@@ -216,7 +216,7 @@ void	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 			}
 			else
 			{
-				//ERROR
+				//ERROR 400 Bad Request
 			}
 		}
 		else if (socket.getRequestHeaderStr().find("application/x-www-form-urlencoded") != std::string::npos)
@@ -225,44 +225,12 @@ void	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 		}
 		else
 		{
-			//ERROR
+			//ERROR 400 Bad Request
 		}
 	}
 	else if (socket.getRequestHeader() == true && socket.getRequestMethod() == "GET")
 	{
-		char cwd[PATH_MAX];
-		if (getcwd(cwd, sizeof(cwd)) != NULL) {
-		}
-		else 
-		{
-			perror("getcwd() error");
-		}
-		std::string path;
-		path.append(cwd);
-
-		std::map<std::string, std::vector<std::string> >	config;
-		std::vector<std::string> 							buf_vec;
-
-		buf_vec.push_back(path);
-		// std::pair<std::string, std::string> pair = std::make_pair("cwd", path);
-		std::pair<std::string, std::vector<std::string> > pair = std::make_pair("cwd", buf_vec);
-		config.insert(pair);
-		buf_vec.clear();
-		buf_vec.push_back("index.htm");
-		buf_vec.push_back("index.html");
-		pair = std::make_pair("index", buf_vec);
-		config.insert(pair);
-		buf_vec.clear();
-		buf_vec.push_back("error.html");
-		pair = std::make_pair("error404", buf_vec);
-		config.insert(pair);
-		//---------------------------------------------------------------------------------
-		//TESTING
-
-		// Parsing of the request and excecuting should happen here
-		//_executeEventSequence(it->fd);
-		//CREATING RESPONSE
-		ResponseMessage responseObj((char *)socket.getRequestHeaderStr().c_str());
+		ResponseMessage responseObj((char *)socket.getRequestHeaderStr().c_str()); // GET
 		socket.setResponseStr(responseObj.createResponse());
 		socket.setSocketRequest(true);
 		std::cout << GREEN << "CRAFTED GET RESPONSE STR" << BLANK << std::endl;
@@ -419,7 +387,7 @@ void    TestServer::launch()
 								}
 								else if (_socket_arr.find(it->fd)->second.getRequestMethod() == "POST" && _socket_arr.find(it->fd)->second.getCGI() == true)
 								{
-									//PARSING CGI !!! NOT IMPLEMENTED YET
+									//PARSING CGI !!! NOT IMPLEMENTED YET // Put the stuff for Ranja here
 								}
 							}
 							it->revents = 0;
