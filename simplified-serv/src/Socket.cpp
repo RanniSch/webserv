@@ -3,12 +3,24 @@
 Socket::Socket()
 {
 	//std::cout << "Socket constructor!" << std::endl;
+	_request_type_is_logged = false;
+	_request_header_received = false;
 	_request_fully_received = false;
+	_CGI = false;
+	_multiform = false;
+	_second_header_found = false;
+	_boundary_end_found = false;
+	_content_len = 0;
 	_client_addr_len = 0;
+	_payload_size = 0;
 
 	_port = -2;
 	_socket_fd = -2;
 
+	_request_method.clear();
+	_request_header.clear();
+	_request_body.clear();
+	_response_str.clear();
 	
 }
 
@@ -83,23 +95,6 @@ int	Socket::getPort(void)
 	return (_port);
 }
 
-// void	ClientSocket::acceptConnection(void)
-// {
-// 	_client_addr_len = sizeof(_server_addr);
-
-// 	_client_socket_fd = accept(_listening_socket->getSocketFd(), (struct sockaddr *)&_server_addr, (socklen_t *)&_client_addr_len);
-// 	if (_client_socket_fd < 0)
-// 	{
-// 		std::cout << _client_socket_fd << std::endl;
-// 		perror("Accepting connection failed");
-// 	}
-// 	if (fcntl(_client_socket_fd, F_SETFL, O_NONBLOCK) < 0) 
-// 	{
-// 		perror(RED "ERROR: fcntl() setting has failed in clientSocket: " BLANK);
-// 		exit(-1);
-// 	}
-// }
-
 void	Socket::acceptConnection(int fd)
 {
 	_client_addr_len = sizeof(_server_addr_client);
@@ -117,37 +112,62 @@ void	Socket::acceptConnection(int fd)
 	}
 }
 
-void	Socket::setSocketFd(int value)
+void	Socket::clearSocketInfo(void)
 {
-	_socket_fd = value;
+	//_socket_type.clear();
+	//_request_method.clear();
+	_request_header.clear();
+	_request_body.clear();
+	_response_str.clear();
+	//_request_method.clear();
+	_boundaryStr.clear();
+	_request_type_is_logged = false;
+	_request_header_received = false;
+	_request_fully_received = false;
+	_second_header_found = false;
+	_CGI = false;
+	_multiform = false;
+	_content_len = 0;
+
 }
 
-void	Socket::setSocketRequest(bool value)
-{
-	_request_fully_received = value;
-}
+//SETTERS
+void	Socket::setSocketFd(int value) { _socket_fd = value;}
+void	Socket::setSocketRequest(bool value) { _request_fully_received = value;}
+void	Socket::setRequestHeader(bool value) { _request_header_received = value;}
+void	Socket::setType(std::string type) { _socket_type = type;}
+void	Socket::setRequestMethod(std::string method) { _request_method = method;}
+void	Socket::setResponseStr(std::string response) { _response_str = response;}
+void	Socket::setRequestHeaderStr(std::string request_header) { _request_header  = request_header;}
+void	Socket::setRequestBodyStr(std::string request_body) { _request_body = request_body;}
+void	Socket::setRequestTypeLogged(bool logged) { _request_type_is_logged = logged;}
+void	Socket::setCGI(bool CGI){ _CGI = CGI;}
+void	Socket::setMultiform(bool multiform){ _multiform = multiform;}
+void	Socket::setPayloadSize(long long int payload_len){ _payload_size = payload_len;}
+void	Socket::setContentLen(int content_len){ _content_len = content_len;}
+void	Socket::setBoundaryStr(std::string boundaryStr){ _boundaryStr = boundaryStr;}
+void	Socket::setBoundaryEndFound(bool boundary_end){ _boundary_end_found = boundary_end;}
+void	Socket::setSecondHeaderFound(bool secondHeaderFound){ _second_header_found = secondHeaderFound;}
+void	Socket::setSecondHeader(std::string second_header) { _second_header = second_header;}
+void	Socket::setFileName(std::string file_name) { _file_name = file_name;}
 
-sockaddr_in&	Socket::getSockAddr(void)
-{
-	return (_server_addr_listening);
-}
-
-bool	Socket::getSocketRequest(void)
-{
-	return	(_request_fully_received); 
-}
-
-int	Socket::getSocketFd()
-{
-	return (_socket_fd);
-}
-
-void	Socket::setType(std::string type)
-{
-	_socket_type = type;
-}
-
-std::string	Socket::getType(void)
-{
-	return (_socket_type);
-}
+//GETTERS
+sockaddr_in&	Socket::getSockAddr(void) { return (_server_addr_listening);}
+bool			Socket::getSocketRequest(void) { return	(_request_fully_received);}
+bool			Socket::getRequestHeader(void) { return	(_request_header_received);}
+int				Socket::getSocketFd() { return (_socket_fd);}
+std::string		Socket::getType() { return (_socket_type);}
+std::string		Socket::getRequestMethod(void) { return (_request_method);}
+std::string		Socket::getResponseStr(void) { return (_response_str);}
+std::string		Socket::getRequestHeaderStr(void) { return (_request_header);}
+bool			Socket::getRequestTypeLogged(void) { return (_request_type_is_logged);}
+std::string		Socket::getRequestBodyStr(void) { return (_request_body);}
+bool			Socket::getCGI(void){ return (_CGI);}
+bool			Socket::getMultiform(void){ return (_multiform);}
+long long int	Socket::getPayloadSize(void){ return (_payload_size);}
+int				Socket::getContentLen(void){ return (_content_len);}
+std::string		Socket::getBoundaryStr(void){ return (_boundaryStr);}
+bool			Socket::getBoundaryEndFound(void){ return (_boundary_end_found);}
+bool			Socket::getSecondHeaderFound(void){ return (_second_header_found);}
+std::string		Socket::getSecondHeader(void) { return (_second_header);}
+std::string		Socket::getFileName(void){ return (_file_name);}
