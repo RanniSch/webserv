@@ -36,7 +36,7 @@ class Socket
 		void			setRequestTypeLogged(bool logged);
 		void			setCGI(bool CGI);
 		void			setMultiform(bool multiform);
-		void			setPayloadSize(long long int payload_len);
+		void			setPayloadSize(long int payload_len);
 		void			setContentLen(int content_len);
 		void			setBoundaryStr(std::string boundaryStr);
 		void			setBoundaryEndFound(bool boundary_end);
@@ -62,7 +62,7 @@ class Socket
 		std::string		getRequestBodyStr(void);
 		bool			getCGI(void);
 		bool			getMultiform(void);
-		long long int	getPayloadSize(void);
+		long int		getPayloadSize(void);
 		int				getContentLen(void);
 		std::string		getBoundaryStr(void);
 		std::string		getFileName(void);
@@ -77,7 +77,7 @@ class Socket
 		bool			_request_fully_received;
 		int				_content_len;
 
-		long long int	_payload_size;
+		long int		_payload_size;
 
 		std::string		_socket_type;
 		std::string		_request_method;

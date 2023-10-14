@@ -143,7 +143,7 @@ void	Socket::setRequestBodyStr(std::string request_body) { _request_body = reque
 void	Socket::setRequestTypeLogged(bool logged) { _request_type_is_logged = logged;}
 void	Socket::setCGI(bool CGI){ _CGI = CGI;}
 void	Socket::setMultiform(bool multiform){ _multiform = multiform;}
-void	Socket::setPayloadSize(long long int payload_len){ _payload_size = payload_len;}
+void	Socket::setPayloadSize(long int payload_len){ _payload_size = payload_len;}
 void	Socket::setContentLen(int content_len){ _content_len = content_len;}
 void	Socket::setBoundaryStr(std::string boundaryStr){ _boundaryStr = boundaryStr;}
 void	Socket::setBoundaryEndFound(bool boundary_end){ _boundary_end_found = boundary_end;}
@@ -164,7 +164,7 @@ bool			Socket::getRequestTypeLogged(void) { return (_request_type_is_logged);}
 std::string		Socket::getRequestBodyStr(void) { return (_request_body);}
 bool			Socket::getCGI(void){ return (_CGI);}
 bool			Socket::getMultiform(void){ return (_multiform);}
-long long int	Socket::getPayloadSize(void){ return (_payload_size);}
+long int		Socket::getPayloadSize(void){ return (_payload_size);}
 int				Socket::getContentLen(void){ return (_content_len);}
 std::string		Socket::getBoundaryStr(void){ return (_boundaryStr);}
 bool			Socket::getBoundaryEndFound(void){ return (_boundary_end_found);}
