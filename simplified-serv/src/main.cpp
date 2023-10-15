@@ -8,6 +8,16 @@
 // for debugging Max
 
 Config *g_config;//mach das wieder weg!!!
+int		g_server_shutdown = -1;
+
+
+void    signalHandler(int signum)
+{
+    if (signum == SIGINT || signum == SIGTERM)
+	{
+		g_server_shutdown = 2;
+	}
+}
 
 int main(int argc, char **argv)
 {
@@ -18,10 +28,11 @@ int main(int argc, char **argv)
 	Config config(argv[1]);
 	g_config = &config; // raus
 
-
+	signal(SIGINT, signalHandler);
     TestServer server;
 
     server.launch();
+	server.~TestServer();
 
     return (0);
 }

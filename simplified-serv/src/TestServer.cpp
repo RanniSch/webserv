@@ -1,8 +1,6 @@
 
 #include "../include/TestServer.hpp"
 
-bool	g_server_shutdown = false;
-
 // Constructor
 TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3), _nbr_of_client_sockets(0), _nbr_of_sockets_in_poll(0)
 {
@@ -49,6 +47,17 @@ TestServer::~TestServer(void)
 	exit(-1);
 }
 
+int		TestServer::_setErrorResponseStr(Socket &socket, int Error_Code)
+{
+	socket.setErrorFlag(true);
+	socket.setSocketRequest(true);
+	socket.setRequestHeader(true);
+	ResponseMessage 	ResponseObj;
+
+	socket.setResponseStr(ResponseObj.createResponse(Error_Code));
+	return (-1);
+}
+
 void    TestServer::_acceptConnection(int fd)
 {
 	Socket tmp;
@@ -93,18 +102,13 @@ void    TestServer::_handler()
     std::cout << GREY << _buffer <<  BLANK << std::endl;
 }
 
-void    signalHandler(int signum)
-{
-    if (signum == SIGINT)
-        g_server_shutdown = true;
-}
-
-
 int		TestServer::checkPollAction(short revents, int fd)
 {
 	if (revents & POLLIN)
 		return (1);
 	if (revents & POLLOUT && _socket_arr.find(fd)->second.getSocketRequest() == true && _socket_arr.find(fd)->second.getRequestHeader() == true)
+		return (2);
+	if (revents & POLLOUT && _socket_arr.find(fd)->second.getErrorFlag() == true)
 		return (2);
 	if (revents & POLLHUP)
 	{
@@ -123,15 +127,16 @@ int		TestServer::checkPollAction(short revents, int fd)
 void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, std::string _responseStr)
 {
 	std::cout << "RESPONDING BY WRITING => " << std::endl;	write(_it->fd, _responseStr.c_str(), _responseStr.length());
-	_socket_arr.find(_it->fd)->second.setSocketRequest(false);
-	_socket_arr.find(_it->fd)->second.setRequestHeader(false);
-	_socket_arr.find(_it->fd)->second.setRequestMethod("NOTHING");
-	_socket_arr.find(_it->fd)->second.setSecondHeaderFound(false);
-	_socket_arr.find(_it->fd)->second.setCGI(false);
-	_socket_arr.find(_it->fd)->second.setMultiform(false);
-	_socket_arr.find(_it->fd)->second.setBoundaryEndFound(false);
-	_socket_arr.find(_it->fd)->second.setRequestTypeLogged(false);
-	std::cout << "SETTED UP RESPONSE METHOD TO:" << _socket_arr.find(_it->fd)->second.getRequestMethod() << std::endl;
+	_socket_arr.erase(_it->fd); // CLOSE THE SOCKET IMMEDIATELY
+	// _socket_arr.find(_it->fd)->second.setSocketRequest(false);
+	// _socket_arr.find(_it->fd)->second.setRequestHeader(false);
+	// _socket_arr.find(_it->fd)->second.setRequestMethod("NOTHING");
+	// _socket_arr.find(_it->fd)->second.setSecondHeaderFound(false);
+	// _socket_arr.find(_it->fd)->second.setCGI(false);
+	// _socket_arr.find(_it->fd)->second.setMultiform(false);
+	// _socket_arr.find(_it->fd)->second.setBoundaryEndFound(false);
+	// _socket_arr.find(_it->fd)->second.setRequestTypeLogged(false);
+	//std::cout << "SETTED UP RESPONSE METHOD TO:" << _socket_arr.find(_it->fd)->second.getRequestMethod() << std::endl;
 }
 
 void	TestServer::_DeleteRequest(int fd)
@@ -139,138 +144,240 @@ void	TestServer::_DeleteRequest(int fd)
 	(void)fd;
 }
 
-void	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
+int	TestServer::_checkForMethods(Socket &socket, std::string &strBuffer)
+{
+	std::string	tmp_method = strBuffer.substr(0, strBuffer.find(" "));
+	std::string	method = "";
+	if (tmp_method == "GET")
+		method = "GET";
+	else if (tmp_method == "POST")
+		method = "POST";
+	else if (tmp_method == "DELETE")
+		method = "DELETE";
+	else
+		method = "WRONG_REQUEST";
+	std::cout << CYAN << "TMP_METHOD: [" BLANK << tmp_method << "]" << std::endl;
+	std::cout << CYAN << "CHOSEN METHOD: [" BLANK << method << "]" << std::endl;
+	
+	socket.setRequestMethod(method);
+	if (method == "WRONG_REQUEST")
+	{
+		//WE DO NOT KNOW THE METHOD
+		return (_setErrorResponseStr(socket, 501));
+	}
+	return (0);
+}
+
+void	TestServer::_checkIfItIsACGI(Socket &socket)
+{
+	std::string	header = socket.getRequestHeaderStr();
+
+	std::string	first_line = header.substr(0, header.find("\n"));
+	std::size_t	found_cgi_start = first_line.find("/cgi-bin/");
+	if (found_cgi_start != std::string::npos)
+	{
+		std::size_t	found_extension = first_line.find(".py");
+		if (found_extension != std::string::npos)
+		{
+			if (socket.getRequestMethod() == "POST")
+			{
+				std::size_t found_application = header.find("application/x-www-form-urlencoded");
+				if (found_application != std::string::npos)
+				{
+					socket.setCGI(true);
+				}
+				else
+				{
+					std::size_t found_multiform = header.find("multipart/form-data");
+					if (found_multiform != std::string::npos)
+					{
+						socket.setCGI(true);
+					}
+					else
+					{
+						socket.setCGI(false);
+					}
+				}
+			}
+			else if (socket.getRequestMethod() == "GET")
+			{
+				socket.setCGI(true);
+			}
+		}
+	}
+}
+
+int	TestServer::_checkPostContenLen(Socket &socket)
+{
+	std::string	header = socket.getRequestHeaderStr();
+	std::size_t content_len_start = header.find("Content-Length: ");
+	if (content_len_start != std::string::npos)
+	{
+		std::size_t len_end = header.find("\n", content_len_start + strlen("Content-Length: "));
+		if (len_end != std::string::npos)
+		{
+			content_len_start += strlen("Content-Length: ");
+			std::string len = header.substr(content_len_start, len_end - content_len_start - 1);
+			std::cout << CYAN "len: [" BLANK << len << "]" << std::endl;
+			std::istringstream ss(len);
+			int content_len;
+			if (!(ss >> content_len))
+			{
+				std::cout << RED << "ERROR: CONVERTING STRING TO INT" BLANK << std::endl;
+				//411 Content len is not there
+				return (_setErrorResponseStr(socket, 411));
+			}
+			else
+			{
+				socket.setContentLen(content_len);
+				std::cout << GREEN << "len_int: " BLANK << socket.getContentLen() << std::endl;
+				return (0);
+			}
+		}
+		else
+		{
+			//ERROR 411 Content len is not there
+			return (_setErrorResponseStr(socket, 411));
+		}
+	}
+	else
+	{
+		//ERROR 411 Content len is not there
+		return (_setErrorResponseStr(socket, 411));
+	}
+}
+
+int		TestServer::_checkPostForBoundary(Socket &socket)
+{
+	socket.setMultiform(true);
+	std::string	header = socket.getRequestHeaderStr();
+	std::size_t boundary_start = header.find("boundary=");
+	if (boundary_start != std::string::npos)
+	{
+		std::size_t	boundary_end =  header.find("\n", boundary_start + 9);
+		if (boundary_end != std::string::npos)
+		{
+			std::string boundary_str = header.substr(boundary_start + 9, boundary_end -  (boundary_start + 10));
+			std::cout << RED "Boundary_str: [" BLANK << boundary_str << "]" << std::endl;
+			socket.setBoundaryStr(boundary_str);
+		}
+	}
+	else
+	{
+		//ERROR 400 Bad Request
+		socket.setErrorFlag(true);
+		return	(-1);
+	}
+	return (0);
+}
+
+int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 {
 	std::cout << YELL << "READING AND PARSING! [" << socket.getRequestMethod() << "]" << BLANK << std::endl;
 	if (socket.getRequestMethod() == "NOTHING")
 	{
-		std::string	tmp_method = strBuffer.substr(0, strBuffer.find(" "));
-		if (tmp_method == "GET")
-			socket.setRequestMethod("GET");
-		else if (tmp_method == "POST")
-			socket.setRequestMethod("POST");
-		else if (tmp_method == "DELETE")
-			socket.setRequestMethod("DELETE");
-		else
-			socket.setRequestMethod("WRONG_REQUEST");
-		std::cout << CYAN << "TMP_METHOD: [" BLANK << tmp_method << "]" << std::endl;
-		std::cout << CYAN << "CHOSEN METHOD: [" BLANK << socket.getRequestMethod() << "]" << std::endl;
+		if (_checkForMethods(socket, strBuffer) == -1)
+			return -1;
 	}
 	// CHECK if request came in full
 	std::string	tmp_str = socket.getRequestHeaderStr();
 	tmp_str.append(strBuffer);
 	socket.setRequestHeaderStr(strBuffer);
 	std::size_t	header_end = socket.getRequestHeaderStr().find("\r\n\r\n");
+	//CHECK IF HEADER CAME in one CHUNK
 	if (header_end != std::string::npos)
 	{
 		socket.setRequestHeader(true);
 		// SAVE HEADER
 		std::string	tmp_header = socket.getRequestHeaderStr().substr(0, header_end);
-		std::string	tmp_body = socket.getRequestHeaderStr().substr(header_end);
+		std::string	tmp_body = socket.getRequestHeaderStr().substr(header_end + 4);
 		socket.setRequestBodyStr(tmp_body);
 		socket.setRequestHeaderStr(tmp_header);
 	}
+	//CHECKING IF ITS CGI
+	if (socket.getRequestHeader() == true && (socket.getRequestMethod() == "POST" || socket.getRequestMethod() == "GET"))
+		_checkIfItIsACGI(socket);
 	if (socket.getRequestHeader() == true && socket.getRequestMethod() == "POST")
 	{
-		std::size_t content_len_start = socket.getRequestHeaderStr().find("Content-Length: ");
-		if (content_len_start != std::string::npos)
+		if (_checkPostContenLen(socket) == -1)
 		{
-			std::size_t len_end = socket.getRequestHeaderStr().find("\n", content_len_start + strlen("Content-Length: "));
-			if (len_end != std::string::npos)
-			{
-				content_len_start += strlen("Content-Length: ");
-				std::string len = socket.getRequestHeaderStr().substr(content_len_start, len_end - content_len_start - 1);
-				std::cout << CYAN "len: [" BLANK << len << "]" << std::endl;
-				std::istringstream ss(len);
-				int content_len;
-				if (!(ss >> content_len))
-				{
-					socket.setContentLen(content_len);
-					std::cout << RED << "ERROR: CONVERTING STRING TO INT" BLANK << std::endl;
-				}
-				else
-					std::cout << GREEN << "len_int: " BLANK << socket.getContentLen() << std::endl;  
-			}
-			else
-			{
-				//ERROR 400 Bad Request
-			}
-		}
-		else
-		{
-			//ERROR 400 Bad Request
+			std::cout << RED "ERROR: Impossible to retrieve Content len from POST request" BLANK << std::endl;
+			return -1;
 		}
 		if (socket.getRequestHeaderStr().find("multipart/form-data;") != std::string::npos)
 		{
-			socket.setMultiform(true);
-			std::size_t boundary_start = socket.getRequestHeaderStr().find("boundary=");
-			if (boundary_start != std::string::npos)
+			if (_checkPostForBoundary(socket) == -1)
 			{
-				std::size_t	boundary_end =  socket.getRequestHeaderStr().find("\n", boundary_start + 9);
-				if (boundary_end != std::string::npos)
-				{
-					std::string boundary_str = socket.getRequestHeaderStr().substr(boundary_start + 9, boundary_end -  (boundary_start + 10));
-					std::cout << RED "Boundary_str: [" BLANK << boundary_str << "]" << std::endl;
-					socket.setBoundaryStr(boundary_str);
-				}
-			}
-			else
-			{
+				std::cout << RED "ERROR: Boundary str not found!" BLANK << std::endl;
 				//ERROR 400 Bad Request
+				return (_setErrorResponseStr(socket, 400));
 			}
 		}
 		else if (socket.getRequestHeaderStr().find("application/x-www-form-urlencoded") != std::string::npos)
 		{
 			socket.setCGI(true);
+			//MORE CHECKS FOR CGI
 		}
 		else
 		{
 			//ERROR 400 Bad Request
+			return (_setErrorResponseStr(socket, 400));
 		}
 	}
 	else if (socket.getRequestHeader() == true && socket.getRequestMethod() == "GET")
 	{
+		std::cout << RED << "PREPARING RESPONSE 1" BLANK << std::endl;
 		ResponseMessage responseObj((char *)socket.getRequestHeaderStr().c_str()); // GET
+		std::cout << RED << "PREPARING RESPONSE 2" BLANK << std::endl;
 		socket.setResponseStr(responseObj.createResponse());
+			std::cout << RED << "PREPARING RESPONSE 3" BLANK << std::endl;
 		socket.setSocketRequest(true);
 		std::cout << GREEN << "CRAFTED GET RESPONSE STR" << BLANK << std::endl;
 	}
-	std::cout << "HEADER:\n[" << socket.getRequestHeaderStr() << "]" << std::endl; 
+	return (0);
 }
 
-void	TestServer::_readAndParseSecondHeader(Socket &socket, std::string strBuffer)
+int	TestServer::_readAndParseSecondHeader(Socket &socket, std::string strBuffer)
 {
-	if (socket.getMultiform() == true)
+	std::string tmp_boundary_start = "--" + socket.getBoundaryStr();
+	int	boundary_start = _checkForBoundaryStr(socket, tmp_boundary_start, "start");
+	if (boundary_start != -1)
 	{
-		std::string tmp_boundary_start = "--" + socket.getBoundaryStr();
-		int	boundary_start = _checkForBoundaryStr(socket, tmp_boundary_start, "start");
-		if (boundary_start != -1)
+		boundary_start += (socket.getBoundaryStr().length() + 2);
+		std::size_t	end_second_header = strBuffer.find("\r\n\r\n", boundary_start);
+		if (end_second_header != std::string::npos)
 		{
-			boundary_start += (socket.getBoundaryStr().length() + 2);
-			std::size_t	end_second_header = strBuffer.find("\r\n\r\n", boundary_start);
-			if (end_second_header != std::string::npos)
-			{
-				std::cout << RED << "FOUND SECOND HEADER END!" BLANK << std::endl;
-				std::string	tmp_second_header = strBuffer.substr(boundary_start, end_second_header - boundary_start);
-				socket.setSecondHeader(tmp_second_header);
-				socket.setSecondHeaderFound(true);
+			std::cout << RED << "FOUND SECOND HEADER END!" BLANK << std::endl;
+			std::string	tmp_second_header = strBuffer.substr(boundary_start, end_second_header - boundary_start);
+			socket.setSecondHeader(tmp_second_header);
+			socket.setSecondHeaderFound(true);
 
-				std::size_t	filename_start = socket.getSecondHeader().find("filename=");
-				if (filename_start != std::string::npos)
+			std::size_t	filename_start = socket.getSecondHeader().find("filename=");
+			if (filename_start != std::string::npos)
+			{
+				std::size_t filename_end = socket.getSecondHeader().find("\"", filename_start + 10);
+				if (filename_end != std::string::npos)
 				{
-					std::size_t filename_end = socket.getSecondHeader().find("\"", filename_start + 10);
-					if (filename_end != std::string::npos)
-					{
-						filename_start += 10;
-						socket.setFileName(socket.getSecondHeader().substr(filename_start, filename_end - filename_start));
-					}
+					filename_start += 10;
+					socket.setFileName(socket.getSecondHeader().substr(filename_start, filename_end - filename_start));
 				}
-				std::vector<uint8_t>::iterator	start = _buffer_vector.begin() + end_second_header + 4;
-				std::string tmp_boundary_end =  "--" + socket.getBoundaryStr() + "--";
-				_POSTrequestSaveBodyToFile(socket, start, tmp_boundary_end);
 			}
+			std::vector<uint8_t>::iterator	start = _buffer_vector.begin() + end_second_header + 4;
+			std::string tmp_boundary_end =  "--" + socket.getBoundaryStr() + "--";
+			_POSTrequestSaveBodyToFile(socket, start, tmp_boundary_end);
+		}
+		else
+		{
+			//ASUME THAT SECOND HEADER ALWAYS COMES IN THE FIRST CHUNK
+			return (_setErrorResponseStr(socket, 400));
 		}
 	}
+	else
+	{
+		//IF NO START BOUNDARY IS DETECTED 400
+		return (_setErrorResponseStr(socket, 400));
+	}
+	return(0);
 }
 
 
@@ -310,6 +417,9 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::vector<uint8_t>
 	{
 		end = _buffer_vector.begin() + result;
 		socket.setSocketRequest(true);
+		//WE NEED 201
+		ResponseMessage	ResponseObj;
+		socket.setResponseStr(ResponseObj.createResponse(201));
 	}
 	else
 	{
@@ -325,10 +435,54 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::vector<uint8_t>
 	std::cout << "RESULT: " << result << std::endl;
 }
 
+
+void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
+{
+	if (socket.getMultiform() == true)
+	{
+		//IT IS FOR FILE UPLOAD READING AND PARSING SECOND HEADER
+		if (socket.getCGI() == true)
+		{
+			socket.setErrorFlag(true);
+			std::cout << RED "ERROR: we do not accept POST CGI with multipart/form Content-type!" BLANK << std::endl;
+			socket.setSocketRequest(true);
+			return ;
+		}
+		else if (socket.getSecondHeaderFound() == false)
+			_readAndParseSecondHeader(socket, stringBuffer);
+		else if (socket.getSecondHeaderFound() == true && socket.getSocketRequest() == false)
+		{
+			// IT IS FOR SAVING THE UPLOAD CHUNK TO THE FILE
+			std::string boundary_str = "--" + socket.getBoundaryStr() + "--";
+			std::cout << RED << "STR version boundary: [" << boundary_str << "]" BLANK << std::endl;
+			_POSTrequestSaveBodyToFile(socket, _buffer_vector.begin() ,boundary_str);
+		}
+	}
+	else if (socket.getCGI() == true)
+	{
+		//PARSING CGI !!! NOT IMPLEMENTED YET // Put the stuff for Ranja here
+		std::cout << YELL "APPLICATION CGI HEADER:\n" BLANK << socket.getRequestHeaderStr() << std::endl;
+		std::cout << GREEN "APLLICATION CGI BODY:\n[" BLANK << socket.getRequestBodyStr() << "]" << std::endl;
+		socket.setPayloadSize(socket.getPayloadSize() + socket.getRequestBodyStr().length());
+		if (socket.getPayloadSize() == socket.getContentLen())
+		{
+			std::cout << GREEN "WE HAVE A FULL CGI BODY! LETS EXECUTE A CGI!" BLANK << std::endl;
+			socket.setSocketRequest(true);
+			//EXECUTE POST CGI HERE
+
+
+			//FUTURE SET RESPONSESTR HERE
+		}
+		else
+		{
+			socket.setRequestBodyStr(socket.getRequestBodyStr() + stringBuffer);
+		}
+
+	}
+}
+
 void    TestServer::launch()
 {
-
-	signal(SIGINT, signalHandler);
 	// DEBUGGING
 	std::cout <<GREEN "Finished creating the ports:" BLANK << std::endl;		
 	for (std::map<int, Socket>::iterator it_tmp = _socket_arr.begin(); it_tmp != _socket_arr.end(); it_tmp++)
@@ -338,7 +492,7 @@ void    TestServer::launch()
 	int	ready = 0;
 	std::string	responseStr;
 
-	while (g_server_shutdown  == false)
+	while (g_server_shutdown  == -1)
 	{
 		ready = poll(_sockets_for_poll.data(), _sockets_for_poll.size(), 2000);
 		switch (ready)
@@ -371,23 +525,17 @@ void    TestServer::launch()
 								std::string stringBuffer(reinterpret_cast<char *>(_buffer));
 								if (_socket_arr.find(it->fd)->second.getRequestHeader() == false)
 								{
-									_readAndParseHeader(_socket_arr.find(it->fd)->second, stringBuffer);
+									if (_readAndParseHeader(_socket_arr.find(it->fd)->second, stringBuffer) == -1)
+										std::cout << RED "ERROR withing _readAndParseHeader" BLANK << std::endl;
+									std::cout << YELL "HEADER:\n|" BLANK << _socket_arr.find(it->fd)->second.getRequestHeaderStr() << '|' << std::endl;
 								}
-								if (_socket_arr.find(it->fd)->second.getRequestMethod() == "POST" && _socket_arr.find(it->fd)->second.getMultiform() == true  && _socket_arr.find(it->fd)->second.getSecondHeaderFound() == false)
+								if (_socket_arr.find(it->fd)->second.getRequestMethod() == "POST")
 								{
-									//IT IS FOR FILE UPLOAD READING AND PARSING SECOND HEADER
-									_readAndParseSecondHeader(_socket_arr.find(it->fd)->second, stringBuffer);
+									_POST(_socket_arr.find(it->fd)->second, stringBuffer);
 								}
-								else if (_socket_arr.find(it->fd)->second.getRequestMethod() == "POST" && _socket_arr.find(it->fd)->second.getSecondHeaderFound() == true && _socket_arr.find(it->fd)->second.getMultiform() == true && _socket_arr.find(it->fd)->second.getSocketRequest() == false)
+								else if (_socket_arr.find(it->fd)->second.getRequestMethod() == "GET" && _socket_arr.find(it->fd)->second.getCGI() == true)
 								{
-									// IT IS FOR SAVING THE UPLOAD CHUNK TO THE FILE
-									std::string boundary_str = "--" + _socket_arr.find(it->fd)->second.getBoundaryStr() + "--";
-									std::cout << RED << "STR version boundary: [" << boundary_str << "]" BLANK << std::endl;
-									_POSTrequestSaveBodyToFile(_socket_arr.find(it->fd)->second, _buffer_vector.begin() ,boundary_str);
-								}
-								else if (_socket_arr.find(it->fd)->second.getRequestMethod() == "POST" && _socket_arr.find(it->fd)->second.getCGI() == true)
-								{
-									//PARSING CGI !!! NOT IMPLEMENTED YET // Put the stuff for Ranja here
+									//EXECUTE GET METHOD CGI HERE
 								}
 							}
 							it->revents = 0;
@@ -397,9 +545,14 @@ void    TestServer::launch()
 							//CHUNKING THE  WRITING TO THE SERVER
 							std::cout << YELL "WRITING " << it->fd << BLANK << std::endl;
 							_pollWriting(it, _socket_arr.find(it->fd)->second.getResponseStr());
-							//IF WRITING FULLY FINISHED THE SOCKET SHOULD BE FULLY CLOSED
-							_socket_arr.find(it->fd)->second.clearSocketInfo();
-							it->revents = 0;
+							//CLOSE THE SOCKET
+							if (close(it->fd) == 0)
+								std::cout << GREEN "Client Socket: " << it->fd << " was closed successfuly" << std::endl;
+							else
+								std::cout << RED "ERROR: failed to close the client socket" << BLANK << std::endl;
+							_sockets_for_poll.erase(it);
+							_nbr_of_client_sockets--;
+							_nbr_of_sockets_in_poll--;
 							ready--;
 							std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
 							break;
@@ -412,5 +565,9 @@ void    TestServer::launch()
 			break;
 		}
 	}
-	this->~TestServer();
+	if (g_server_shutdown != -1)
+	{
+		std::cout << GREEN "SHUTDOWN SERVER!" BLANK << std::endl; 
+		this->~TestServer();
+	}
 }

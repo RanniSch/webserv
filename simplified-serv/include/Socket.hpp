@@ -24,6 +24,7 @@ class Socket
 		void			clearSocketInfo(void);
 
 		//SETTERS
+		void			setErrorFlag(bool error);
 		void			setPort(int port);
 		void			setSocketFd(int value);
 		void			setSocketRequest(bool value);
@@ -45,6 +46,7 @@ class Socket
 		void			setFileName(std::string fileName);
 
 		//GETTERS
+		bool			getErrorFlag(void);
 		sockaddr_in&	getSockAddr(void);
 		int				getPort(void);
 		int				getSocketFd(void);
@@ -68,6 +70,7 @@ class Socket
 		std::string		getFileName(void);
 
 	private:
+		bool			_error;
 		bool			_CGI;
 		bool			_multiform;
 		bool			_request_type_is_logged;
@@ -77,7 +80,7 @@ class Socket
 		bool			_request_fully_received;
 		int				_content_len;
 
-		long int		_payload_size;
+		long int		_payload_size_CGI;
 
 		std::string		_socket_type;
 		std::string		_request_method;
