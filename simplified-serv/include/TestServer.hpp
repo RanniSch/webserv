@@ -29,13 +29,14 @@
 #include <map>
 
 extern Config *g_config;
+extern int	g_server_shutdown;
 
 class TestServer{
         public:
-                // Constructor
-                TestServer();
-                // Destructor
-                ~TestServer (void);
+            // Constructor
+            TestServer();
+            // Destructor
+            ~TestServer (void);
 
                 void	launch();
         
@@ -44,7 +45,7 @@ class TestServer{
                 uint8_t	_buffer[9216];
 				std::vector<uint8_t> _buffer_vector;
 
-                int     _nbr_of_ports;
+                int    							_nbr_of_ports;
                 int                             _nbr_of_client_sockets;
                 int								_nbr_of_sockets_in_poll;
                 std::vector<int>      			_ports;
@@ -52,9 +53,9 @@ class TestServer{
 
                 std::vector<pollfd>				_sockets_for_poll; // For now the most important bit
                 //void	_executeEventSequence(int &fd);
-		int	checkPollAction(short revents, int fd);
-				bool	_checkIfRequestHeaderCameInFull(Socket &_socket, std::string stringBuffer);
-				void	_checkForBodyTrail(Socket &_socket, std::string stringBuffer);
+		int		checkPollAction(short revents, int fd);
+		bool	_checkIfRequestHeaderCameInFull(Socket &_socket, std::string stringBuffer);
+		void	_checkForBodyTrail(Socket &_socket, std::string stringBuffer);
 
 	    void	_executeCGI(void);
 
@@ -66,14 +67,20 @@ class TestServer{
 		void	_PostRequest(std::map<int, Socket>::iterator &_tmp_socket_it);
 	    void	_DeleteRequest(int fd);
 
-		void	_readAndParseHeader(Socket &socket, std::string strBuffer);
-		void	_readAndParseSecondHeader(Socket &socket, std::string strBuffer);
+        int		_checkForMethods(Socket &socket, std::string &strBuffer);
+		int		_readAndParseHeader(Socket &socket, std::string strBuffer);
+		int		_readAndParseSecondHeader(Socket &socket, std::string strBuffer);
         int		_checkForBoundaryStr(Socket &socket, std::string &boundary_to_find, std::string indentifier);
 
-
+		void	_POST(Socket &socket, std::string &stringBuffer);
 		void	_POSTrequestSaveBodyToFile(Socket &socket, std::vector<uint8_t>::iterator start, std::string &boundary_str);
 
+        void    _checkIfItIsACGI(Socket &socket);
+        int		_checkPostContenLen(Socket &socket);
+        int		_checkPostForBoundary(Socket &socket);
+
         void	_acceptConnection(int index);
+		int		_setErrorResponseStr(Socket &socket, int ErrorCode);
         void	_handler(void);
 
                 //void	_responder(std::string indentifier, int &fd);
@@ -86,10 +93,10 @@ class TestServer{
 		void	_RequestIp(sockaddr_in *address);
 };
 
-# define        DEBUG	1
+# define    DEBUG	1
 
 # define	ACCEPT_CLIENT	0
-# define        READING			1
+# define    READING			1
 # define    WRITING			2
 # define    KILLING_CLIENT	3
 
