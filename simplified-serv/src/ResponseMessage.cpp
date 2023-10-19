@@ -81,6 +81,7 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 			-------------	fill status lines to status codes	-------------
 	*/
 	_status_line.insert( std::pair<size_t, std::string>(200, "OK") );
+	_status_line.insert( std::pair<size_t, std::string>(204, "No Content") );
 	_status_line.insert( std::pair<size_t, std::string>(301, "Moved Permanently") );
 	_status_line.insert( std::pair<size_t, std::string>(400, "Bad Request") );
 	_status_line.insert( std::pair<size_t, std::string>(404, "Not Found") );
@@ -92,6 +93,7 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	/*
 			-------------	fill default error pages to status codes	-------------
 	*/
+	_default_error_page.insert( std::pair<size_t, std::string>(204, "") );
 	_default_error_page.insert( std::pair<size_t, std::string>(301, "<!DOCTYPE html><html><head><title>301 Moved Permanently</title></head><body><h1>301 Moved Permanently</h1><p>This resource has been permanently moved to a new location.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(400, "<!DOCTYPE html><html><head><title>400 Bad Request</title></head><body><h1>400 Bad Request</h1><p>Your browser sent a request that this server could not understand.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(403, "<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body><h1>403 Forbidden</h1><p>You don't have permission to access this resource.</p></body></html>") );
@@ -505,12 +507,16 @@ std::string	ResponseMessage::createResponse( void )
 	// only for get method
 	// diese funktion nur aufrufen können wenn _config und _request map da sind !!  MOMENT, brauche ich die? diese Funktion wird auch aufgerufen von createResponse( size_t status_code ) ohne was worher zu machen
 
+	_target_path = _check_and_execute_delete_request( _statusCode );
+
 	content = "";
 	content += _create_content_from_file( _target_path, content_type );
 	content += _return_default_status_code_html_if_needed( _target_path, content_type, _statusCode);
 	
 	output = "";
 	output += _response_first_line( _statusCode );
+	if ( content == "" )
+		return output;  // warten bis Lukas DELETE fertig hat und dann nochmal testen ob das reicht an response
 	output += _response_content_type( ct );
 	output += _response_content_length( content );
 
@@ -518,6 +524,28 @@ std::string	ResponseMessage::createResponse( void )
 	output += content;
 	output.append("\r\n");
 	return output;
+}
+
+std::string	ResponseMessage::_check_and_execute_delete_request( size_t status_code )
+{
+	std::map<std::string, std::string>::iterator	it;
+
+	const char *path = _target_path.c_str();
+
+	if (status_code != 200)
+		return _target_path;
+	it = _request_map.find("Method");
+	if ( it == _request_map.end() )
+		return _target_path;
+	if ( it->second != "DELETE" )
+		return _target_path;
+	if ( std::remove( path ) != 0) // if that did not work internal server error of forbidden? 403
+	{
+		_statusCode = 500;
+		return _return_path_to_error_file( _statusCode );
+	}
+	_statusCode = 204; // succesfull, no content
+	return "";
 }
 
 /**
@@ -593,13 +621,14 @@ std::string		ResponseMessage::_return_default_status_code_html_if_needed( std::s
 
 	if (filepath != "")
 		return "";
-	*content_type = "html";
 	it = _default_error_page.find(status_code);
 	if ( it == _default_error_page.end() )
 	{
 		std::cout << "no matching status code in _default_error_page in ResponseMessage, I take 404" << std::endl; //weg!!
 		it = _default_error_page.find( 404 );
 	}
+	if ( it->second != "" )
+		*content_type = "html";
 	return ( it->second );
 }
 

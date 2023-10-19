@@ -334,6 +334,8 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 		socket.setSocketRequest(true);
 		std::cout << GREEN << "CRAFTED GET RESPONSE STR" << BLANK << std::endl;
 	}
+	// ResponseMessage responseObj((char *)socket.getRequestHeaderStr().c_str()); // Max Testing weg!!!
+	// responseObj.createResponse(); // Max Testing weg!!!
 	return (0);
 }
 

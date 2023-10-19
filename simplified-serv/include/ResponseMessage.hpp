@@ -8,6 +8,7 @@
 #include <filesystem>   // später weg
 #include <unistd.h>		// später weg
 #include <stdio.h>     // später weg
+// #include <cstdio>
 #include <limits.h>    // später weg
 #include <cstdlib>
 #include <sstream>
@@ -54,7 +55,7 @@ class ResponseMessage {
 		/*
 				---------  New variables  ---------
 		*/
-		size_t				_statusCode;
+		size_t			_statusCode;
 		Config			&_config;		//should be given when creating
 		size_t			_server;		//should be given when creating
 		std::string		_config_location; // when no config_location is found for this request_location -> ""
@@ -86,6 +87,7 @@ class ResponseMessage {
 		std::string		_return_path_to_error_file( size_t status_code );
 		std::string		_look_for_file_in_dir_based_on_config( std::string dir_to_look_for, const std::string &config_parameter );
 		std::string		_path_one_plus_path_two( std::string path_one, std::string path_two );
+		std::string		_check_and_execute_delete_request( size_t status_code );
 		std::string		_create_content_from_file( std::string filepath, std::string *content_type );
 		std::string		_return_default_status_code_html_if_needed( std::string filepath, std::string *content_type, size_t _statusCode);
 		std::string		_response_first_line( size_t status_code );
