@@ -84,7 +84,7 @@ void Cgi::run()
 */
 bool Cgi::_python3Installed() 
 {
-	const char* python3Path = "/usr/bin/python3";
+	const char* python3Path = "/usr/bin/python3"; // Program is Python 3
 
 	if (access(python3Path, X_OK) == 0) 
 		return true;
