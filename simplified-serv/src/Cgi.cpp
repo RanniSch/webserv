@@ -46,7 +46,7 @@ void Cgi::run()
 		close(outfile);
 
 		//create arguments for execve
-		char* scriptPath = (char*)(_client.path_on_server.c_str()); // I need the location in Server! Or cgiPath here as well?
+		char* scriptPath = (char*)(_client.path_on_server.c_str()); // I need the location in Server; so the path of the Python Script
 
 		const char* pathToPython3 = "/usr/bin/python3";
 		char* _args[3];
@@ -84,7 +84,7 @@ void Cgi::run()
 */
 bool Cgi::_python3Installed() 
 {
-	const char* python3Path = "/usr/bin/python3"; // Program is Python 3
+	const char* python3Path = "/usr/bin/python3"; // Program is Python 3 also usr/bin/python3
 
 	if (access(python3Path, X_OK) == 0) 
 		return true;
