@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import cgi
 
 # Content-Type header definitions
 print("Content-Type: text/html\n")
