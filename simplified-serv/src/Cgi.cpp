@@ -1,8 +1,9 @@
-#include "../includes/Cgi.hpp"
+#include "../include/Cgi.hpp"
 
 // handle timeout
 
-Cgi::Cgi(ClientSocket & cl) : _client(cl)
+//Cgi::Cgi(ClientSocket & cl) : _client(cl)
+Cgi::Cgi()
 {
     std::cout << "Cgi parameterized constructor called!" << std::endl;
 }
@@ -12,13 +13,22 @@ Cgi::~Cgi()
     std::cout << "Cgi destructor called!" << std::endl;
 }
 
-void Cgi::run()
+void	Cgi::setRequestChar(unsigned char* requestC)
+{
+	_request = requestC;
+}
+
+void Cgi::runCgi()
 {
     if (!_python3Installed())
         throw(CgiException());
 
-    std::string temp = _client.cgiPath; // I need the path of the python script; will be used to execute!
-    const char* out_filename = temp.c_str();
+    //char* cRequest = const_cast<char*>(_request.c_str());
+	char* cRequest = reinterpret_cast<char*>(_request);
+	ResponseMessage findRequest(cRequest);
+	std::string temp = findRequest.get_cgi_path();
+	//std::string temp = _client.cgiPath; // I need the path of the python script; will be used to execute! Max has not checked if cgi data exists!
+    /*const char* out_filename = temp.c_str();
     int outfile = open(out_filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
     //if(outfile == -1)
 
@@ -72,7 +82,7 @@ void Cgi::run()
 
     // Program only arrives here, if an error occurs at execve.
     std::cerr << "Error: Executing CGI script" << std::endl;
-    exit(1);
+    exit(1);*/
 }
 
 

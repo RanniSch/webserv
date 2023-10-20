@@ -28,7 +28,8 @@
 class Cgi
 {
     public:
-            Cgi(ClientSocket & cl);
+            //Cgi(ClientSocket & cl);
+            Cgi();
             ~Cgi();
 
             void    runCgi();
@@ -40,12 +41,16 @@ class Cgi
                             return ("Exception: CGI\n");
                         }
             };
+
+            void    setRequestChar(unsigned char* requestC);
     
     private:
             // something like a static bool to handle the timeouts
-            bool    _python3Installed();
+            bool            _python3Installed();
+            unsigned char*     _request;
+            //ResponseMessage _requestFinder;
 
-            ClientSocket &              _client;
+            //ClientSocket &              _client;
             //std::vector<std::string>    _environmentals;
 };
 

@@ -25,6 +25,7 @@
 # include "RequestObj.hpp"
 # include "Config.hpp"
 # include "utils.hpp"
+# include "Cgi.hpp"
 
 #include <map>
 
