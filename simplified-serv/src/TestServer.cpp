@@ -538,6 +538,8 @@ void    TestServer::launch()
 								else if (_socket_arr.find(it->fd)->second.getRequestMethod() == "GET" && _socket_arr.find(it->fd)->second.getCGI() == true)
 								{
 									//EXECUTE GET METHOD CGI HERE
+									Cgi cgi(_socket_arr.at(_client_socket_fd)); // Ranja
+									cgi.run(); // Ranja 
 								}
 							}
 							it->revents = 0;
