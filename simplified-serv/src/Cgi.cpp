@@ -26,13 +26,24 @@ void Cgi::runCgi()
     //char* cRequest = const_cast<char*>(_request.c_str());
 	char* cRequest = reinterpret_cast<char*>(_request);
 	ResponseMessage findRequest(cRequest);
-	std::string temp = findRequest.get_cgi_path();
+	std::string cgiPath = findRequest.get_cgi_path();
+	//std::cout << "_cgiPath_" << cgiPath << std::endl;
 	//std::string temp = _client.cgiPath; // I need the path of the python script; will be used to execute! Max has not checked if cgi data exists!
-    /*const char* out_filename = temp.c_str();
-    int outfile = open(out_filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+    //const char* out_filename = temp.c_str();
+    //int outfile = open(out_filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
     //if(outfile == -1)
 
-    int pipe_d[2];
+	//create arguments for execve
+	std::string scriptPath = findRequest.get_target_path();
+	std::cout << "_path_" << scriptPath << std::endl;
+
+	std::string queryString = findRequest.get_query();
+	std::cout << "_query_" << queryString << std::endl; // localhost:8000/cgi-bin/first_cgi.py?a=b&c=d printed: a=b&c=d
+	// Function die querys auseinander bringt; Vector nehmen und in der Schleife immer größer machen, je nachdem, wie viele query Strings es gibt
+	// sting1 = a=b; string2 = c=d ... könnten querys auch auf 6 begrenzen
+	// als env setzen & kleingeshrieben lassen
+
+    /*int pipe_d[2];
 	if (pipe(pipe_d) == -1)
 	{
 		std::cout << "Pipe Error" << std::endl;
@@ -44,7 +55,7 @@ void Cgi::runCgi()
 		fcntl(pipe_d[WRITE_END], 0, _client.header.size());
 
 	write(pipe_d[WRITE_END], _client.header.c_str(), _client.header.size());
-	close(pipe_d[WRITE_END]);
+	close(pipe_d[WRITE_END]);*/
 
     int cgiPid = fork();
 	//if (cgi_pid < 0)
@@ -52,37 +63,44 @@ void Cgi::runCgi()
     if (cgiPid == 0)
 	{
 		//set standard output to file
-		dup2(outfile, STDOUT_FILENO);
-		close(outfile);
+		//dup2(outfile, STDOUT_FILENO);
+		//close(outfile);
 
 		//create arguments for execve
-		char* scriptPath = (char*)(_client.path_on_server.c_str()); // I need the location in Server; so the path of the Python Script
+		//char* scriptPath = (char*)(_client.path_on_server.c_str()); // I need the location in Server; so the path of the Python Script
 
-		const char* pathToPython3 = "/usr/bin/python3";
-		char* _args[3];
-		_args[0] = (char *)pathToPython3;
-		_args[1] = scriptPath;
+		//const char* pathToPython3 = "/usr/bin/python3";
+		const char* _args[3];
+		//_args[0] = (char *)pathToPython3;
+		_args[0] = cgiPath.c_str();
+		_args[1] = scriptPath.c_str();
 		_args[2] = NULL;
 
-		dup2(pipe_d[READ_END], STDIN_FILENO);
-		close(pipe_d[READ_END]);
+		//dup2(pipe_d[READ_END], STDIN_FILENO);
+		//close(pipe_d[READ_END]);
 
-		dup2(outfile, STDOUT_FILENO);
-		close(outfile);
+		//dup2(outfile, STDOUT_FILENO);
+		//close(outfile);
+
+		char* envVariabe = const_cast<char*>(queryString.c_str());
+		// Sets an environment variable
+		putenv(envVariabe);
+
+		// Executes the CGI-Script
+    	execve(_args[0], const_cast<char* const*>(_args), NULL);
+
+    	// Program only arrives here, if an error occurs at execve.
+    	std::cerr << "Error: Executing CGI script" << std::endl;
+    	exit(1);
 	}
 
+	// Child process gibt response als string an parent zurück und diese muss dann zur ResponseMessage für die Browserausgabe 
+
     // Sets necessary CGI-Environment variables
-    setenv("REQUEST_METHOD", _client.getRequestMethod().c_str(), 1); // I need those informations
-    setenv("QUERY_STRING", _client.getQueryString().c_str(), 1);
-    setenv("CONTENT_TYPE", _client.getContentType().c_str(), 1);
-    setenv("CONTENT_LENGTH", _client.getContentLength().c_str(), 1);
-
-    // Executes the CGI-Script
-    execve(_args[0], const_cast<char* const*>(_args), NULL);
-
-    // Program only arrives here, if an error occurs at execve.
-    std::cerr << "Error: Executing CGI script" << std::endl;
-    exit(1);*/
+    //setenv("REQUEST_METHOD", _client.getRequestMethod().c_str(), 1); // I need those informations
+    //setenv("QUERY_STRING", _client.getQueryString().c_str(), 1);
+    //setenv("CONTENT_TYPE", _client.getContentType().c_str(), 1);
+    //setenv("CONTENT_LENGTH", _client.getContentLength().c_str(), 1);
 }
 
 
