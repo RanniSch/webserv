@@ -33,7 +33,6 @@ int Cgi::runCgi()
 	// To save the exit status of the child process.
 	int status;		// new
 
-    //char* cRequest = const_cast<char*>(_request.c_str());
 	char* cRequest = reinterpret_cast<char*>(_request);
 	ResponseMessage findRequest(cRequest);
 	std::string cgiPath = findRequest.get_cgi_path();
@@ -44,17 +43,14 @@ int Cgi::runCgi()
 	std::cout << "_path_" << scriptPath << std::endl;
 
 	std::string queryString = findRequest.get_query();
-	std::cout << "_query_" << queryString << std::endl; // localhost:8000/cgi-bin/first_cgi.py?a=b&c=d printed: a=b&c=d
-	// Function die querys auseinander bringt; Vector nehmen und in der Schleife immer größer machen, je nachdem, wie viele query Strings es gibt
-	// sting1 = a=b; string2 = c=d ... könnten querys auch auf 6 begrenzen
-	// als env setzen & kleingeshrieben lassen
+	std::cout << "_query_" << queryString << std::endl;
 
 	// Pipe is created, where pipefd is the pipe array containing the pipe endpoints.
 	// The read end of the pipe is pipefd[0], and the write end is pipefd[1].
 	if (pipe(pipefd) == -1)
 	{
 		std::cout << "Error CGI: No pipe created!" << std::endl;
-		return -1; //Internal_error
+		return -1; // we could set it to INTERNAL_ERROR
 	}
 
 	// New process launched. Return value cgiPid is used to distinguish between the parent process and the child process.
@@ -64,13 +60,12 @@ int Cgi::runCgi()
 	if (cgiPid == -1)
 	{
 		std::cout << "Error CGI: Fork failure!" << std::endl;
-		return -1; //Internal_error
+		return -1; // we could set it to INTERNAL_ERROR
 	}
     else if (cgiPid == 0)
 	{
 		close(pipefd[0]);
 		const char* _args[3];
-		//_args[0] = (char *)pathToPython3;
 		_args[0] = cgiPath.c_str();
 		_args[1] = scriptPath.c_str();
 		_args[2] = NULL;
@@ -78,9 +73,8 @@ int Cgi::runCgi()
 		int	i = 0;
 
 		const char* queryPointer = const_cast<char*>(queryString.c_str());
-		//const char*	testVariable = "MY_TEST_1=value_1";
-		//const char*	testVariable2 = "MORE_TEST=value_7";
 
+		// Delimites the query string into several strings in a vector, with "&" as deliminator
 		while (queryPointer)
 		{
 			const char* nextDeliminiter = strchr(queryPointer, '&');
@@ -97,7 +91,7 @@ int Cgi::runCgi()
         	}
     	}
 
-		// Ausgabe der Gleichungen im Vector
+		// Only for testing; Ranja
     	//for (size_t i = 0; i < _environmentals.size(); ++i) 
 		//{
         //	std::cout << _environmentals[i] << std::endl;
@@ -113,16 +107,7 @@ int Cgi::runCgi()
 		}
 		env[i] = NULL;
 
-		//const char*	environment[] = {testVariable, testVariable2, env, NULL};
-		
-		// Sets an environment variable
-		//putenv(testVariable);
-		//putenv(envVariabe);
-		//std::cout << "var2:_" << testVariable << std::endl;
-
 		// Executes the CGI-Script
-    	//execve(_args[0], const_cast<char* const*>(_args), NULL);
-		//execve(_args[0], const_cast<char* const*>(_args), const_cast<char* const*>(environment));
 		execve(_args[0], const_cast<char* const*>(_args), const_cast<char* const*>(env));
 
     	// Program only arrives here, if an error occurs at execve.
@@ -139,7 +124,6 @@ int Cgi::runCgi()
 	{
 		return -1; //GATEWAY_TIMEOUT;
 	}
-	//std::cout << "Hallo" << std::endl;
 	return 0;
 	// Child process gibt response als string an parent zurück und diese muss dann zur ResponseMessage für die Browserausgabe 
 }
