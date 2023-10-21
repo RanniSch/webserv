@@ -2,9 +2,10 @@
 # define CGI_HPP
 
 # include <unistd.h>        // for access()
-# include <cstdlib>         // for putenv()
-//# include <sys/types.h>
 # include <sys/wait.h>      // for waitpid()
+# include <vector>          // for vector that contains multiple strings to save query
+//# include <cstdlib>         // for putenv()
+//# include <sys/types.h>
 //# include <fcntl.h>
 //# include <iostream>
 //# include <sstream>
@@ -14,7 +15,6 @@
 //# include <unistd.h>
 //# include <errno.h>
 //# include <map>
-//# include <vector>
 //# include <algorithm>
 //# include <sys/time.h>
 //# include <signal.h>
@@ -23,8 +23,6 @@
 # include "ClientSocket.hpp"
 # include "ResponseMessage.hpp"
 
-# define WRITE_END 1    // marks the end like in subject asked for
-# define READ_END 0
 
 class Cgi
 {
@@ -47,12 +45,12 @@ class Cgi
     
     private:
             // something like a static bool to handle the timeouts
-            bool            _python3Installed();
-            unsigned char*     _request;
+            bool                        _python3Installed();
+            unsigned char*              _request;
+            std::vector<std::string>	_environmentals;
             //ResponseMessage _requestFinder;
 
             //ClientSocket &              _client;
-            //std::vector<std::string>    _environmentals;
 };
 
 #endif

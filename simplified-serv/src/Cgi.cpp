@@ -49,12 +49,6 @@ int Cgi::runCgi()
 	// sting1 = a=b; string2 = c=d ... könnten querys auch auf 6 begrenzen
 	// als env setzen & kleingeshrieben lassen
 
-	//char	testVariable[] = "MY_TEST_1=value_1";
-		
-	// Sets an environment variable
-	//putenv(testVariable);
-	//std::cout << "var2:_" << testVariable << std::endl;
-
 	// Pipe is created, where pipefd is the pipe array containing the pipe endpoints.
 	// The read end of the pipe is pipefd[0], and the write end is pipefd[1].
 	if (pipe(pipefd) == -1)
@@ -81,18 +75,55 @@ int Cgi::runCgi()
 		_args[1] = scriptPath.c_str();
 		_args[2] = NULL;
 
-		//char* envVariabe = const_cast<char*>(queryString.c_str());
-		const char*	testVariable = "MY_TEST_1=value_1";
-		const char*	environment[] = {testVariable, NULL};
+		int	i = 0;
+
+		const char* queryPointer = const_cast<char*>(queryString.c_str());
+		//const char*	testVariable = "MY_TEST_1=value_1";
+		//const char*	testVariable2 = "MORE_TEST=value_7";
+
+		while (queryPointer)
+		{
+			const char* nextDeliminiter = strchr(queryPointer, '&');
+
+			if (nextDeliminiter) 
+			{
+            	_environmentals.push_back(std::string(queryPointer, nextDeliminiter - queryPointer));
+            	queryPointer = nextDeliminiter + 1;
+        	} 
+			else
+			{
+            	_environmentals.push_back(std::string(queryPointer));
+            	break;
+        	}
+    	}
+
+		// Ausgabe der Gleichungen im Vector
+    	//for (size_t i = 0; i < _environmentals.size(); ++i) 
+		//{
+        //	std::cout << _environmentals[i] << std::endl;
+    	//}
+
+		const char *env[_environmentals.size() + 1];
+
+		// _environmentals turned into an array
+		for (std::vector<std::string>::iterator it = _environmentals.begin(); it != _environmentals.end(); it++)
+		{
+			env[i] = (char *)(*it).c_str();
+			i++;
+		}
+		env[i] = NULL;
+
+		//const char*	environment[] = {testVariable, testVariable2, env, NULL};
 		
 		// Sets an environment variable
 		//putenv(testVariable);
 		//putenv(envVariabe);
-		std::cout << "var2:_" << testVariable << std::endl;
+		//std::cout << "var2:_" << testVariable << std::endl;
 
 		// Executes the CGI-Script
     	//execve(_args[0], const_cast<char* const*>(_args), NULL);
-		execve(_args[0], const_cast<char* const*>(_args), const_cast<char* const*>(environment));
+		//execve(_args[0], const_cast<char* const*>(_args), const_cast<char* const*>(environment));
+		execve(_args[0], const_cast<char* const*>(_args), const_cast<char* const*>(env));
 
     	// Program only arrives here, if an error occurs at execve.
     	std::cerr << "Error: Executing CGI script" << std::endl;
