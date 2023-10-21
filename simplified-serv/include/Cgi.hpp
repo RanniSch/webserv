@@ -2,8 +2,9 @@
 # define CGI_HPP
 
 # include <unistd.h>        // for access()
+# include <cstdlib>         // for putenv()
 //# include <sys/types.h>
-//# include <sys/wait.h>
+# include <sys/wait.h>      // for waitpid()
 //# include <fcntl.h>
 //# include <iostream>
 //# include <sstream>
@@ -32,7 +33,7 @@ class Cgi
             Cgi();
             ~Cgi();
 
-            void    runCgi();
+            int    runCgi();
 
             class CgiException : public std::exception {
                 public:

@@ -13,15 +13,25 @@ Cgi::~Cgi()
     std::cout << "Cgi destructor called!" << std::endl;
 }
 
+
 void	Cgi::setRequestChar(unsigned char* requestC)
 {
 	_request = requestC;
 }
 
-void Cgi::runCgi()
+
+int Cgi::runCgi()
 {
     if (!_python3Installed())
+	{
         throw(CgiException());
+	}
+
+	// Pipe array pipefd with two elements is created. Array is used to create a pipe for communication between
+	// current process (parent process) and the future child process (in which the CGI script is executed).
+	int pipefd[2];	// new
+	// To save the exit status of the child process.
+	int status;		// new
 
     //char* cRequest = const_cast<char*>(_request.c_str());
 	char* cRequest = reinterpret_cast<char*>(_request);
@@ -39,29 +49,67 @@ void Cgi::runCgi()
 	// sting1 = a=b; string2 = c=d ... könnten querys auch auf 6 begrenzen
 	// als env setzen & kleingeshrieben lassen
 
-    int cgiPid = fork();
-	//if (cgi_pid < 0)
+	//char	testVariable[] = "MY_TEST_1=value_1";
+		
+	// Sets an environment variable
+	//putenv(testVariable);
+	//std::cout << "var2:_" << testVariable << std::endl;
 
-    if (cgiPid == 0)
+	// Pipe is created, where pipefd is the pipe array containing the pipe endpoints.
+	// The read end of the pipe is pipefd[0], and the write end is pipefd[1].
+	if (pipe(pipefd) == -1)
 	{
+		std::cout << "Error CGI: No pipe created!" << std::endl;
+		return -1; //Internal_error
+	}
+
+	// New process launched. Return value cgiPid is used to distinguish between the parent process and the child process.
+	// The child process executes the CGI code.
+    int cgiPid = fork();
+
+	if (cgiPid == -1)
+	{
+		std::cout << "Error CGI: Fork failure!" << std::endl;
+		return -1; //Internal_error
+	}
+    else if (cgiPid == 0)
+	{
+		close(pipefd[0]);
 		const char* _args[3];
 		//_args[0] = (char *)pathToPython3;
 		_args[0] = cgiPath.c_str();
 		_args[1] = scriptPath.c_str();
 		_args[2] = NULL;
 
-		char* envVariabe = const_cast<char*>(queryString.c_str());
+		//char* envVariabe = const_cast<char*>(queryString.c_str());
+		const char*	testVariable = "MY_TEST_1=value_1";
+		const char*	environment[] = {testVariable, NULL};
+		
 		// Sets an environment variable
-		putenv(envVariabe);
+		//putenv(testVariable);
+		//putenv(envVariabe);
+		std::cout << "var2:_" << testVariable << std::endl;
 
 		// Executes the CGI-Script
-    	execve(_args[0], const_cast<char* const*>(_args), NULL);
+    	//execve(_args[0], const_cast<char* const*>(_args), NULL);
+		execve(_args[0], const_cast<char* const*>(_args), const_cast<char* const*>(environment));
 
     	// Program only arrives here, if an error occurs at execve.
     	std::cerr << "Error: Executing CGI script" << std::endl;
     	exit(1);
 	}
-
+	else
+	{
+		close(pipefd[1]);
+		waitpid(cgiPid, &status, 0);	// wait for a child process to stop or terminate
+		close(pipefd[0]);
+	}
+	if (WIFSIGNALED(status))
+	{
+		return -1; //GATEWAY_TIMEOUT;
+	}
+	//std::cout << "Hallo" << std::endl;
+	return 0;
 	// Child process gibt response als string an parent zurück und diese muss dann zur ResponseMessage für die Browserausgabe 
 }
 

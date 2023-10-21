@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import time
 import cgi
-import os
+import os   # for environment variables
 
 print("Hello World!")
 # print("<!DOCTYPE html>")
@@ -19,8 +19,19 @@ print("Content-Type: text/plain\n")
 # Print actual date and time
 print(current_datetime)
 
-for key, value in os.environ.items():
-    print(f"{key}={value}")
+env_vars = os.environ
+for key, value in env_vars.items():
+    print(f"{key}: {value}")
+
+# variable1 = os.getenv("testVariable")
+# print("Umgebungsvariable 1:", variable1)
+
+# variable_value = os.getenv("MY_TEST_1")
+# print("MY_TEST_1:", variable_value)
+print("MY_TEST_1:", testVariable)
+
+# for key, value in os.environ.items():
+#    print(f"{key}={value}")
 
 # print(os.environ.get('a'))    # sucht a von env raus
 
