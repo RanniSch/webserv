@@ -50,7 +50,7 @@ int Cgi::runCgi()
 	if (pipe(pipefd) == -1)
 	{
 		std::cout << "Error CGI: No pipe created!" << std::endl;
-		return -1; // we could set it to INTERNAL_ERROR
+		return 1; // we could set it to INTERNAL_ERROR
 	}
 
 	// New process launched. Return value cgiPid is used to distinguish between the parent process and the child process.
@@ -60,11 +60,17 @@ int Cgi::runCgi()
 	if (cgiPid == -1)
 	{
 		std::cout << "Error CGI: Fork failure!" << std::endl;
-		return -1; // we could set it to INTERNAL_ERROR
+		return 1; // we could set it to INTERNAL_ERROR
 	}
     else if (cgiPid == 0)
 	{
+		// closes the reading end of the pipe
 		close(pipefd[0]);
+
+		// redirecting the standard output into the Pipe
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[1]);
+
 		const char* _args[3];
 		_args[0] = cgiPath.c_str();
 		_args[1] = scriptPath.c_str();
@@ -116,16 +122,36 @@ int Cgi::runCgi()
 	}
 	else
 	{
+		// closes the writing end of the Pipe.
 		close(pipefd[1]);
 		waitpid(cgiPid, &status, 0);	// wait for a child process to stop or terminate
+
+		char buffer[60000];				// is that smart to have a static buffer?
+
+		while (read(pipefd[0], buffer, sizeof(buffer)) > 0)
+		{
+			_scriptOutput += buffer;
+		}
+		// closes the reading end of the Pipe
 		close(pipefd[0]);
+		std::cout << "ScriptOutput: " << _scriptOutput << std::endl;
 	}
+	
+	// Query status to see if a child process ended abnormally
 	if (WIFSIGNALED(status))
 	{
-		return -1; //GATEWAY_TIMEOUT;
+		return 1; //GATEWAY_TIMEOUT;
 	}
 	return 0;
-	// Child process gibt response als string an parent zurück und diese muss dann zur ResponseMessage für die Browserausgabe 
+}
+
+std::string	Cgi::getScriptString(void)
+{
+	std::string scriptOutput;
+
+	scriptOutput = _scriptOutput;
+
+	return scriptOutput;
 }
 
 

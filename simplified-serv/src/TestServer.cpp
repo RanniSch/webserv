@@ -501,7 +501,7 @@ void    TestServer::launch()
 		{
 			case(-1):
 				perror(RED "ERROR: poll() has failed: " BLANK);
-				exit(-1);
+				//exit(-1);
 				break;
 		
 			case(0):
