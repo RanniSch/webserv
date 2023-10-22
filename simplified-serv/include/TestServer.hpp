@@ -43,7 +43,6 @@ class TestServer{
         
         private:
                 int	_loop_counter;
-                uint8_t	_buffer[9216];
 				std::vector<uint8_t> _buffer_vector;
 
                 int    							_nbr_of_ports;
@@ -71,18 +70,18 @@ class TestServer{
         int		_checkForMethods(Socket &socket, std::string &strBuffer);
 		int		_readAndParseHeader(Socket &socket, std::string strBuffer);
 		int		_readAndParseSecondHeader(Socket &socket, std::string strBuffer);
-        int		_checkForBoundaryStr(Socket &socket, std::string &boundary_to_find, std::string indentifier);
+        int		_checkForBoundaryStr(std::string &boundary_to_find);
 
 		void	_POST(Socket &socket, std::string &stringBuffer);
-		void	_POSTrequestSaveBodyToFile(Socket &socket, std::vector<uint8_t>::iterator start, std::string &boundary_str);
+		void	_POSTrequestSaveBodyToFile(Socket &socket, std::string &stringBuffer);
 
         void    _checkIfItIsACGI(Socket &socket);
         int		_checkPostContenLen(Socket &socket);
         int		_checkPostForBoundary(Socket &socket);
 
+        int		_setErrorResponseStr(Socket &socket, int Error_Code);
+
         void	_acceptConnection(int index);
-		int		_setErrorResponseStr(Socket &socket, int ErrorCode);
-        void	_handler(void);
 
                 //void	_responder(std::string indentifier, int &fd);
                 //void	_respondImage(int &fd);
