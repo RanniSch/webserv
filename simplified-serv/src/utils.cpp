@@ -140,6 +140,57 @@ std::string strip_path( std::string path )
 	return path;
 }
 
+/**
+ * @brief makes sure that between the paths is a '/'
+ * and removes all '//' from the new path that it returns
+ *
+ * @param path_one
+ * @param path_two
+ * @return std::string
+ */
+std::string	path_one_plus_path_two( std::string path_one, std::string path_two )
+{
+	// std::string::iterator		it;
+	size_t		act_char;
+
+	path_one.append("/");
+	path_one.append(path_two);
+	while (42)
+	{
+		act_char = path_one.find("//");
+		if ( act_char == std::string::npos )
+			break;
+		path_one.erase(act_char, 1);
+	}
+	return path_one;
+}
+
+bool	file_exists( const std::string &filepath )
+{
+	struct stat 	info;
+
+	if (filepath == "")
+		return false;
+	const char *path_ptr = filepath.c_str();
+	// can get the info && Is a regular File
+	if (stat(path_ptr, &info) == 0 && S_ISREG(info.st_mode))
+		return true;
+	return false;
+}
+
+bool	dir_exists( const std::string &filepath )
+{
+	struct stat 	info;
+
+	if (filepath == "")
+		return false;
+	const char *path_ptr = filepath.c_str();
+	// can get the info && Is a directory
+	if (stat(path_ptr, &info) == 0 && S_ISDIR(info.st_mode))
+		return true;
+	return false;
+}
+
 // std::list<std::string>::iterator find_str_in_list( std::list<std::string> list, std::string str, int start)
 // {
 // 	std::list<std::string>::iterator 	it;

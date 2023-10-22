@@ -14,11 +14,10 @@
 #include <sstream>
 #include <cctype>
 #include <cstdlib>
-#include <sys/types.h> // check for directory
-#include <sys/stat.h> // check for directory
 
 #include "RequestObj.hpp"
 #include "Config.hpp"
+#include "DirectoryListing.hpp"
 #include "utils.hpp"
 
 extern Config *g_config;
@@ -43,12 +42,12 @@ class ResponseMessage {
 		/*
 				---------  old variables, get rid of over long term  ---------
 		*/
-		char*			_request_cstr;
-		std::string		_output; // kan weg?
-		std::string		_content; // kan weg?
+		// char*			_request_cstr;
+		// std::string		_output; // kan weg?
+		// std::string		_content; // kan weg?
 		// std::string		_contentType; // kann weg?
-		std::string		_fileType; // weg
-		std::string		_filePath;
+		// std::string		_fileType; // weg
+		// std::string		_filePath;
 		// std::string		_location; // weg
 		
 		
@@ -62,10 +61,7 @@ class ResponseMessage {
 		std::string		_cwd;
 		std::string		_target_path;
 		std::string		_error;
-		
-		
-		// std::map<std::string, std::vector<std::string> >		_config_for_compiler; // rausnehmen
-		// const std::map<std::string, std::vector<std::string> >		&_config_old; // rausnehmen
+
 		std::map<size_t, std::string>								_status_line;
 		std::map<size_t, std::string>								_default_error_page;
 		std::vector<size_t>											_status_code_hirarchy;
@@ -86,27 +82,27 @@ class ResponseMessage {
 		std::string		_check_target_path_for_existence();
 		std::string		_return_path_to_error_file( size_t status_code );
 		std::string		_look_for_file_in_dir_based_on_config( std::string dir_to_look_for, const std::string &config_parameter );
-		std::string		_path_one_plus_path_two( std::string path_one, std::string path_two );
+		// std::string		_path_one_plus_path_two( std::string path_one, std::string path_two );
 		std::string		_check_and_execute_delete_request( size_t status_code );
 		std::string		_create_content_from_file( std::string filepath, std::string *content_type );
 		std::string		_return_default_status_code_html_if_needed( std::string filepath, std::string *content_type, size_t _statusCode);
 		std::string		_response_first_line( size_t status_code );
 		std::string		_response_content_type( std::string content_type );
 		std::string		_response_content_length( const std::string &content );
-		bool			_FileExists( const std::string &path );
-		bool			_DirExists( const std::string &filepath );
+		// bool			_FileExists( const std::string &path );
+		// bool			_DirExists( const std::string &filepath );
 		size_t			_statusCodeHirarchy( size_t act_code, size_t new_code);
 
 		/*
 				---------  Old functions, get rid of over long term  ---------
 		*/
 
-		void			_chooseMethod( void );
-		void			_PostMethod( void );
-		void			_GetMethod( void );
+		// void			_chooseMethod( void );
+		// void			_PostMethod( void );
+		// void			_GetMethod( void );
 		// std::string		_createStartLine( void );
-		std::string		_createContentFromFile( std::string filepath, int statusCode );
-		std::string		_lookForFileFromConfig( std::string dir_to_look_for, const std::string &config_map_key );
+		// std::string		_createContentFromFile( std::string filepath, int statusCode );
+		// std::string		_lookForFileFromConfig( std::string dir_to_look_for, const std::string &config_map_key );
 		
-		void			_getProperFilePathAndPrepareResponse( std::string target, std::string path, std::string cwd);
+		// void			_getProperFilePathAndPrepareResponse( std::string target, std::string path, std::string cwd);
 };

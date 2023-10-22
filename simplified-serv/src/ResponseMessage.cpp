@@ -2,7 +2,7 @@
 
 //const std::map<std::string, std::vector<std::string> > &config, char* request_cstr )
 ResponseMessage::ResponseMessage( char* request_cstr )
-: _request_cstr(request_cstr), _statusCode(0), _config(*g_config), _server(0)//, _config_old(config)
+:_statusCode(0), _config(*g_config), _server(0)//, _config_old(config),  _request_cstr(request_cstr)
 {
 	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
 
@@ -51,6 +51,10 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 		// the target path should be the file that will be send back, html, index, error page or picture...
 		// if the file does not exist target path should be empty
 		_target_path = _check_redirect_and_return_target_path();
+
+		DirectoryListing DL;
+		DL.create_listing_html(_target_path); // sinnvoll einbinden (überlegen was mit unsichtbaren Dateien passiert, links testen, nicht höher als root gehen testen)
+
 		_target_path = _check_index_and_return_target_path(); // hiervor aber erst redirect machen!!!
 		// special error codes to target path here permission denied or so... 
 		_target_path = _check_target_path_for_existence(); 
@@ -59,6 +63,7 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 	{
 		_target_path = _return_path_to_error_file( _statusCode );
 	}
+	
 }
 
 ResponseMessage::ResponseMessage( void ):_config(*g_config)//, _config_old(_config_for_compiler) // get rid of global variable and of config old
@@ -256,7 +261,7 @@ void	ResponseMessage::_set_root_directory( void )
 	std::string		config_root;
 
 	config_root = _config.get(_server, _config_location, "root", 0);
-	_cwd = _path_one_plus_path_two(_cwd, config_root);
+	_cwd = path_one_plus_path_two(_cwd, config_root);
 	// _cwd += config_root;
 }
 
@@ -305,13 +310,13 @@ std::string	ResponseMessage::_check_redirect_and_return_target_path( void )
 	new_sub_path = _config.get( _server, _config_location, "return", 0 );
 	if (new_sub_path == "") // no redirection configured
 	{
-		// _target_path = _path_one_plus_path_two(_cwd, request_path);
-		return ( _path_one_plus_path_two(_cwd, request_path) );
+		// _target_path = path_one_plus_path_two(_cwd, request_path);
+		return ( path_one_plus_path_two(_cwd, request_path) );
 	}
 
 	request_path.replace( 0, len_old_sub_path, new_sub_path);
-	// _target_path = _path_one_plus_path_two(_cwd, request_path);
-	return ( _path_one_plus_path_two(_cwd, request_path) );
+	// _target_path = path_one_plus_path_two(_cwd, request_path);
+	return ( path_one_plus_path_two(_cwd, request_path) );
 }
 
 /**
@@ -348,7 +353,7 @@ std::string	ResponseMessage::_check_target_path_for_existence()//_replace_with_e
 {
 	std::string	error_file_path;
 
-	if(_FileExists(_target_path))
+	if(file_exists(_target_path))
 	{
 		_statusCode = _statusCodeHirarchy( _statusCode, 200 );
 		return _target_path;
@@ -358,8 +363,8 @@ std::string	ResponseMessage::_check_target_path_for_existence()//_replace_with_e
 
 	// _statusCode = _statusCodeHirarchy( _statusCode, 404 );
 	// error_file_path = _config.get(_server, _config_location, "error404", 0);
-	// error_file_path = _path_one_plus_path_two( _cwd, error_file_path );
-	// if(_FileExists(error_file_path))
+	// error_file_path = path_one_plus_path_two( _cwd, error_file_path );
+	// if(file_exists(error_file_path))
 	// 	return error_file_path;
 	// return "";
 }
@@ -383,8 +388,8 @@ std::string	ResponseMessage::_return_path_to_error_file( size_t status_code )
 	std::stringstream ss;
 	ss << "error" << status_code;
 	error_file_path = _config.get(_server, _config_location, ss.str(), 0);
-	error_file_path = _path_one_plus_path_two( _cwd, error_file_path );
-	if(_FileExists(error_file_path))
+	error_file_path = path_one_plus_path_two( _cwd, error_file_path );
+	if(file_exists(error_file_path))
 		return error_file_path;
 	return "";
 }
@@ -406,8 +411,8 @@ std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string 
 		buf = dir_to_look_for;
 		file = _config.get(_server, _config_location, config_parameter, i);
 		// buf.append(file);
-		buf = _path_one_plus_path_two(buf, file);
-		if(_FileExists(buf))
+		buf = path_one_plus_path_two(buf, file);
+		if(file_exists(buf))
 			return (buf);
 		i++;
 	}
@@ -422,22 +427,22 @@ std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string 
  * @param path_two
  * @return std::string
  */
-std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std::string path_two )
-{
-	// std::string::iterator		it;
-	size_t		act_char;
+// std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std::string path_two )
+// {
+// 	// std::string::iterator		it;
+// 	size_t		act_char;
 
-	path_one.append("/");
-	path_one.append(path_two);
-	while (42)
-	{
-		act_char = path_one.find("//");
-		if ( act_char == std::string::npos )
-			break;
-		path_one.erase(act_char, 1);
-	}
-	return path_one;
-}
+// 	path_one.append("/");
+// 	path_one.append(path_two);
+// 	while (42)
+// 	{
+// 		act_char = path_one.find("//");
+// 		if ( act_char == std::string::npos )
+// 			break;
+// 		path_one.erase(act_char, 1);
+// 	}
+// 	return path_one;
+// }
 
 /**
  * @brief returns a full response String for status_code
@@ -716,6 +721,7 @@ std::string	ResponseMessage::_response_content_length( const std::string &conten
 	return output;
 }
 
+/*
 void	ResponseMessage::_chooseMethod( void ) // take from config file which methods we want to accept
 {
 	const int		count_methods = 4;
@@ -732,10 +738,10 @@ void	ResponseMessage::_chooseMethod( void ) // take from config file which metho
 	switch (i)
 			{
 		case 0:
-			_PostMethod();
+			// _PostMethod();
 			break;
 		case 1:
-			_GetMethod();
+			// _GetMethod();
 			break;
 		case 4:
 			std::cout << "error" << std::endl;
@@ -744,7 +750,9 @@ void	ResponseMessage::_chooseMethod( void ) // take from config file which metho
 			break;
 	}
 }
+*/
 
+/*
 void	ResponseMessage::_PostMethod( void )
 {
 	std::cout << "here comes the post method" << std::endl;
@@ -870,13 +878,14 @@ void	ResponseMessage::_PostMethod( void )
 			}
 			// break;
 }
-
+*/
+/*
 void	ResponseMessage::_GetMethod( void )
 {
 	(void)(1+1);
 	// std::string		filePath;
 
-	// if (_FileExists(_target_path))
+	// if (file_exists(_target_path))
 
 		// // std::vector<std::string>			path_vec;
 		// // std::vector<std::string>			buf_vec;
@@ -893,10 +902,11 @@ void	ResponseMessage::_GetMethod( void )
 		// path = _cwd;
 		// path.append(buf);
 		// _getProperFilePathAndPrepareResponse(buf, path, _cwd);
-}
+}*/
 
 
 //  old one delete
+/*
 std::string		ResponseMessage::_createContentFromFile( std::string filepath, int statusCode )
 {
 	if ( filepath == "" && statusCode == 404)
@@ -944,7 +954,7 @@ std::string		ResponseMessage::_createContentFromFile( std::string filepath, int 
 		ifs_file.close();
 		return (data);
 	}
-}
+}*/
 
 /* old delete
 std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for, const std::string &config_map_key )
@@ -970,7 +980,7 @@ std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for
 		// buf.append(buf_vec.at(i));
 		file = _config.get(_server, _config_location, config_map_key, i);
 		buf.append(file);
-		if(_FileExists(buf))
+		if(file_exists(buf))
 			return (buf);
 		i++;
 	}
@@ -978,31 +988,31 @@ std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for
 }
 */
 
-bool	ResponseMessage::_FileExists( const std::string &filepath )
-{
-	struct stat 	info;
+// bool	ResponseMessage::_FileExists( const std::string &filepath )
+// {
+// 	struct stat 	info;
 
-	if (filepath == "")
-		return false;
-	const char *path_ptr = filepath.c_str();
-	// can get the info && Is a regular File
-	if (stat(path_ptr, &info) == 0 && S_ISREG(info.st_mode))
-		return true;
-	return false;
-}
+// 	if (filepath == "")
+// 		return false;
+// 	const char *path_ptr = filepath.c_str();
+// 	// can get the info && Is a regular File
+// 	if (stat(path_ptr, &info) == 0 && S_ISREG(info.st_mode))
+// 		return true;
+// 	return false;
+// }
 
-bool	ResponseMessage::_DirExists( const std::string &filepath )
-{
-		struct stat 	info;
+// bool	ResponseMessage::_DirExists( const std::string &filepath )
+// {
+// 		struct stat 	info;
 
-	if (filepath == "")
-		return false;
-	const char *path_ptr = filepath.c_str();
-	// can get the info && Is a directory
-	if (stat(path_ptr, &info) == 0 && S_ISDIR(info.st_mode))
-		return true;
-	return false;
-}
+// 	if (filepath == "")
+// 		return false;
+// 	const char *path_ptr = filepath.c_str();
+// 	// can get the info && Is a directory
+// 	if (stat(path_ptr, &info) == 0 && S_ISDIR(info.st_mode))
+// 		return true;
+// 	return false;
+// }
 
 /**
  * @brief goes through _status_code_hirarchy 
@@ -1109,7 +1119,7 @@ std::string	ResponseMessage::get_relative_path_to_target_dir( void )
 	buf = _target_path.substr(len, std::string::npos);
 	while (42)
 	{
-		if ( _DirExists(buf) )
+		if ( dir_exists(buf) )
 			return buf;
 		buf = strip_path( buf );
 		if (buf == "/" || buf == "")
