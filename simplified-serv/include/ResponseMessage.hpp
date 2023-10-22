@@ -19,6 +19,7 @@
 
 #include "RequestObj.hpp"
 #include "Config.hpp"
+#include "DirectoryListing.hpp"
 #include "utils.hpp"
 
 extern Config *g_config;

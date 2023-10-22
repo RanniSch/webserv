@@ -51,6 +51,10 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 		// the target path should be the file that will be send back, html, index, error page or picture...
 		// if the file does not exist target path should be empty
 		_target_path = _check_redirect_and_return_target_path();
+
+		DirectoryListing DL;
+		DL.create_listing_html(_target_path);
+
 		_target_path = _check_index_and_return_target_path(); // hiervor aber erst redirect machen!!!
 		// special error codes to target path here permission denied or so... 
 		_target_path = _check_target_path_for_existence(); 
@@ -59,6 +63,7 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 	{
 		_target_path = _return_path_to_error_file( _statusCode );
 	}
+	
 }
 
 ResponseMessage::ResponseMessage( void ):_config(*g_config)//, _config_old(_config_for_compiler) // get rid of global variable and of config old
