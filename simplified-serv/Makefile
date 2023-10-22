@@ -7,7 +7,7 @@ CC			=	c++
 
 ifeq ($(shell uname), Darwin)
 # Max
-CFLAGS		=	-Wall -Werror -Wextra -g -o0 -DDEBUG -std=c++98 --pedantic
+CFLAGS		=	-Wall -Werror -Wextra -g -o0 -DDEBUG -std=c++98# --pedantic
 #-Werror
 else
 # Ranja and Lukas
