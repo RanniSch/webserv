@@ -291,7 +291,7 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 	{
 		if (_checkPostContenLen(socket) == -1)
 		{
-			std::cout << RED "ERROR: Impossible to retrieve Content len from POST request" BLANK << std::endl;
+			std::cout << RED "ERROR: Impossible to retrieve Content len from POST request" BLANK << std::endl; // 411, "Length Required" is ready ask Max
 			return -1;
 		}
 		if (socket.getRequestHeaderStr().find("multipart/form-data;") != std::string::npos)
@@ -392,7 +392,7 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &stringB
 	}
 	if (end_of_post == true)
 	{
-		socket.setResponseStr("HTTP 201: Created");
+		socket.setResponseStr("HTTP 201: Created"); // 201 is ready, ask Max
 		socket.setSocketRequest(true);
 		socket.setRequestHeader(true);
 		out.close();
@@ -508,7 +508,9 @@ void    TestServer::launch()
 										//Cgi cgi(_socket_arr.at(_client_socket_fd)); // Ranja
 										Cgi cgi;
 										cgi.setRequestChar(_buffer_vector.data());
-										cgi.runCgi(); // Ranja 
+										cgi.runCgi(); // Ranja
+										ResponseMessage rm;
+										std::string test = rm.createResponse(cgi.getScriptString()); // send back
 									}
 								}
 							}

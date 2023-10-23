@@ -28,8 +28,9 @@ class ResponseMessage {
 		ResponseMessage( char* request_cstr );
 		ResponseMessage( void );
 		~ResponseMessage( void );
-		std::string	createResponse( void );
 		std::string	createResponse( size_t status_code );
+		std::string	createResponse( std::string content );
+		std::string	createResponse( void );
 		int			get_content_length();
 		std::string	get_query( void );
 		std::string	get_fileExtension( void );
@@ -82,6 +83,7 @@ class ResponseMessage {
 		std::string		_check_target_path_for_existence();
 		std::string		_return_path_to_error_file( size_t status_code );
 		std::string		_look_for_file_in_dir_based_on_config( std::string dir_to_look_for, const std::string &config_parameter );
+		std::string		_add_header( std::string content, std::string content_type );
 		// std::string		_path_one_plus_path_two( std::string path_one, std::string path_two );
 		std::string		_check_and_execute_delete_request( size_t status_code );
 		std::string		_create_content_from_file( std::string filepath, std::string *content_type );
