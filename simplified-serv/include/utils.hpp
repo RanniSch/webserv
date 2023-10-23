@@ -15,3 +15,5 @@ std::string 						strip_path( std::string path );
 std::string							path_one_plus_path_two( std::string path_one, std::string path_two );
 bool								file_exists( const std::string &filepath );
 bool								dir_exists( const std::string &filepath );
+std::string							to_lower_case(const std::string &input);
+std::string							content_type(const std::string &content);

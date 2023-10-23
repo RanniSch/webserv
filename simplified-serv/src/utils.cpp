@@ -141,7 +141,7 @@ std::string strip_path( std::string path )
 }
 
 /**
- * @brief makes sure that between the paths is a '/'
+ * @brief it makes sure that between the paths is a '/'
  * and removes all '//' from the new path that it returns
  *
  * @param path_one
@@ -189,6 +189,57 @@ bool	dir_exists( const std::string &filepath )
 	if (stat(path_ptr, &info) == 0 && S_ISDIR(info.st_mode))
 		return true;
 	return false;
+}
+
+std::string to_lower_case(const std::string &input)
+{
+    std::string result = input;
+    for (size_t i = 0; i < result.length(); ++i) {
+        result[i] = std::tolower(result[i]);
+    }
+    return result;
+}
+
+/**
+ * @brief can only differentiate between html and plain text in content
+ * returns html or text
+ * @param content 
+ * @return "" if not plain text or html content
+ */
+std::string content_type(const std::string &content)
+{
+	std::string 	allowed_general = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 {} _ ; \\ ~ - \n\t\r /:.\0";
+	size_t			result;
+	std::string		low;
+	bool			html_flag;
+	size_t			n_char = 0;
+	const int		test_range = 4;
+
+	// check if there is text in content
+	for ( int i = 0; i < test_range; i++)
+	{
+		result = allowed_general.find_first_of(content.at(i));
+		if ( result != std::string::npos )
+			n_char++;
+	}
+	if ( n_char < test_range / 2 )
+		return "";
+	
+	// check if can find html tags
+	low = to_lower_case(content);
+	result = low.find("<html>");
+	if ( result != std::string::npos )
+		html_flag = true;
+	else
+		html_flag = false;
+	result = low.find("</html>");
+	if ( result != std::string::npos && html_flag)
+		html_flag = true;
+	else
+		html_flag = false;
+	if (html_flag)
+		return "html";
+	return "plain";
 }
 
 // std::list<std::string>::iterator find_str_in_list( std::list<std::string> list, std::string str, int start)

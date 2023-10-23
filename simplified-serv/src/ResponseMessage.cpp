@@ -427,31 +427,6 @@ std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string 
 }
 
 /**
- * @brief makes sure that between the paths is a '/'
- * and removes all '//' from the new path that it returns
- *
- * @param path_one
- * @param path_two
- * @return std::string
- */
-// std::string	ResponseMessage::_path_one_plus_path_two( std::string path_one, std::string path_two )
-// {
-// 	// std::string::iterator		it;
-// 	size_t		act_char;
-
-// 	path_one.append("/");
-// 	path_one.append(path_two);
-// 	while (42)
-// 	{
-// 		act_char = path_one.find("//");
-// 		if ( act_char == std::string::npos )
-// 			break;
-// 		path_one.erase(act_char, 1);
-// 	}
-// 	return path_one;
-// }
-
-/**
  * @brief returns a full response String for status_code
  *
  * @param status_code
@@ -468,9 +443,18 @@ std::string	ResponseMessage::createResponse( size_t status_code )
 	return ( createResponse() );
 }
 
+std::string	ResponseMessage::createResponse( std::string content )  // still test function
+{
+	std::string		ct;
+
+	ct = content_type(content); // returns html or plain
+	_statusCode = 200;
+	return (_add_header(content, ct));
+}
+
 std::string	ResponseMessage::createResponse( void )
 {
-	std::string		output;
+	// std::string		output;
 	std::string		content;
 	std::string		ct;
 	std::string		*content_type = &ct;
@@ -483,11 +467,30 @@ std::string	ResponseMessage::createResponse( void )
 	content += _create_content_from_file( _target_path, content_type );
 	content += _return_default_status_code_html_if_needed( _target_path, content_type, _statusCode);
 	
+	return (_add_header(content, ct));
+	// //
+	// output = "";
+	// output += _response_first_line( _statusCode );
+	// if ( content == "" )
+	// 	return output;  // warten bis Lukas DELETE fertig hat und dann nochmal testen ob das reicht an response
+	// output += _response_content_type( ct );
+	// output += _response_content_length( content );
+
+	// output.append("\r\n");
+	// output += content;
+	// output.append("\r\n");
+	// return output;
+}
+
+std::string	ResponseMessage::_add_header( std::string content, std::string content_type )
+{
+	std::string		output;
+
 	output = "";
 	output += _response_first_line( _statusCode );
 	if ( content == "" )
 		return output;  // warten bis Lukas DELETE fertig hat und dann nochmal testen ob das reicht an response
-	output += _response_content_type( ct );
+	output += _response_content_type( content_type );
 	output += _response_content_length( content );
 
 	output.append("\r\n");
@@ -495,6 +498,7 @@ std::string	ResponseMessage::createResponse( void )
 	output.append("\r\n");
 	return output;
 }
+
 
 std::string	ResponseMessage::_check_and_execute_delete_request( size_t status_code )
 {
@@ -644,7 +648,7 @@ std::string	ResponseMessage::_response_content_type( std::string content_type )
 
 	if (content_type == "jpg" || content_type == "jpeg" || content_type == "png" || content_type == "gif")
 		output += "image/";
-	else if (content_type == "html" || content_type == "htm")
+	else if (content_type == "html" || content_type == "htm" || content_type == "plain")
 		output += "text/";
 	else // binary
 	{
@@ -652,7 +656,7 @@ std::string	ResponseMessage::_response_content_type( std::string content_type )
 		content_type = "octet-stream";
 	}
 	output += content_type;
-	if (content_type == "html" || content_type == "htm")
+	if (content_type == "html" || content_type == "htm" || content_type == "plain")
 		output += "; charset=UTF-8";
 	output += "\r\n";
 	return output;
@@ -685,299 +689,6 @@ std::string	ResponseMessage::_response_content_length( const std::string &conten
 	output.append("\r\n");
 	return output;
 }
-
-/*
-void	ResponseMessage::_chooseMethod( void ) // take from config file which methods we want to accept
-{
-	const int		count_methods = 4;
-	std::string		methods[count_methods] = {"POST", "GET", "DELETE"};
-	std::string		str;
-	int				i;
-
-	str = _request_map.find("Method")->second;
-	for (i = 0; i < count_methods; i++)
-	{
-		if (str == methods[i])
-			break;
-	}
-	switch (i)
-			{
-		case 0:
-			// _PostMethod();
-			break;
-		case 1:
-			// _GetMethod();
-			break;
-		case 4:
-			std::cout << "error" << std::endl;
-			//error no method that I know
-			// correct in parsing, there no error message
-			break;
-	}
-}
-*/
-
-/*
-void	ResponseMessage::_PostMethod( void )
-{
-	std::cout << "here comes the post method" << std::endl;
-	// Beispiel für Ranja
-	int i = 0, f = 0;
-		char c;
-		while(_request_cstr[i])
-		{
-			if(_request_cstr[i] == '\r' && f == 2)
-				f = 3;
-			else if (_request_cstr[i] == '\r' && f == 0)
-				f = 1;
-			else if(_request_cstr[i] == '\n' && f == 1)
-				f = 2;
-			else if(_request_cstr[i] == '\n' && f == 3)
-				break;
-			else
-				f = 0;
-			c = _request_cstr[i];
-			printf("%c", c);
-			i++;
-		}
-		f = 0;
-		while(_request_cstr[i])
-		{
-			if(_request_cstr[i] == '\r' && f == 2)
-				f = 3;
-			else if (_request_cstr[i] == '\r' && f == 0)
-				f = 1;
-			else if(_request_cstr[i] == '\n' && f == 1)
-				f = 2;
-			else if(_request_cstr[i] == '\n' && f == 3)
-				break;
-			else
-				f = 0;
-			c = _request_cstr[i];
-			printf("%c", c);
-			i++;
-		}
-		char* jpegDataStart = &_request_cstr[++i];
-		std::ofstream outFile("uploaded.jpg", std::ios::binary);
-		if (outFile.is_open())
-		{
-
-			outFile.write(jpegDataStart, 3000); // die Dateigrösse müsste in der request map stehen und auch der dateiname
-			// wenn zu viel byte hier oben angegeben werden als der buffer gross ist dann gibts segfault
-			outFile.close();	// aber der buffer in testserver hat nicht so viel platz
-			// wenn bild korrekt erhalten wurde korrekten response erstellen (mit Max)
-		}
-	// Ende Beispiel für Ranja
-
-			std::cout << "here comes the post method" << std::endl;
-
-			// reads the POST data (file content)
-
-			std::string len = _request_map.find("Content-Length")->second; // länge
-			int length = atoi(len.c_str());
-			if (length) 		// weg, nur für compiler
-			{
-				length+=1;
-				length-=1;
-			}
-			std::string content_disposition = _request_map.find("Content-Disposition")->second;
-			std::string content_type = _request_map.find("Content-Type")->second; // aus den String musst du noch den type heraussuchen
-
-
-
-			char* postData = new char[_content.length()];
-			std::cin.read(postData, _content.length());
-
-			// Saves the uploaded file to a desired location
-			if ( _fileType == "jpg" || _fileType == "jpeg")
-			{
-				std::ofstream outputFile("/www/uploaded_file.jpg", std::ios::binary);
-				if (outputFile.is_open())
-				{
-					outputFile.write(postData, _content.length());
-					outputFile.close();
-					std::cout << "File uploaded successfully!" << std::endl;
-				}
-				else
-					std::cout << "Error saving the file!" << std::endl;
-				delete[] postData;
-			}
-			else if (_fileType == "png")
-			{
-				std::ofstream outputFile("/www/uploaded_file.png", std::ios::binary);
-				if (outputFile.is_open())
-				{
-					outputFile.write(postData, _content.length());
-					outputFile.close();
-					std::cout << "File uploaded successfully!" << std::endl;
-				}
-				else
-					std::cout << "Error saving the file!" << std::endl;
-				delete[] postData;
-			}
-			else if (_fileType == "gif")
-			{
-				std::ofstream outputFile("/www/uploaded_file.gif", std::ios::binary);
-				if (outputFile.is_open())
-				{
-					outputFile.write(postData, _content.length());
-					outputFile.close();
-					std::cout << "File uploaded successfully!" << std::endl;
-				}
-				else
-					std::cout << "Error saving the file!" << std::endl;
-				delete[] postData;
-			}
-			else
-			{
-				std::ofstream outputFile("/www/uploaded_file", std::ios::binary);
-				if (outputFile.is_open())
-				{
-					outputFile.write(postData, _content.length());
-					outputFile.close();
-					std::cout << "File uploaded successfully!" << std::endl;
-				}
-				else
-					std::cout << "Error saving the file!" << std::endl;
-				delete[] postData;
-			}
-			// break;
-}
-*/
-/*
-void	ResponseMessage::_GetMethod( void )
-{
-	(void)(1+1);
-	// std::string		filePath;
-
-	// if (file_exists(_target_path))
-
-		// // std::vector<std::string>			path_vec;
-		// // std::vector<std::string>			buf_vec;
-		// std::string							buf;
-		// std::string							path;
-		// // std::string							cwd; // change to _cwd !!!! und die anderen auch!!!
-
-		// // path_vec = _config_old.find("cwd")->second; // verändern wir config cwd mit path? weil &path?
-		// // std::string	&path = path_vec.front();
-		// // std::string	path = _config.get_cwd(); // redirection happens here
-
-		// // path.append("/www");
-		// buf =  _request_map.find("request_location")->second;
-		// path = _cwd;
-		// path.append(buf);
-		// _getProperFilePathAndPrepareResponse(buf, path, _cwd);
-}*/
-
-
-//  old one delete
-/*
-std::string		ResponseMessage::_createContentFromFile( std::string filepath, int statusCode )
-{
-	if ( filepath == "" && statusCode == 404)
-		return ("Error 404 (Not Found)");
-	if ( filepath == "") // überprüfen ob korrekt
-		return ("");
-
-	if ( _fileType == "jpg" || _fileType == "jpeg" || _fileType == "png" || _fileType == "gif")
-	{
-		std::ifstream picture(filepath.c_str());
-		if (!(picture.is_open()))
-    	{
-			std::cout << "Error: failed to open picture" << std::endl;
-			return ("");
-		}
-		std::stringstream pic;
-		pic << picture.rdbuf();
-		std::string data(pic.str());
-		picture.close();
-		return (data);
-	}
-	else if(_fileType == "html" || _fileType == "htm")
-	{
-		std::ifstream file(filepath.c_str());
-		if (!file.is_open())
-		{
-			std::cout << "Error: failed to open file" << std::endl;   //
-			//exit(-1);						//   handle better? server still should run
-		}
-		std::string content( (std::istreambuf_iterator<char>(file) ), (std::istreambuf_iterator<char>() ) );
-		file.close();
-		return (content);
-	}
-	else
-	{
-		std::ifstream ifs_file(filepath.c_str(), std::ios::binary);
-		if (!(ifs_file.is_open()))
-    	{
-			std::cout << "Error: failed to open file" << std::endl;
-			return ("");
-		}
-		std::stringstream ss_file;
-		ss_file << ifs_file.rdbuf();
-		std::string data(ss_file.str());
-		ifs_file.close();
-		return (data);
-	}
-}*/
-
-/* old delete
-std::string	ResponseMessage::_lookForFileFromConfig( std::string dir_to_look_for, const std::string &config_map_key )
-{
-	std::vector<std::string>			buf_vec;
-	std::string							buf;
-	std::string							file = "start";
-	// size_t								size;
-	unsigned int 						i = 0;
-
-	// if (_config_old.find(config_map_key) == _config_old.end())
-	// {
-	// 	std::cout << "Key not found in _config_Map" << std::endl;
-	// 	return ( "" );
-	// }
-	// buf_vec = _config_old.find(config_map_key)->second;
-	// size = buf_vec.size();
-
-	// while ( i < size )
-	while ( file != "" )
-	{
-		buf = dir_to_look_for;
-		// buf.append(buf_vec.at(i));
-		file = _config.get(_server, _config_location, config_map_key, i);
-		buf.append(file);
-		if(file_exists(buf))
-			return (buf);
-		i++;
-	}
-	return ( "" );
-}
-*/
-
-// bool	ResponseMessage::_FileExists( const std::string &filepath )
-// {
-// 	struct stat 	info;
-
-// 	if (filepath == "")
-// 		return false;
-// 	const char *path_ptr = filepath.c_str();
-// 	// can get the info && Is a regular File
-// 	if (stat(path_ptr, &info) == 0 && S_ISREG(info.st_mode))
-// 		return true;
-// 	return false;
-// }
-
-// bool	ResponseMessage::_DirExists( const std::string &filepath )
-// {
-// 		struct stat 	info;
-
-// 	if (filepath == "")
-// 		return false;
-// 	const char *path_ptr = filepath.c_str();
-// 	// can get the info && Is a directory
-// 	if (stat(path_ptr, &info) == 0 && S_ISDIR(info.st_mode))
-// 		return true;
-// 	return false;
-// }
 
 /**
  * @brief goes through _status_code_hirarchy 
