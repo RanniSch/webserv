@@ -7,7 +7,8 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
 
 	_config_location = "";
-	std::string request;
+	std::string 
+	request;
 	request = request_cstr;
 	if ( request == "" )
 		return;
@@ -86,26 +87,32 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 			-------------	fill status lines to status codes	-------------
 	*/
 	_status_line.insert( std::pair<size_t, std::string>(200, "OK") );
+	_status_line.insert( std::pair<size_t, std::string>(201, "Created") );
 	_status_line.insert( std::pair<size_t, std::string>(204, "No Content") );
 	_status_line.insert( std::pair<size_t, std::string>(301, "Moved Permanently") );
 	_status_line.insert( std::pair<size_t, std::string>(400, "Bad Request") );
 	_status_line.insert( std::pair<size_t, std::string>(404, "Not Found") );
 	_status_line.insert( std::pair<size_t, std::string>(405, "Method Not Allowed") );
+	_status_line.insert( std::pair<size_t, std::string>(411, "Length Required") );
 	_status_line.insert( std::pair<size_t, std::string>(413, "Payload Too Large") );
 	_status_line.insert( std::pair<size_t, std::string>(414, "URI Too Long") );
 	_status_line.insert( std::pair<size_t, std::string>(500, "Internal Server Error") );
+	_status_line.insert( std::pair<size_t, std::string>(501, "Not Implemented") );
 	_status_line.insert( std::pair<size_t, std::string>(505, "HTTP Version Not Supported") );
 	/*
 			-------------	fill default error pages to status codes	-------------
 	*/
 	_default_error_page.insert( std::pair<size_t, std::string>(204, "") );
+	_default_error_page.insert( std::pair<size_t, std::string>(201, "<!DOCTYPE html><html><head><title>201 Created</title></head><body><h1>201 Created</h1><p>The resource has been successfully created.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(301, "<!DOCTYPE html><html><head><title>301 Moved Permanently</title></head><body><h1>301 Moved Permanently</h1><p>This resource has been permanently moved to a new location.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(400, "<!DOCTYPE html><html><head><title>400 Bad Request</title></head><body><h1>400 Bad Request</h1><p>Your browser sent a request that this server could not understand.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(403, "<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body><h1>403 Forbidden</h1><p>You don't have permission to access this resource.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(404, "<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>Your browser sent a request for a file that this server could not find.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(405, "<!DOCTYPE html><html><head><title>405 Method Not Allowed</title></head><body><h1>405 Method Not Allowed</h1><p>The requested method is not allowed for this resource.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(411, "<!DOCTYPE html><html><head><title>411 Length Required</title></head><body><h1>411 Length Required</h1><p>A valid Content-Length header is required for the request to be processed.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(413, "<!DOCTYPE html><html><head><title>413 Payload Too Large</title></head><body><h1>413 Payload Too Large</h1><p>The data you are trying to send in the request is too large and exceeds the server's limit.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(414, "<!DOCTYPE html><html><head><title>414 URI Too Long</title></head><body><h1>414 URI Too Long</h1><p>The URI (Uniform Resource Identifier) provided in the request is too long for the server to process.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(501, "<!DOCTYPE html><html><head><title>501 Not Implemented</title></head><body><h1>501 Not Implemented</h1><p>The requested functionality is not implemented on this server.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(500, "<!DOCTYPE html><html><head><title>500 Internal Server Error</title></head><body><h1>500 Internal Server Error</h1><p>An unexpected server error occurred. Please try again later.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(505, "<!DOCTYPE html><html><head><title>505 HTTP Version Not Supported</title></head><body><h1>505 HTTP Version Not Supported</h1><p>The requested HTTP version is not supported by this server.</p></body></html>") );
 
@@ -452,55 +459,13 @@ std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string 
  */
 std::string	ResponseMessage::createResponse( size_t status_code )
 {
-	_server = 0;
+	if ( !_server_number_valid() )
+		_server = 0;
 	_cwd = _config.get_cwd();
 	_set_root_directory();
 	_statusCode = status_code;
 	_target_path = _return_path_to_error_file( _statusCode );
 	return ( createResponse() );
-
-	// // easy version for testing
-	// std::string			message_body;
-	// // int					content_len;
-	// std::string			output;
-
-	// std::map<size_t, std::string>::iterator			it;
-
-	// // erst gucken ob ich den code hab
-
-	// it = _default_error_page.find( 400 ); // dynamisch machen
-	// if ( it == _default_error_page.end() )
-	// 	return "ne";						// überlegen was hier
-	// message_body = it->second;
-	// /*
-	// 		-------------	first line	-------------
-	// */
-	// output = "";
-	// output.append("HTTP/1.1 ");
-	// std::stringstream ss;
-	// ss << status_code;
-	// output.append(ss.str());
-	// output.append(" ");
-	// it = _status_line.find( status_code );
-	// if ( it == _status_line.end() )
-	// 	return "ne";						// überlegen was hier
-	// output.append(it->second);
-	// output.append("\r\n");
-	// /*
-	// 		-------------	second line	-------------
-	// */
-	// output.append("Content-Type: text/html; charset=UTF-8\r\n");
-	// /*
-	// 		-------------	third line	-------------
-	// */
-	// output.append("Content-Length: ");
-	// std::stringstream st;
-	// st << message_body.length();
-	// output.append(st.str());
-	// output.append("\r\n\r\n");
-
-	// output.append(message_body);
-	// return output;
 }
 
 std::string	ResponseMessage::createResponse( void )
