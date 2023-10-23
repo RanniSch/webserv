@@ -109,8 +109,15 @@ std::string	DirectoryListing::_last_modified( std::string path )
 {
 	struct stat fileStat;
 	struct timespec time;
+
+# ifdef __APPLE__
 	if (stat(path.c_str(), &fileStat) == 0)
 		time = fileStat.st_mtimespec;
+# else
+	if (stat(path.c_str(), &fileStat) == 0)
+		time = fileStat.st_mtim;
+# endif
+
 	time_t timeInSeconds = time.tv_sec;
 
     // Convert time_t to a tm structure
