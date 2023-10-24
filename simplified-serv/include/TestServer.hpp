@@ -52,28 +52,17 @@ class TestServer{
                 std::map<int, Socket>           _socket_arr;
 
                 std::vector<pollfd>				_sockets_for_poll; // For now the most important bit
-                //void	_executeEventSequence(int &fd);
 		int		checkPollAction(short revents, int fd);
-		bool	_checkIfRequestHeaderCameInFull(Socket &_socket, std::string stringBuffer);
-		void	_checkForBodyTrail(Socket &_socket, std::string stringBuffer);
+	    void	_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket);
 
-	    void	_executeCGI(void);
-
-		void	_pollReading(std::vector<pollfd>::iterator &_it, std::string &_responseStr);
-	    void	_pollWriting(std::vector<pollfd>::iterator &_it, std::string _responseStr);
-		void	_findSecondHeader(Socket &_socket);
-
-	    void	_GetRequest(std::map<int, Socket>::iterator &_tmp_socket_it);
-		void	_PostRequest(std::map<int, Socket>::iterator &_tmp_socket_it);
 	    void	_DeleteRequest(int fd);
 
         int		_checkForMethods(Socket &socket, std::string &strBuffer);
 		int		_readAndParseHeader(Socket &socket, std::string strBuffer);
-		int		_readAndParseSecondHeader(Socket &socket, std::string strBuffer);
         int		_checkForBoundaryStr(std::string &boundary_to_find);
 
 		void	_POST(Socket &socket, std::string &stringBuffer);
-		void	_POSTrequestSaveBodyToFile(Socket &socket, std::string &stringBuffer);
+		void	_POSTrequestSaveBodyToFile(Socket &socket);
 
         void    _checkIfItIsACGI(Socket &socket);
         int		_checkPostContenLen(Socket &socket);
@@ -82,15 +71,6 @@ class TestServer{
         int		_setErrorResponseStr(Socket &socket, int Error_Code);
 
         void	_acceptConnection(int index);
-
-                //void	_responder(std::string indentifier, int &fd);
-                //void	_respondImage(int &fd);
-               // void	_respondStatic(int &fd);
-		//void	_respondFileUpload(void);
-		//void	_respondError(int &fd);
-		//void	processRequest( std::string &request);
-
-		void	_RequestIp(sockaddr_in *address);
 };
 
 # define    DEBUG	1
