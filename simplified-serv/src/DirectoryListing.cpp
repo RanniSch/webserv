@@ -71,7 +71,7 @@ std::string	DirectoryListing::_create_one_listing( struct dirent* entry, std::st
 	std::string out;
 	std::string name_of_item;
 	std::string item_last_modified;
-	std::string item_size = "size__";
+	std::string item_size = "";
 	bool		file_flag = false;
 
 	name_of_item = entry->d_name;
