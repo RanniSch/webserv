@@ -58,9 +58,10 @@ class ResponseMessage {
 		size_t			_statusCode;
 		Config			&_config;		//should be given when creating
 		size_t			_server;		//should be given when creating
-		std::string		_config_location; // when no config_location is found for this request_location -> ""
+		std::string		_location; // when no config_location is found for this request_location -> ""
 		std::string		_cwd;
 		std::string		_target_path;
+		std::string		_dir_listing_target_path;
 		std::string		_error;
 
 		std::map<size_t, std::string>								_status_line;
@@ -76,7 +77,7 @@ class ResponseMessage {
 		void			_check_URI_len( void );
 		void			_separate_query( void );
 		void			_check_for_allowed_request_method( void );
-		void			_check_and_set_config_location ( void );
+		void			_check_and_set_location ( void );
 		void			_set_root_directory( void );
 		std::string		_check_redirect_and_return_target_path( void );
 		std::string		_check_index_and_return_target_path();
@@ -86,6 +87,7 @@ class ResponseMessage {
 		std::string		_add_header( std::string content, std::string content_type );
 		// std::string		_path_one_plus_path_two( std::string path_one, std::string path_two );
 		std::string		_check_and_execute_delete_request( size_t status_code );
+		std::string		_check_create_dir_listing( std::string path, std::string *content_type, size_t status_code );
 		std::string		_create_content_from_file( std::string filepath, std::string *content_type );
 		std::string		_return_default_status_code_html_if_needed( std::string filepath, std::string *content_type, size_t _statusCode);
 		std::string		_response_first_line( size_t status_code );

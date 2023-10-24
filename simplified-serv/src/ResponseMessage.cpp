@@ -6,7 +6,7 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 {
 	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
 
-	_config_location = "";
+	_location = "";
 	std::string 
 	request;
 	request = request_cstr;
@@ -45,17 +45,14 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 	{
 		_check_URI_len();
 		_separate_query(); // has to come after check uri len
-		_check_and_set_config_location();
+		_check_and_set_location();
 		_check_for_allowed_request_method(); // has to come after we know the location
 		_cwd = _config.get_cwd();
 		_set_root_directory();
 		// the target path should be the file that will be send back, html, index, error page or picture...
 		// if the file does not exist target path should be empty
 		_target_path = _check_redirect_and_return_target_path();
-
-		DirectoryListing DL;
-		DL.create_listing_html(_target_path); // sinnvoll einbinden (überlegen was mit unsichtbaren Dateien passiert, links testen, nicht höher als root gehen testen)
-
+		_dir_listing_target_path = _target_path; // comes right before check index
 		_target_path = _check_index_and_return_target_path(); // hiervor aber erst redirect machen!!!
 		// special error codes to target path here permission denied or so... 
 		_target_path = _check_target_path_for_existence(); 
@@ -91,6 +88,7 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	_status_line.insert( std::pair<size_t, std::string>(204, "No Content") );
 	_status_line.insert( std::pair<size_t, std::string>(301, "Moved Permanently") );
 	_status_line.insert( std::pair<size_t, std::string>(400, "Bad Request") );
+	_status_line.insert( std::pair<size_t, std::string>(403, "Forbidden") );
 	_status_line.insert( std::pair<size_t, std::string>(404, "Not Found") );
 	_status_line.insert( std::pair<size_t, std::string>(405, "Method Not Allowed") );
 	_status_line.insert( std::pair<size_t, std::string>(411, "Length Required") );
@@ -102,8 +100,8 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	/*
 			-------------	fill default error pages to status codes	-------------
 	*/
-	_default_error_page.insert( std::pair<size_t, std::string>(204, "") );
 	_default_error_page.insert( std::pair<size_t, std::string>(201, "<!DOCTYPE html><html><head><title>201 Created</title></head><body><h1>201 Created</h1><p>The resource has been successfully created.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(204, "") );
 	_default_error_page.insert( std::pair<size_t, std::string>(301, "<!DOCTYPE html><html><head><title>301 Moved Permanently</title></head><body><h1>301 Moved Permanently</h1><p>This resource has been permanently moved to a new location.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(400, "<!DOCTYPE html><html><head><title>400 Bad Request</title></head><body><h1>400 Bad Request</h1><p>Your browser sent a request that this server could not understand.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(403, "<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body><h1>403 Forbidden</h1><p>You don't have permission to access this resource.</p></body></html>") );
@@ -112,8 +110,8 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	_default_error_page.insert( std::pair<size_t, std::string>(411, "<!DOCTYPE html><html><head><title>411 Length Required</title></head><body><h1>411 Length Required</h1><p>A valid Content-Length header is required for the request to be processed.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(413, "<!DOCTYPE html><html><head><title>413 Payload Too Large</title></head><body><h1>413 Payload Too Large</h1><p>The data you are trying to send in the request is too large and exceeds the server's limit.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(414, "<!DOCTYPE html><html><head><title>414 URI Too Long</title></head><body><h1>414 URI Too Long</h1><p>The URI (Uniform Resource Identifier) provided in the request is too long for the server to process.</p></body></html>") );
-	_default_error_page.insert( std::pair<size_t, std::string>(501, "<!DOCTYPE html><html><head><title>501 Not Implemented</title></head><body><h1>501 Not Implemented</h1><p>The requested functionality is not implemented on this server.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(500, "<!DOCTYPE html><html><head><title>500 Internal Server Error</title></head><body><h1>500 Internal Server Error</h1><p>An unexpected server error occurred. Please try again later.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(501, "<!DOCTYPE html><html><head><title>501 Not Implemented</title></head><body><h1>501 Not Implemented</h1><p>The requested functionality is not implemented on this server.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(505, "<!DOCTYPE html><html><head><title>505 HTTP Version Not Supported</title></head><body><h1>505 HTTP Version Not Supported</h1><p>The requested HTTP version is not supported by this server.</p></body></html>") );
 
 	/*
@@ -204,7 +202,7 @@ void	ResponseMessage::_check_for_allowed_request_method( void )
 	method_from_config = "start";
 	for( size_t i = 0; method_from_config != ""; i++)
 	{
-		method_from_config = _config.get( _server, _config_location, "allowed_Methods", i);
+		method_from_config = _config.get( _server, _location, "allowed_Methods", i);
 		if (method_from_config == request_method)
 			found_method_flag = true;
 	}
@@ -221,38 +219,38 @@ void	ResponseMessage::_check_for_allowed_request_method( void )
  *
  * for example location /directory {}
  * request is /directory/subdir/file.end
- * -> then this function sets the variable _config_location to "/directory"
+ * -> then this function sets the variable _location to "/directory"
  *
  * // kann /subdir/subsub/index.html sein
  *	// oder subdir  -> wird nicht behandelt
  *	// oder /subdir -> wird behandelt
  *	// oder /subdir/subsub/
  */
-void	ResponseMessage::_check_and_set_config_location( void )
+void	ResponseMessage::_check_and_set_location( void )
 {
 	size_t			len;
-	std::string		config_location;
+	std::string		location;
 
-	config_location =  _request_map.find("request_location")->second; // was wenn nicht gefunden
+	location =  _request_map.find("request_location")->second; // was wenn nicht gefunden
 	while(42)
 	{
 		try
 		{
-			config_location = _config.get(_server, config_location);
+			location = _config.get(_server, location);
 			break;
 		}
 		catch( std::string str)
 		{
 			if ( str == "location_not_found" )
 			{
-				if ( config_location == "/" )
+				if ( location == "/" )
 				{
-					len = config_location.size();
-					config_location.erase(len-1);
+					len = location.size();
+					location.erase(len-1);
 					// config_location.pop_back();
 					break;
 				}
-				config_location = strip_path( config_location );
+				location = strip_path( location );
 			}
 		}
 		catch( ... )
@@ -260,14 +258,14 @@ void	ResponseMessage::_check_and_set_config_location( void )
 			std::cout << "unknown config error in ResponseMessage." << std::endl;
 		}
 	}
-	_config_location = config_location;
+	_location = location;
 }
 
 void	ResponseMessage::_set_root_directory( void )
 {
 	std::string		config_root;
 
-	config_root = _config.get(_server, _config_location, "root", 0);
+	config_root = _config.get(_server, _location, "root", 0);
 	_cwd = path_one_plus_path_two(_cwd, config_root);
 	// _cwd += config_root;
 }
@@ -310,11 +308,11 @@ std::string	ResponseMessage::_check_redirect_and_return_target_path( void )
 		return _target_path;
 	request_path = it->second;
 
-	old_sub_path = _config_location;
+	old_sub_path = _location;
 
-	len_old_sub_path = _config_location.size();
+	len_old_sub_path = _location.size();
 
-	new_sub_path = _config.get( _server, _config_location, "return", 0 );
+	new_sub_path = _config.get( _server, _location, "return", 0 );
 	if (new_sub_path == "") // no redirection configured
 	{
 		// _target_path = path_one_plus_path_two(_cwd, request_path);
@@ -369,7 +367,7 @@ std::string	ResponseMessage::_check_target_path_for_existence()//_replace_with_e
 	throw _statusCode;
 
 	// _statusCode = _statusCodeHirarchy( _statusCode, 404 );
-	// error_file_path = _config.get(_server, _config_location, "error404", 0);
+	// error_file_path = _config.get(_server, _location, "error404", 0);
 	// error_file_path = path_one_plus_path_two( _cwd, error_file_path );
 	// if(file_exists(error_file_path))
 	// 	return error_file_path;
@@ -385,8 +383,8 @@ std::string	ResponseMessage::_return_path_to_error_file( size_t status_code )
 	std::string	error_file_path;
 	std::string	error_code;
 
-	if ( _config_location == "" )
-		_config_location = "/";
+	if ( _location == "" )
+		_location = "/";
 	if ( _cwd == "" )
 	{
 		_cwd = _config.get_cwd();
@@ -394,7 +392,7 @@ std::string	ResponseMessage::_return_path_to_error_file( size_t status_code )
 	}
 	std::stringstream ss;
 	ss << "error" << status_code;
-	error_file_path = _config.get(_server, _config_location, ss.str(), 0);
+	error_file_path = _config.get(_server, _location, ss.str(), 0);
 	error_file_path = path_one_plus_path_two( _cwd, error_file_path );
 	if(file_exists(error_file_path))
 		return error_file_path;
@@ -416,7 +414,7 @@ std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string 
 	while ( file != "" )
 	{
 		buf = dir_to_look_for;
-		file = _config.get(_server, _config_location, config_parameter, i);
+		file = _config.get(_server, _location, config_parameter, i);
 		// buf.append(file);
 		buf = path_one_plus_path_two(buf, file);
 		if(file_exists(buf))
@@ -425,6 +423,12 @@ std::string	ResponseMessage::_look_for_file_in_dir_based_on_config( std::string 
 	}
 	return ( "" );
 }
+
+// **************************************************
+
+// 					create Response 
+
+// **************************************************
 
 /**
  * @brief returns a full response String for status_code
@@ -464,8 +468,14 @@ std::string	ResponseMessage::createResponse( void )
 	_target_path = _check_and_execute_delete_request( _statusCode );
 
 	content = "";
+
+	// DirectoryListing DL;
+	// DL.create_listing_html(_target_path); // sinnvoll einbinden (überlegen was mit unsichtbaren Dateien passiert, links testen, nicht höher als root gehen testen)
+
+	
+	content += _check_create_dir_listing( _dir_listing_target_path, content_type, _statusCode );
 	content += _create_content_from_file( _target_path, content_type );
-	content += _return_default_status_code_html_if_needed( _target_path, content_type, _statusCode);
+	content += _return_default_status_code_html_if_needed( _target_path, content_type, _statusCode );
 	
 	return (_add_header(content, ct));
 	// //
@@ -499,7 +509,6 @@ std::string	ResponseMessage::_add_header( std::string content, std::string conte
 	return output;
 }
 
-
 std::string	ResponseMessage::_check_and_execute_delete_request( size_t status_code )
 {
 	std::map<std::string, std::string>::iterator	it;
@@ -520,6 +529,30 @@ std::string	ResponseMessage::_check_and_execute_delete_request( size_t status_co
 	}
 	_statusCode = 204; // succesfull, no content
 	return "";
+}
+
+std::string		ResponseMessage::_check_create_dir_listing( std::string path, std::string *content_type, size_t status_code )
+{
+	std::string			autoindex;
+	std::string			out;
+
+	if ( status_!= 404 )
+		return "";
+	if ( !dir_exists(path) )
+		return "";
+	autoindex = _config.get( _server, _location, "autoindex", 0 );
+	if ( autoindex != "on" )
+	{
+		_statusCode = 403;
+		_target_path = _return_path_to_error_file( _statusCode );
+		return "";
+	}
+	DirectoryListing	DL;
+	out = DL.create_listing_html( path );
+	_target_path = "";
+	_statusCode = 200; // set private variable !
+	*content_type = "html";
+	return out;
 }
 
 /**
@@ -595,6 +628,8 @@ std::string		ResponseMessage::_return_default_status_code_html_if_needed( std::s
 
 	if (filepath != "")
 		return "";
+	if ( status_code == 200 )
+		return "";
 	it = _default_error_page.find(status_code);
 	if ( it == _default_error_page.end() )
 	{
@@ -634,7 +669,9 @@ std::string	ResponseMessage::_response_first_line( size_t status_code )
 }
 
 /**
- * @brief return "Content-Type: text/html\r\n"
+ * @brief gets in jpg jpeg png gif html htm plain 
+ * and makes a propper content type out of it
+ * return "Content-Type: text/html\r\n"
  * appropriate to the content type
  */
 std::string	ResponseMessage::_response_content_type( std::string content_type )
@@ -733,7 +770,6 @@ int	ResponseMessage::get_content_length()
 	return (length);
 }
 
-
 std::string	ResponseMessage::get_query( void )
 {
 	std::map<std::string, std::string>::iterator	it;
@@ -775,7 +811,7 @@ bool	ResponseMessage::is_Cgi( bool act_Cgi_flag )
 
 	for (size_t i = 0; conf_file_Ext != ""; i++)
 	{
-		conf_file_Ext = _config.get(_server, _config_location, "cgi_ext", i);
+		conf_file_Ext = _config.get(_server, _location, "cgi_ext", i);
 		if ( target_file_Ext == conf_file_Ext )
 			return true;
 	}
@@ -814,10 +850,10 @@ std::string	ResponseMessage::get_cgi_path( void )
 
 	for ( ; conf_file_Ext != ""; i++)
 	{
-		conf_file_Ext = _config.get(_server, _config_location, "cgi_ext", i);
+		conf_file_Ext = _config.get(_server, _location, "cgi_ext", i);
 		if ( target_file_Ext == conf_file_Ext )
 			break;
 	}
-	cgi_path = _config.get( _server, _config_location, "cgi_path", i);
+	cgi_path = _config.get( _server, _location, "cgi_path", i);
 	return ( cgi_path );
 }

@@ -201,7 +201,8 @@ std::string to_lower_case(const std::string &input)
 }
 
 /**
- * @brief can only differentiate between html and plain text in content
+ * @brief you give it a content and it returns the contet type
+ * can only differentiate between html and plain text in content
  * returns html or text
  * @param content 
  * @return "" if not plain text or html content
