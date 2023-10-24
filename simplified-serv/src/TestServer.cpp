@@ -105,7 +105,7 @@ int		TestServer::checkPollAction(short revents, int fd)
 		return (2);
 	if (revents & POLLOUT && _socket_arr.find(fd)->second.getErrorFlag() == true)
 	{
-		std::cout << "ERROR FLAF IS SET" << std::endl;
+		std::cout << "ERROR FLAF IS SET!" << std::endl;
 		return (2);
 	}
 	if (revents & POLLHUP)
@@ -480,12 +480,13 @@ void    TestServer::launch()
 								if (bytes_read == -1)
 								{
 									std::cout << RED "ERROR: recv has failed!" << BLANK << std::endl;
+									perror("CHECK RECV ERROR: ");
 								}
 								else 
 								{
 									_buffer_vector.clear();
 									_buffer_vector.reserve(bytes_read);
-									std::cout << YELL << "READING " << it->fd << " Bytes_read: " << bytes_read <<  BLANK << std::endl;
+									//std::cout << YELL << "READING " << it->fd << " Bytes_read: " << bytes_read <<  BLANK << std::endl;
 									for (int i = 0; i < bytes_read; ++i)
 									{
 										_buffer_vector.push_back(static_cast<uint8_t>(readData[i]));
@@ -511,6 +512,8 @@ void    TestServer::launch()
 										cgi.runCgi(); // Ranja
 										ResponseMessage rm;
 										std::string test = rm.createResponse(cgi.getScriptString()); // send back
+										// SET response str of the socket with the setResponseStr setter!
+										//_socket_arr.find(it->fd)->second.setResponseStr(test);
 									}
 								}
 							}
