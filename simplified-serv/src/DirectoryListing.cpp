@@ -77,6 +77,10 @@ std::string	DirectoryListing::_create_one_listing( struct dirent* entry, std::st
 	name_of_item = entry->d_name;
 	if ( name_of_item == "." || name_of_item == "..")
 		return "";
+	if ( name_of_item.size() <= 0)
+		return "";
+	if ( name_of_item.at(0) == '.' )
+		return "";
 	path = path_one_plus_path_two(path, name_of_item);
 	if ( dir_exists(path) )
 	{}
