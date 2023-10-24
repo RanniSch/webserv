@@ -80,21 +80,8 @@ void    TestServer::_acceptConnection(int fd)
 	_nbr_of_sockets_in_poll++;
 	_nbr_of_client_sockets++;
 
-	//_RequestIp(&tmp.getSockAddr());
 }
 
-// void	TestServer::_RequestIp(sockaddr_in *address)
-// {
-// 	int rest;
-// 	int first_part = ntohl(address->sin_addr.s_addr)/(1<<24);
-// 	rest = ntohl(address->sin_addr.s_addr)%(1<<24); 
-// 	int second_part = rest/(1<<16);
-// 	rest = rest%(1<<16);
-// 	int third_part = rest/(1<<8);
-// 	rest = rest%(1<<8);
-// 	std::cout << "Request from IP: ";
-// 	std::cout << first_part << "." << second_part << "." << third_part << "." << rest << std::endl;
-// }
 
 
 int		TestServer::checkPollAction(short revents, int fd)
@@ -125,13 +112,12 @@ int		TestServer::checkPollAction(short revents, int fd)
 void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket)
 {
 	std::cout << "RESPONDING BY WRITING => " << std::endl;
-
 	std::string	chunkStr;
 	int	size = socket.getResponseStr().length();
 
 	if (size >= 9216)
 	{
-		chunkStr = socket.getResponseStr().substr(0, 100000);
+		chunkStr = socket.getResponseStr().substr(0, 9216);
 		size = 9216;
 	}
 	else
@@ -153,7 +139,7 @@ void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket
 	}
 	if (socket.getResponseStr().empty() == true)
 	{
-		std::cout << "SIZE: 0" << std::endl;
+		std::cout << "WE HAVE FINISHED WRITING TO THE BROWSER" << std::endl;
 		_socket_arr.erase(_it->fd);
 		//CLOSE THE SOCKET
 		if (close(_it->fd) == 0)
@@ -385,16 +371,17 @@ int	TestServer::_checkForBoundaryStr(std::string &boundary_to_find)
 	return -1;
 }
 
-void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket)
+void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuffer)
 {
-	std::cout << "SAVING TO THE FILE!" << std::endl;
-	std::string convert(_buffer_vector.begin(), _buffer_vector.end());
+	//(void)strBuffer;
+	//std::cout << "SAVING TO THE FILE!" << std::endl;
+	//std::string convert(_buffer_vector.begin(), _buffer_vector.end());
 	std::string start_boundary = "--"+ socket.getBoundaryStr() +"\r\n";
 	std::string end_boundary = "\r\n--"+socket.getBoundaryStr()+"--";
 	std::vector<uint8_t>::iterator start = _buffer_vector.begin();
 	std::vector<uint8_t>::iterator end = _buffer_vector.end();
-	size_t	start_boundary_pos = convert.find(start_boundary);
-	size_t	end_boundary_pos = convert.find(end_boundary);
+	size_t	start_boundary_pos = strBuffer.find(start_boundary);
+	size_t	end_boundary_pos = strBuffer.find(end_boundary);
 
 	bool	end_of_post = false;
 	if (end_boundary_pos != std::string::npos)
@@ -411,20 +398,20 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket)
 
 	if (start_boundary_pos != std::string::npos)
 	{
-		size_t body_start = convert.find("\r\n\r\n", (start_boundary_pos + start_boundary.size())) + 4;
+		size_t body_start = strBuffer.find("\r\n\r\n", (start_boundary_pos + start_boundary.size())) + 4;
 		if (body_start != std::string::npos)
 		{
 			start += body_start;
 		}
 
-		std::size_t	filename_start = convert.find("filename=");
+		std::size_t	filename_start = strBuffer.find("filename=");
 		if (filename_start != std::string::npos)
 		{
-			std::size_t filename_end = convert.find("\"", filename_start + 10);
+			std::size_t filename_end = strBuffer.find("\"", filename_start + 10);
 			if (filename_end != std::string::npos)
 			{
 				filename_start += 10;
-				socket.setFileName(convert.substr(filename_start, filename_end - filename_start));
+				socket.setFileName(strBuffer.substr(filename_start, filename_end - filename_start));
 			}
 		}
 	}
@@ -447,7 +434,7 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket)
 
 void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 {
-	std::cout << "WE ARE IN POST!" << std::endl;
+	//std::cout << "WE ARE IN POST!" << std::endl;
 	if (socket.getMultiform() == true)
 	{
 		if (socket.getCGI() == true)
@@ -457,7 +444,7 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 			socket.setSocketRequest(true);
 			return ;
 		}
-		_POSTrequestSaveBodyToFile(socket);
+		_POSTrequestSaveBodyToFile(socket, stringBuffer);
 	}
 	else if (socket.getCGI() == true)
 	{
@@ -535,25 +522,24 @@ void    TestServer::launch()
 								}
 								else 
 								{
+									Socket	*curr_socket = &_socket_arr.find(it->fd)->second;
 									_buffer_vector.clear();
 									_buffer_vector.reserve(bytes_read);
 									for (int i = 0; i < bytes_read; ++i)
 									{
 										_buffer_vector.push_back(static_cast<uint8_t>(readData[i]));
 									}
-									readData[bytes_read] = '\0';
-									std::string stringBuffer(readData);
-									if (_socket_arr.find(it->fd)->second.getRequestHeader() == false)
+									std::string stringBuffer(readData, 9216);
+									if (curr_socket->getRequestHeader() == false)
 									{
-										if (_readAndParseHeader(_socket_arr.find(it->fd)->second, stringBuffer) == -1)
+										if (_readAndParseHeader(*curr_socket, stringBuffer) == -1)
 											std::cout << RED "ERROR withing _readAndParseHeader" BLANK << std::endl;
-										//std::cout << YELL "HEADER:\n|" BLANK << _socket_arr.find(it->fd)->second.getRequestHeaderStr() << '|' << std::endl;
 									}
-									if (_socket_arr.find(it->fd)->second.getRequestMethod() == "POST")
+									if (curr_socket->getRequestMethod() == "POST")
 									{
-										_POST(_socket_arr.find(it->fd)->second, stringBuffer);
+										_POST(*curr_socket, stringBuffer);
 									}
-									else if (_socket_arr.find(it->fd)->second.getRequestMethod() == "GET" && _socket_arr.find(it->fd)->second.getCGI() == true)
+									else if (curr_socket->getRequestMethod() == "GET" && curr_socket->getCGI() == true)
 									{
 										//EXECUTE GET METHOD CGI HERE
 										//Cgi cgi(_socket_arr.at(_client_socket_fd)); // Ranja
@@ -563,9 +549,9 @@ void    TestServer::launch()
 										ResponseMessage rm;
 										std::string test = rm.createResponse(cgi.getScriptString()); // send back
 										// SET response str of the socket with the setResponseStr setter!
-										//_socket_arr.find(it->fd)->second.setResponseStr(test);
+										//curr_socket->setResponseStr(test);
 										// Also set the socket to be ready for writing with so that the checkPollAction would know that it is okay to write.
-										//_socket_arr.find(it->fd)->second.setSocketRequest(true);
+										//curr_socket->setSocketRequest(true);
 									}
 								}
 							}
@@ -574,10 +560,10 @@ void    TestServer::launch()
 							break;
 						case(WRITING):
 							//CHUNKING THE  WRITING TO THE SERVER
-							std::cout << YELL "WRITING " << BLANK << std::endl;
+							//std::cout << YELL "WRITING " << BLANK << std::endl;
 							_pollWriting(it, _socket_arr.find(it->fd)->second);
 							ready--;
-							std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
+							//std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
 							break;
 						case(KILLING_CLIENT):
 							break;
