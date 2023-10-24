@@ -6,17 +6,17 @@ DirectoryListing::DirectoryListing()
 DirectoryListing::~DirectoryListing()
 {}
 
-std::string	DirectoryListing::create_listing_html( std::string path )
+std::string	DirectoryListing::create_listing_html( std::string dir_path, std::string show_path )
 {
 	std::string out;
 
-	if ( !dir_exists(path) )
+	if ( !dir_exists(dir_path) )
 		return "";  // was anderes als Fehler??
 
 	out = "";
-	out += _create_head( path );
+	out += _create_head( show_path );
 	out += _create_parent_dir();
-	out += _create_all_listings( path );
+	out += _create_all_listings( dir_path );
 	out += _end();
 
 	return out;

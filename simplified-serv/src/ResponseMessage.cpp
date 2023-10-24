@@ -535,8 +535,10 @@ std::string		ResponseMessage::_check_create_dir_listing( std::string path, std::
 {
 	std::string			autoindex;
 	std::string			out;
+	std::string			show_path;
+	size_t				len;
 
-	if ( status_!= 404 )
+	if ( status_code!= 404 )
 		return "";
 	if ( !dir_exists(path) )
 		return "";
@@ -547,8 +549,11 @@ std::string		ResponseMessage::_check_create_dir_listing( std::string path, std::
 		_target_path = _return_path_to_error_file( _statusCode );
 		return "";
 	}
+	len = _cwd.size();
+	show_path = path.substr( len, std::string::npos );
+
 	DirectoryListing	DL;
-	out = DL.create_listing_html( path );
+	out = DL.create_listing_html( path, show_path );
 	_target_path = "";
 	_statusCode = 200; // set private variable !
 	*content_type = "html";

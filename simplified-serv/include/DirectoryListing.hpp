@@ -12,7 +12,7 @@ class DirectoryListing {
 	public:
 		DirectoryListing( );
 		~DirectoryListing();
-		std::string		create_listing_html( std::string path );
+		std::string	create_listing_html( std::string dir_path, std::string show_path );
 
 
 	private:
