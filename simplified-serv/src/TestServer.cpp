@@ -114,44 +114,42 @@ int		TestServer::checkPollAction(short revents, int fd)
 void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket)
 {
 	std::cout << "RESPONDING BY WRITING => " << std::endl;
-	std::string	chunkStr;
-	int	size = socket.getResponseStr().length();
-
-	if (size >= 9216)
+	std::ifstream	file;
+	file.open(socket.getResponseFile().c_str(), std::ifstream::binary);
+	if (!file)
+		std::cout << RED << "FILE WAS NOT BEEN OPEN!" << BLANK << std::endl;
+	char	chunk_str[9216];
+	file.seekg(socket.file_pos);
+	file.read(chunk_str, 9216);
+	if (send(_it->fd, chunk_str, file.gcount(), 0) == -1)
 	{
-		chunkStr = socket.getResponseStr().substr(0, 9216);
-		size = 9216;
+		std::cout << "SEND FAILED!" << std::endl;
 	}
-	else
-	{
-		chunkStr = socket.getResponseStr().substr(0, size);
-	}
-	if (size != 0)
-	{
-		if (send(_it->fd, chunkStr.c_str(), size, 0) != -1)
-		{
-			std::string	tmp_response_str = socket.getResponseStr().substr(size);
-			//tmp_response_str.erase(tmp_response_str.begin(), tmp_response_str.begin() + size);
-			socket.setResponseStr(tmp_response_str);
-		}
-		else
-		{
-			std::cout << "SEND FAILED!" << std::endl;
-		}
-	}
-	if (socket.getResponseStr().empty() == true)
+	if (file.eof())
 	{
 		std::cout << "WE HAVE FINISHED WRITING TO THE BROWSER" << std::endl;
-		_socket_arr.erase(_it->fd);
 		//CLOSE THE SOCKET
+		file.close();
+		socket.file_pos = 0;
 		if (close(_it->fd) == 0)
 			std::cout << GREEN "Client Socket: " << _it->fd << " was closed successfuly" << std::endl;
 		else
 			std::cout << RED "ERROR: failed to close the client socket" << BLANK << std::endl;
+		if (std::remove(socket.getResponseFile().c_str()) == 0) {
+        // File was successfully deleted
+        	std::cout << "File deleted successfully: " << socket.getResponseFile() << std::endl;
+    	} else {
+        // An error occurred while deleting the file
+        	std::perror("Error deleting the file");
+    	}
+		_socket_arr.erase(_it->fd);
 		_sockets_for_poll.erase(_it);
 		_nbr_of_client_sockets--;
 		_nbr_of_sockets_in_poll--;
+		return ;
 	}
+	socket.file_pos = file.tellg();
+	file.close();
 }
 
 void	TestServer::_DeleteRequest(int fd)
@@ -346,6 +344,18 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 		ResponseMessage responseObj((char *)socket.getRequestHeaderStr().c_str()); // GET
 		std::cout << RED << "PREPARING RESPONSE 2" BLANK << std::endl;
 		socket.setResponseStr(responseObj.createResponse());
+
+		std::stringstream	ss;
+		std::string			number;
+		ss << socket.getSocketFd();
+		ss >> number;
+		ss.clear();
+		std::string	filename = "tmp/tmp_file_" + number;
+
+		socket.setResponseFile(filename);
+		std::ofstream	file(filename.c_str(), std::ofstream::out | std::ofstream::binary);
+		file << socket.getResponseStr();
+		file.close();
 		socket.setSocketRequest(true);
 		std::cout << GREEN << "CRAFTED GET RESPONSE STR" << BLANK << std::endl;
 	}
@@ -427,6 +437,17 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuff
 	if (end_of_post == true)
 	{
 		socket.setResponseStr("HTTP 201: Created");
+		std::stringstream	ss;
+		std::string			number;
+		ss << socket.getSocketFd();
+		ss >> number;
+		ss.clear();
+		std::string	filename = "tmp/tmp_file_" + number;
+
+		socket.setResponseFile(filename);
+		std::ofstream	file(filename.c_str(), std::ofstream::out | std::ofstream::binary);
+		file << socket.getResponseStr();
+		file.close();
 		socket.setSocketRequest(true);
 		socket.setRequestHeader(true);
 		out.close();
@@ -524,9 +545,10 @@ void    TestServer::launch()
 								}
 								else 
 								{
-									Socket	*curr_socket = &_socket_arr.find(it->fd)->second;
 									_buffer_vector.clear();
 									_buffer_vector.reserve(bytes_read);
+									Socket	*curr_socket = &_socket_arr.find(it->fd)->second;
+
 									for (int i = 0; i < bytes_read; ++i)
 									{
 										_buffer_vector.push_back(static_cast<uint8_t>(readData[i]));

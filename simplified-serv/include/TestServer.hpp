@@ -12,6 +12,7 @@
 # include <sstream>      // for std::stringstream
 # include <vector>
 # include <map>
+# include <string>
 # include <fstream>
 # include <exception>
 # include <netinet/in.h>
@@ -44,19 +45,20 @@ class TestServer{
             // Destructor
             ~TestServer (void);
 
-                void	launch();
+            void	launch();
         
         private:
-                int	_loop_counter;
-				std::vector<uint8_t> _buffer_vector;
+            int	_loop_counter;
+			std::vector<uint8_t> _buffer_vector;
 
-                int    							_nbr_of_ports;
-                int                             _nbr_of_client_sockets;
-                int								_nbr_of_sockets_in_poll;
-                std::vector<int>      			_ports;
-                std::map<int, Socket>           _socket_arr;
+            int    							_nbr_of_ports;
+            int                             _nbr_of_client_sockets;
+            int								_nbr_of_sockets_in_poll;
+            std::vector<int>      			_ports;
+            std::map<int, Socket>           _socket_arr;
 
-                std::vector<pollfd>				_sockets_for_poll; // For now the most important bit
+            std::vector<pollfd>				_sockets_for_poll;
+
 		int		checkPollAction(short revents, int fd);
 	    void	_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket);
 
