@@ -181,6 +181,8 @@ int	TestServer::_checkForMethods(Socket &socket, std::string &strBuffer)
 	return (0);
 }
 
+
+//!!!! LETS IMPLEMENT MAXES FUNCTION!
 void	TestServer::_checkIfItIsACGI(Socket &socket)
 {
 	std::string	header = socket.getRequestHeaderStr();
@@ -278,7 +280,7 @@ int		TestServer::_checkPostForBoundary(Socket &socket)
 	{
 		//ERROR 400 Bad Request
 		std::cout << YELL << "ERROR CHECK POST FOR BOUNDARY" BLANK << std::endl;
-		socket.setErrorFlag(true);
+		return (_setErrorResponseStr(socket, 400));
 		return	(-1);
 	}
 	return (0);
@@ -292,12 +294,13 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 		if (_checkForMethods(socket, strBuffer) == -1)
 			return -1;
 	}
+
 	// CHECK if request came in full
 	std::string	tmp_str = socket.getRequestHeaderStr();
 	tmp_str.append(strBuffer);
 	socket.setRequestHeaderStr(strBuffer);
 	std::size_t	header_end = socket.getRequestHeaderStr().find("\r\n\r\n");
-	//CHECK IF HEADER CAME in one CHUNK
+	// CHECK IF HEADER CAME in one CHUNK
 	if (header_end != std::string::npos)
 	{
 		socket.setRequestHeader(true);
@@ -307,7 +310,7 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 		socket.setRequestBodyStr(tmp_body);
 		socket.setRequestHeaderStr(tmp_header);
 	}
-	//CHECKING IF ITS CGI
+	// CHECKING IF ITS CGI
 	if (socket.getRequestHeader() == true && (socket.getRequestMethod() == "POST" || socket.getRequestMethod() == "GET"))
 		_checkIfItIsACGI(socket);
 	if (socket.getRequestHeader() == true && socket.getRequestMethod() == "POST")
@@ -325,7 +328,6 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 				//ERROR 400 Bad Request
 				return (_setErrorResponseStr(socket, 400));
 			}
-			std::cout << "AFTER MULTIFORM DATA!" << std::endl;
 		}
 		else if (socket.getRequestHeaderStr().find("application/x-www-form-urlencoded") != std::string::npos)
 		{
@@ -385,9 +387,6 @@ int	TestServer::_checkForBoundaryStr(std::string &boundary_to_find)
 
 void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuffer)
 {
-	//(void)strBuffer;
-	//std::cout << "SAVING TO THE FILE!" << std::endl;
-	//std::string convert(_buffer_vector.begin(), _buffer_vector.end());
 	std::string start_boundary = "--"+ socket.getBoundaryStr() +"\r\n";
 	std::string end_boundary = "\r\n--"+socket.getBoundaryStr()+"--";
 	std::vector<uint8_t>::iterator start = _buffer_vector.begin();
@@ -401,11 +400,6 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuff
 		std::cout << GREEN "WE FOUND THE BOUNDARY END" << BLANK << std::endl;
 		end_of_post = true;
 		end = _buffer_vector.begin() + end_boundary_pos;
-	}
-
-	if (start_boundary_pos != std::string::npos)
-	{
-		//std::cout << "WE DID NOT FOUND THE BOUNDARY END" << std::endl;
 	}
 
 	if (start_boundary_pos != std::string::npos)
@@ -457,7 +451,6 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuff
 
 void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 {
-	//std::cout << "WE ARE IN POST!" << std::endl;
 	if (socket.getMultiform() == true)
 	{
 		if (socket.getCGI() == true)
@@ -506,11 +499,6 @@ void    TestServer::launch()
 	while (g_server_shutdown  == -1)
 	{
 		ready = poll(&_sockets_for_poll[0], _sockets_for_poll.size(), 2000);
-		// for (std::vector<pollfd>::iterator i = _sockets_for_poll.begin(); i != _sockets_for_poll.end(); i++)
-		// {
-		// 	std::cout << "Socket: " << i->fd << std::endl;
-		// }
-		// std::cout << std::endl;
 		switch (ready)
 		{
 			case(-1):
@@ -530,7 +518,7 @@ void    TestServer::launch()
 						case(READING):
 							if (_socket_arr.find(it->fd)->second.getType() == "Listening socket")
 							{
-								std::cout << YELL "ACCEPT CONNECTION => " << it->fd << BLANK << std::endl;
+								std::cout << YELL "ACCEPT CONNECTION => " << it->fd;
 								_acceptConnection(it->fd);
 								std::cout << YELL "DONE" BLANK << std::endl << std::endl;
 							}
@@ -583,11 +571,8 @@ void    TestServer::launch()
 							ready--;
 							break;
 						case(WRITING):
-							//CHUNKING THE  WRITING TO THE SERVER
-							//std::cout << YELL "WRITING " << BLANK << std::endl;
 							_pollWriting(it, _socket_arr.find(it->fd)->second);
 							ready--;
-							//std::cout << GREEN "DONE" BLANK << std::endl << std::endl;
 							break;
 						case(KILLING_CLIENT):
 							break;
