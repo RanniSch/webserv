@@ -17,6 +17,7 @@ Socket::Socket()
 
 	_port = -2;
 	_socket_fd = -2;
+	file_pos = 0;
 
 	_request_method.clear();
 	_request_header.clear();
@@ -154,6 +155,7 @@ void	Socket::setBoundaryEndFound(bool boundary_end){ _boundary_end_found = bound
 void	Socket::setSecondHeaderFound(bool secondHeaderFound){ _second_header_found = secondHeaderFound;}
 void	Socket::setSecondHeader(std::string second_header) { _second_header = second_header;}
 void	Socket::setFileName(std::string file_name) { _file_name = file_name;}
+void	Socket::setResponseFile(std::string response_file_name) {_response_file_name = response_file_name;}
 
 //GETTERS
 bool			Socket::getErrorFlag(void) { return (_error);}
@@ -176,3 +178,4 @@ bool			Socket::getBoundaryEndFound(void){ return (_boundary_end_found);}
 bool			Socket::getSecondHeaderFound(void){ return (_second_header_found);}
 std::string		Socket::getSecondHeader(void) { return (_second_header);}
 std::string		Socket::getFileName(void){ return (_file_name);}
+std::string		Socket::getResponseFile(void){ return (_response_file_name);}

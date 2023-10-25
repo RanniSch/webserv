@@ -18,6 +18,8 @@ class Socket
 		~Socket();
 
 
+		std::streampos	file_pos;
+
 		void			startListening(void);
 
 		void			acceptConnection(int fd);
@@ -44,6 +46,7 @@ class Socket
 		void			setSecondHeaderFound(bool secondHeaderFound);
 		void			setSecondHeader(std::string second_header);
 		void			setFileName(std::string fileName);
+		void			setResponseFile(std::string response_file_name);
 
 		//GETTERS
 		bool			getErrorFlag(void);
@@ -68,6 +71,7 @@ class Socket
 		int				getContentLen(void);
 		std::string		getBoundaryStr(void);
 		std::string		getFileName(void);
+		std::string		getResponseFile(void);
 
 	private:
 		bool			_error;
@@ -88,6 +92,7 @@ class Socket
 		std::string		_boundaryStr;
 		std::string		_second_header;
 		std::string		_file_name;
+		std::string		_response_file_name;
 		std::string		_request_body;
 		std::string		_response_str;
 
