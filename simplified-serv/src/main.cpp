@@ -3,9 +3,6 @@
 
 #include "TestServer.hpp"
 
-// for debugging Max
-// bool debug_var = false;
-// for debugging Max
 
 Config *g_config;//mach das wieder weg!!!
 int		g_server_shutdown = -1;
@@ -28,8 +25,32 @@ int main(int argc, char **argv)
 	Config config(argv[1]);
 	g_config = &config; // raus
 
+
+
+
+
+	std::string value = "start";
+	size_t		_server = 0;
+	std::string _location = "/cgi-bin"; // carefull "/cgi-bin/subdirectory" 
+										// is also location "/cgi-bin", except 
+										// there is a location "/cgi-bin/subdirectory" in config file
+	std::string _parameter = "cgi_ext";
+	for ( size_t i = 0; value != ""; i++)
+	{
+		value = g_config->get(_server, _location, _parameter, i);	
+		value += "to_show";
+	}						
+
+
+
+
+
+
+
 	signal(SIGINT, signalHandler);
     TestServer server;
+
+
 
     server.launch();
 	server.~TestServer();
