@@ -1,15 +1,91 @@
 #include "../include/ResponseMessage.hpp"
 
-//const std::map<std::string, std::vector<std::string> > &config, char* request_cstr )
+
 ResponseMessage::ResponseMessage( char* request_cstr )
-:_statusCode(0), _config(*g_config), _server(0)//, _config_old(config),  _request_cstr(request_cstr)
+:_statusCode(0), _config(*g_config), _server(0)
+{
+	std::string request;
+	request = request_cstr;
+	_parse_request( request );
+}
+
+ResponseMessage::ResponseMessage( std::string request )
+:_statusCode(0), _config(*g_config), _server(0)
+{
+	_parse_request( request );
+
+
+	// _fill_status_line_and_default_error_page_and_status_code_hirarchy();
+	// _location = "";
+	// if ( request == "" )
+	// 	return;
+	// if ( !_server_number_valid() )
+	// {
+	// 	std::cout << "server number not valid in ResponseMessage!" << std::endl;
+	// 	return;
+	// }
+	// std::cout << request_cstr << std::endl;   // testing
+	// RequestObj 							reqObj(request);
+	// try
+	// {
+	// 	reqObj.ParseIntoMap(_request_map);
+	// }
+	// catch(std::string str)
+	// {
+	// 	if (str == "no valid request")
+	// 		std::cout << "maybe it's data" << std::endl; 
+	// 		// hier etwas für ausdenken, was machen wenn der request komisch ist entweder 400 bad request oder 500 server error
+	// 	if ( str == "empty input" )
+	// 	{
+	// 		// _error = str; // use it ?
+	// 		// throw _error;
+	// 		return;
+	// 	}
+	// }
+	// catch(...)
+	// {
+	// 	std::cout << "bad request" << std::endl; // for Max (send request again oder so)
+	// }
+	// // hard errors will be thrown, like 404, 403, 500... (with an html document in return)
+	// // statuses like 200 and 301 not
+	// try 
+	// {
+	// 	_check_URI_len();
+	// 	_separate_query(); // has to come after check uri len
+	// 	_check_and_set_location();
+	// 	_check_for_allowed_request_method(); // has to come after we know the location
+	// 	_cwd = _config.get_cwd();
+	// 	_set_root_directory();
+	// 	// the target path should be the file that will be send back, html, index, error page or picture...
+	// 	// if the file does not exist target path should be empty
+	// 	_target_path = _check_redirect_and_return_target_path();
+	// 	_dir_listing_target_path = _target_path; // comes right before check index
+	// 	_target_path = _check_index_and_return_target_path(); // hiervor aber erst redirect machen!!!
+	// 	// special error codes to target path here permission denied or so... 
+	// 	_target_path = _check_target_path_for_existence(); 
+	// }
+	// catch( size_t status_code )
+	// {
+	// 	_target_path = _return_path_to_error_file( _statusCode );
+	// }
+}
+
+ResponseMessage::ResponseMessage( void ):_config(*g_config)//, _config_old(_config_for_compiler) // get rid of global variable and of config old
+{
+	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
+}
+
+ResponseMessage::~ResponseMessage( void )
+{
+
+}
+
+void	ResponseMessage::_parse_request( std::string &request )
 {
 	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
 
 	_location = "";
-	std::string 
-	request;
-	request = request_cstr;
+	
 	if ( request == "" )
 		return;
 	if ( !_server_number_valid() )
@@ -17,7 +93,7 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 		std::cout << "server number not valid in ResponseMessage!" << std::endl;
 		return;
 	}
-	std::cout << request_cstr << std::endl;   // testing
+	// std::cout << request << std::endl;   // testing
 	RequestObj 							reqObj(request);
 	try
 	{
@@ -61,17 +137,6 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 	{
 		_target_path = _return_path_to_error_file( _statusCode );
 	}
-	
-}
-
-ResponseMessage::ResponseMessage( void ):_config(*g_config)//, _config_old(_config_for_compiler) // get rid of global variable and of config old
-{
-	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
-}
-
-ResponseMessage::~ResponseMessage( void )
-{
-
 }
 
 /**

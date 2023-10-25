@@ -26,6 +26,7 @@ extern Config *g_config;
 class ResponseMessage {
 	public:
 		ResponseMessage( char* request_cstr );
+		ResponseMessage( std::string request );
 		ResponseMessage( void );
 		~ResponseMessage( void );
 		std::string	createResponse( size_t status_code );
@@ -72,6 +73,7 @@ class ResponseMessage {
 		/*
 				---------  New functions  ---------
 		*/
+		void			_parse_request( std::string &request );
 		void			_fill_status_line_and_default_error_page_and_status_code_hirarchy( void );
 		bool			_server_number_valid( void );
 		void			_check_URI_len( void );

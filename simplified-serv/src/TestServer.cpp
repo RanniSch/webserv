@@ -29,6 +29,8 @@ TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3), _nbr_of_client_sock
 		_sockets_for_poll.push_back(tmp_pollfd);
 	}
 	_nbr_of_sockets_in_poll += 3;
+
+	(void)_loop_counter; // Lukas: delete _loop_counter?
 }
 
 // Destructor
