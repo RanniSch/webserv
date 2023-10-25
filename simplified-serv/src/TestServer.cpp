@@ -457,7 +457,7 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 			std::cout << GREEN "WE HAVE A FULL CGI BODY! LETS EXECUTE A CGI!" BLANK << std::endl;
 			socket.setSocketRequest(true);
 			//EXECUTE POST CGI HERE
-
+			//socket.getRequestBodyStr() // the string contains everything which is in the body
 
 			//FUTURE SET RESPONSESTR HERE
 		}
