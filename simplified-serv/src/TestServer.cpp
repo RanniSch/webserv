@@ -59,6 +59,39 @@ int		TestServer::_setErrorResponseStr(Socket &socket, int Error_Code)
 	return (-1);
 }
 
+//Takes responseStr that was created by Maxes function ResponseMessage::createResponse()
+//And just writes it into a file.
+int	TestServer::_saveResponseToAFile(Socket &socket, std::string response)
+{
+    std::string number;
+	std::stringstream ss;
+
+    ss << socket.getSocketFd();
+    ss >> number;
+    ss.clear();
+
+    std::string filename = "tmp/tmp_file_" + number;
+
+    socket.setResponseFile(filename);
+    std::ofstream file(filename.c_str(), std::ofstream::out | std::ofstream::binary);
+
+    if (file.is_open()) {
+        file << response;
+        file.close();
+        if (file.good()) {
+			return (0);
+        } else {
+            std::cerr << "Error occurred while writing to the file." << std::endl;
+			return (-1);
+        }
+    } else {
+		std::cerr << "Error occurred while opening the file." << std::endl;
+        return (-1);
+    }
+
+    return 0;
+}
+
 void    TestServer::_acceptConnection(int fd)
 {
 	Socket tmp;
@@ -113,9 +146,8 @@ int		TestServer::checkPollAction(short revents, int fd)
 
 void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket)
 {
-	std::cout << "RESPONDING BY WRITING => " << std::endl;
 	std::ifstream	file;
-	file.open(socket.getResponseFile().c_str(), std::ifstream::binary);
+	file.open(socket.getResponseFile().c_str(), std::ios::binary);
 	if (!file)
 		std::cout << RED << "FILE WAS NOT BEEN OPEN!" << BLANK << std::endl;
 	char	chunk_str[9216];
@@ -345,19 +377,9 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 		std::cout << RED << "PREPARING RESPONSE 1" BLANK << std::endl;
 		ResponseMessage responseObj((char *)socket.getRequestHeaderStr().c_str()); // GET
 		std::cout << RED << "PREPARING RESPONSE 2" BLANK << std::endl;
-		socket.setResponseStr(responseObj.createResponse());
 
-		std::stringstream	ss;
-		std::string			number;
-		ss << socket.getSocketFd();
-		ss >> number;
-		ss.clear();
-		std::string	filename = "tmp/tmp_file_" + number;
-
-		socket.setResponseFile(filename);
-		std::ofstream	file(filename.c_str(), std::ofstream::out | std::ofstream::binary);
-		file << socket.getResponseStr();
-		file.close();
+		if (_saveResponseToAFile(socket, responseObj.createResponse()) != 0)
+			std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
 		socket.setSocketRequest(true);
 		std::cout << GREEN << "CRAFTED GET RESPONSE STR" << BLANK << std::endl;
 	}
@@ -430,18 +452,8 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuff
 	}
 	if (end_of_post == true)
 	{
-		socket.setResponseStr("HTTP 201: Created");
-		std::stringstream	ss;
-		std::string			number;
-		ss << socket.getSocketFd();
-		ss >> number;
-		ss.clear();
-		std::string	filename = "tmp/tmp_file_" + number;
-
-		socket.setResponseFile(filename);
-		std::ofstream	file(filename.c_str(), std::ofstream::out | std::ofstream::binary);
-		file << socket.getResponseStr();
-		file.close();
+		if (_saveResponseToAFile(socket, "HTTP 201: Created") != 0)
+			std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
 		socket.setSocketRequest(true);
 		socket.setRequestHeader(true);
 		out.close();
