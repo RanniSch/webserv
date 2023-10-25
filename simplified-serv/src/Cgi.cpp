@@ -1,6 +1,11 @@
 #include "../include/Cgi.hpp"
 
-// handle timeout
+// Global flag to track if timeout occurred
+// variable timeoutOccurred is intended for use in signal processing.
+// Data type sig_atomic_t ensures that the variable is read and written atomically (uninterrupted). 
+// Keyword volatile signals to the compiler that the variable can change at runtime, especially in signal handling routines.
+// The initial value of the variable is set to 0 and it is used to indicate whether a timeout event has occurred (1 for yes, 0 for no).
+// volatile sig_atomic_t timeoutOccurred = 0;
 
 //Cgi::Cgi(ClientSocket & cl) : _client(cl)
 Cgi::Cgi()
@@ -50,7 +55,7 @@ int Cgi::runCgi()
 	if (pipe(pipefd) == -1)
 	{
 		std::cout << "Error CGI: No pipe created!" << std::endl;
-		return 1; // we could set it to INTERNAL_ERROR
+		return INTERNAL_ERROR;
 	}
 
 	// New process launched. Return value cgiPid is used to distinguish between the parent process and the child process.
@@ -60,7 +65,7 @@ int Cgi::runCgi()
 	if (cgiPid == -1)
 	{
 		std::cout << "Error CGI: Fork failure!" << std::endl;
-		return 1; // we could set it to INTERNAL_ERROR
+		return INTERNAL_ERROR;
 	}
     else if (cgiPid == 0)
 	{
@@ -70,6 +75,9 @@ int Cgi::runCgi()
 		// redirecting the standard output into the Pipe
 		dup2(pipefd[1], STDOUT_FILENO);
 		close(pipefd[1]);
+
+		// Setting alarm for timeout, when script takes too long; Is that at a correct position???
+		alarm(CGI_TIMEOUT/1000);
 
 		const char* _args[3];
 		_args[0] = cgiPath.c_str();
@@ -112,7 +120,9 @@ int Cgi::runCgi()
 			i++;
 		}
 		env[i] = NULL;
-
+		
+		//std::cout << "\nPrint ELSE IF\n" << std::endl;	// for testing Ranja
+		
 		// Executes the CGI-Script
 		execve(_args[0], const_cast<char* const*>(_args), const_cast<char* const*>(env));
 
@@ -122,25 +132,29 @@ int Cgi::runCgi()
 	}
 	else
 	{
+		//std::cout << "\nPrint ELSE\n" << std::endl;	// for testing Ranja
+		
 		// closes the writing end of the Pipe.
 		close(pipefd[1]);
 		waitpid(cgiPid, &status, 0);	// wait for a child process to stop or terminate
 
-		char buffer[60000];				// is that smart to have a static buffer?
-
+		// puts script output into _scriptOutput
+		char buffer[2];
 		while (read(pipefd[0], buffer, sizeof(buffer)) > 0)
 		{
 			_scriptOutput += buffer;
 		}
+
 		// closes the reading end of the Pipe
 		close(pipefd[0]);
-		std::cout << "ScriptOutput: " << _scriptOutput << std::endl;
+		std::cout << "ScriptOutput: " << _scriptOutput << std::endl;	// only for testing -> Ranja
 	}
 	
 	// Query status to see if a child process ended abnormally
 	if (WIFSIGNALED(status))
 	{
-		return 1; //GATEWAY_TIMEOUT;
+		//remove(TMP_CGI);	// file from Lukas where Body is in; TMP_CGI = path to file
+		return GATEWAY_TIMEOUT;
 	}
 	return 0;
 }

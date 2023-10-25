@@ -457,7 +457,7 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 			std::cout << GREEN "WE HAVE A FULL CGI BODY! LETS EXECUTE A CGI!" BLANK << std::endl;
 			socket.setSocketRequest(true);
 			//EXECUTE POST CGI HERE
-
+			//socket.getRequestBodyStr() // the string contains everything which is in the body
 
 			//FUTURE SET RESPONSESTR HERE
 		}
@@ -542,13 +542,13 @@ void    TestServer::launch()
 									else if (curr_socket->getRequestMethod() == "GET" && curr_socket->getCGI() == true)
 									{
 										//EXECUTE GET METHOD CGI HERE
-										//Cgi cgi(_socket_arr.at(_client_socket_fd)); // Ranja
 										Cgi cgi;
 										cgi.setRequestChar(_buffer_vector.data());
 										cgi.runCgi(); // Ranja
 										ResponseMessage rm;
 										std::string test = rm.createResponse(cgi.getScriptString()); // send back
 										// SET response str of the socket with the setResponseStr setter!
+										_socket_arr.find(it->fd)->second.setResponseStr(test);
 										//curr_socket->setResponseStr(test);
 										// Also set the socket to be ready for writing with so that the checkPollAction would know that it is okay to write.
 										//curr_socket->setSocketRequest(true);
