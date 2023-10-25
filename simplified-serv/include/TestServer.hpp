@@ -59,6 +59,7 @@ class TestServer{
 
             std::vector<pollfd>				_sockets_for_poll;
 
+		int 	_saveResponseToAFile(Socket &socket, std::string response);
 		int		checkPollAction(short revents, int fd);
 	    void	_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket);
 
