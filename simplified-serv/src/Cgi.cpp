@@ -130,7 +130,7 @@ int Cgi::runCgi()
     	std::cerr << "Error: Executing CGI script" << std::endl;
     	exit(1);
 	}
-	else
+	else	// this is the main process; else if is the child process
 	{
 		//std::cout << "\nPrint ELSE\n" << std::endl;	// for testing Ranja
 		
