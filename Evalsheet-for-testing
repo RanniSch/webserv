@@ -56,7 +56,6 @@ Using telnet, curl, prepared files, demonstrate that the following features work
 
 Check CGI
 Pay attention to the following:
-• The server is working fine using a CGI.
 • The CGI should be run in the correct directory for relative path file access.
 • With the help of the students you should check that everything is working properly. You have to test the CGI with the "GET" and "POST" methods.
 • You need to test with files containing errors to see if the error handling works properly. You can use a script containing an infinite loop or an error;
