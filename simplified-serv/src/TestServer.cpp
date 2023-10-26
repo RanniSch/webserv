@@ -568,19 +568,25 @@ void    TestServer::launch()
 										//EXECUTE GET METHOD CGI HERE
 										Cgi cgi;
 										cgi.setRequestChar(_buffer_vector.data());
-										cgi.runCgi(); // Ranja
+
+										int	cgiReturn;
+										cgiReturn = cgi.runCgi(); // Ranja
+
 										ResponseMessage rm;
-										//std::string test = rm.createResponse(cgi.getScriptString()); // send back
-										// SET response str of the socket with the setResponseStr setter!
-										//_socket_arr.find(it->fd)->second.setResponseStr(test);
-										//curr_socket->setResponseStr(test);
-										// Also set the socket to be ready for writing with so that the checkPollAction would know that it is okay to write.
-										//curr_socket->setSocketRequest(true);
-										
-										//ResponseMessage obj;
-        								if (_saveResponseToAFile(*curr_socket, rm.createResponse(cgi.getScriptString())) != 0)
-            								std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
-        								curr_socket->setSocketRequest(true);
+
+										if (cgiReturn == 0)
+										{
+											if (_saveResponseToAFile(*curr_socket, rm.createResponse(cgi.getScriptString())) != 0)
+            									std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
+        									curr_socket->setSocketRequest(true); // Also set the socket to be ready for writing with so that the checkPollAction would know that it is okay to write.
+										}
+										else
+										{
+											if (_saveResponseToAFile(*curr_socket, rm.createResponse(cgiReturn)) != 0)
+            									std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
+        									curr_socket->setSocketRequest(true);
+											curr_socket->setErrorFlag(true);
+										}
 									}
 								}
 							}

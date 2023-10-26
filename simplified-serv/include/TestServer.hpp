@@ -33,7 +33,7 @@
 // Global settings
 # define CGI_TIMEOUT		1000
 # define INTERNAL_ERROR		500     // gets returned from CGI class
-# define GATEWAY_TIMEOUT	504     // gets returned from CGI class
+# define GATEWAY_TIMEOUT	508     // gets returned from CGI class
 
 extern Config *g_config;
 extern int	g_server_shutdown;

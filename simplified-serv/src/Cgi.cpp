@@ -27,7 +27,7 @@ void	Cgi::setRequestChar(unsigned char* requestC)
 
 int Cgi::runCgi()
 {
-    if (!_python3Installed())
+	if (!_python3Installed())
 	{
         throw(CgiException());
 	}
@@ -153,7 +153,6 @@ int Cgi::runCgi()
 	// Query status to see if a child process ended abnormally
 	if (WIFSIGNALED(status))
 	{
-		//remove(TMP_CGI);	// file from Lukas where Body is in; TMP_CGI = path to file
 		return GATEWAY_TIMEOUT;
 	}
 	return 0;
