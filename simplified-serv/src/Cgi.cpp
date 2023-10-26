@@ -50,6 +50,9 @@ int Cgi::runCgi()
 	std::string queryString = findRequest.get_query();
 	std::cout << "_query_" << queryString << std::endl;
 
+	std::string request_method = findRequest.request_method();
+	std::cout << "_request Method_ " << request_method << std::endl;
+
 	// Pipe is created, where pipefd is the pipe array containing the pipe endpoints.
 	// The read end of the pipe is pipefd[0], and the write end is pipefd[1].
 	if (pipe(pipefd) == -1)

@@ -927,3 +927,13 @@ std::string	ResponseMessage::get_cgi_path( void )
 	cgi_path = _config.get( _server, _location, "cgi_path", i);
 	return ( cgi_path );
 }
+
+std::string	ResponseMessage::request_method( void )
+{
+	std::map<std::string, std::string>::iterator	it;
+
+	it = _request_map.find("Method");
+	if ( it == _request_map.end() )
+		return "";
+	return (it->second);
+}
