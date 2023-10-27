@@ -27,7 +27,6 @@ In the configuration file, check whether you can do the following and test the r
 Basic checks
 Using telnet, curl, prepared files, demonstrate that the following features work properly:
 • GET, POST and DELETE requests should work.
-• UNKNOWN requests should not result in a crash.
 • For every test you should receive the appropriate status code.
 • Upload some file to the server and get it back.
 
