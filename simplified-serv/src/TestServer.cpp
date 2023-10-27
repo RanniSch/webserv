@@ -478,6 +478,7 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 	{
 		//PARSING CGI !!! NOT IMPLEMENTED YET // Put the stuff for Ranja here
 		std::cout << YELL "APPLICATION CGI HEADER:\n" BLANK << socket.getRequestHeaderStr() << std::endl;
+		//std::cout << GREEN "CHECK ALL: [" << stringBuffer << "]" << BLANK << std::endl;
 		std::cout << GREEN "APLLICATION CGI BODY:\n[" BLANK << socket.getRequestBodyStr() << "]" << std::endl;
 		socket.setPayloadSize(socket.getPayloadSize() + socket.getRequestBodyStr().length());
 		if (socket.getPayloadSize() == socket.getContentLen())
@@ -554,7 +555,7 @@ void    TestServer::launch()
 									{
 										_buffer_vector.push_back(static_cast<uint8_t>(readData[i]));
 									}
-									std::string stringBuffer(readData, 9216);
+									std::string stringBuffer(readData, bytes_read);
 									if (curr_socket->getRequestHeader() == false)
 									{
 										if (_readAndParseHeader(*curr_socket, stringBuffer) == -1)
