@@ -25,6 +25,12 @@ void	Cgi::setRequestChar(unsigned char* requestC)
 	std::cout << "_request:" << _request << std::endl;	// Ranja for testing
 }
 
+void	Cgi::setRequestBody(std::string requestBody)
+{
+	_requestBody = requestBody;
+	std::cout << "_requestBody:" << _requestBody << std::endl;
+}
+
 
 int Cgi::runCgi()
 {
@@ -88,6 +94,7 @@ int Cgi::runCgi()
 		_args[1] = scriptPath.c_str();
 		_args[2] = NULL;
 
+		
 		//_environmentals.push_back(messageBody);
 		
 		int	i = 0;
