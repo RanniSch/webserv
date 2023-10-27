@@ -162,6 +162,7 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	_status_line.insert( std::pair<size_t, std::string>(500, "Internal Server Error") );
 	_status_line.insert( std::pair<size_t, std::string>(501, "Not Implemented") );
 	_status_line.insert( std::pair<size_t, std::string>(505, "HTTP Version Not Supported") );
+	_status_line.insert( std::pair<size_t, std::string>(508, "Loop Detected") );
 	/*
 			-------------	fill default error pages to status codes	-------------
 	*/
@@ -178,6 +179,7 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	_default_error_page.insert( std::pair<size_t, std::string>(500, "<!DOCTYPE html><html><head><title>500 Internal Server Error</title></head><body><h1>500 Internal Server Error</h1><p>An unexpected server error occurred. Please try again later.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(501, "<!DOCTYPE html><html><head><title>501 Not Implemented</title></head><body><h1>501 Not Implemented</h1><p>The requested functionality is not implemented on this server.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(505, "<!DOCTYPE html><html><head><title>505 HTTP Version Not Supported</title></head><body><h1>505 HTTP Version Not Supported</h1><p>The requested HTTP version is not supported by this server.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(508, "<!DOCTYPE html><html><head><title>508 Loop Detected</title></head><body><h1>508 Loop Detected</h1><p>The action could not be finished, because the server detected a loop while execution.</p></body></html>") );
 
 	/*
 			-------------	fill status code hirarchy	-------------
