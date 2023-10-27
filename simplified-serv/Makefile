@@ -52,6 +52,7 @@ $(NAME): $(OBJECTS)
 	@$(CC) $(CFLAGS) $(OBJ) -o $@ $^
 	@echo "$(GREEN)Finished [$(NAME)]$(RESET)"
 	@echo "please delete me" > www/delete_dir/delete_me.txt
+	@mkdir -p tmp
 
 
 ### Compile Objects ###
