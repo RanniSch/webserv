@@ -483,7 +483,8 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 		if (socket.getPayloadSize() == socket.getContentLen())
 		{
 			std::cout << GREEN "WE HAVE A FULL CGI BODY! LETS EXECUTE A CGI!" BLANK << std::endl;
-			socket.setSocketRequest(true);
+			//socket.setSocketRequest(true);
+			//curr_socket.setSocketRequest(true);
 			//EXECUTE POST CGI HERE
 			//socket.getRequestBodyStr() // the string contains everything which is in the body
 

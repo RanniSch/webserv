@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import time
 import os
 import cgi
 
@@ -24,23 +23,22 @@ form_data = ""
 if 'form_field' in form:
     form_data = form['form_field'].value
 
-# Detect actual date and time
-current_datetime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-date_time_output = f"<h1>Current Date and Time</h1><p>{current_datetime}</p>"
+# Read input from CGI environment (the message body)
+input_data = os.environ.get("QUERY_STRING")
 
-# Create HTML for environment variables
-env_vars = os.environ
-env_output = "<h1>Environment Variables</h1><table border='1'><tr><th>Variable</th><th>Value</th></tr>"
-for key, value in env_vars.items():
-    if key != 'LC_CTYPE':
-        env_output += f"<tr><td>{key}</td><td>{value}</td></tr>"
-env_output += "</table>"
+if input_data == "Hi":
+    answer = "<html><body><h1>Hi, how are you?</h1></body></html>"
+else:
+    answer = "<html><body><h1>Sad, that you did not write hi!</h1></body></html>"
 
 # End the HTML document
 footer = "</body></html>"
 
 # Combine all parts into the response
-response = header + date_time_output + env_output + footer
+response = header + answer + footer
+
+# Saves answer in environment
+#os.environ['MY_CGI_RESPONSE'] = response    # for this char* response = getenv("MY_CGI_RESPONSE"); in Cgi.cpp needed
 
 # Send the response to the standard output
 print(response)

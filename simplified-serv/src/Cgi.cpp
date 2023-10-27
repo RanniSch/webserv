@@ -22,6 +22,7 @@ Cgi::~Cgi()
 void	Cgi::setRequestChar(unsigned char* requestC)
 {
 	_request = requestC;
+	std::cout << "_request:" << _request << std::endl;	// Ranja for testing
 }
 
 
@@ -87,6 +88,8 @@ int Cgi::runCgi()
 		_args[1] = scriptPath.c_str();
 		_args[2] = NULL;
 
+		//_environmentals.push_back(messageBody);
+		
 		int	i = 0;
 
 		const char* queryPointer = const_cast<char*>(queryString.c_str());
