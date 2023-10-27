@@ -7,9 +7,7 @@ Guidelines
 Mandatory Part
 Check the code and ask questions
 • Launch the installation of siege with homebrew.
-• Ask explanations about the basics of an HTTP server.
 • Ask what function the group used for I/O Multiplexing.
-• Ask for an explanation of how does select() (or equivalent) work.
 • Ask if they use only one select() (or equivalent) and how they've managed the server to accept and the client to read/write.
 • The select() (or equivalent) should be in the main loop and should check file descriptors for read and write AT THE SAME TIME. If not, the grade is 0 and the evaluation process ends now.
 • There should be only one read or one write per client per select() (or equivalent). Ask the group to show you the code from the select() (or equivalent) to the read and write of a client.
