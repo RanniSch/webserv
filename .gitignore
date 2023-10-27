@@ -4,3 +4,4 @@
 *.dSYM/
 webserve
 webserv
+tmp/
