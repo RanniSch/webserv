@@ -37,8 +37,5 @@ footer = "</body></html>"
 # Combine all parts into the response
 response = header + answer + footer
 
-# Saves answer in environment
-#os.environ['MY_CGI_RESPONSE'] = response    # for this char* response = getenv("MY_CGI_RESPONSE"); in Cgi.cpp needed
-
 # Send the response to the standard output
 print(response)
