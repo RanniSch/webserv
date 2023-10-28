@@ -866,6 +866,8 @@ std::string	ResponseMessage::get_fileExtension( void )
 	std::string		output;
 	size_t			dot;
 
+	if (!file_exists(_target_path))
+		return "";
 	if( _target_path == "" )
 		return "";
 	dot = _target_path.find_last_of(".");
@@ -889,7 +891,8 @@ bool	ResponseMessage::is_Cgi( bool act_Cgi_flag )
 	std::string conf_file_Ext = "start";
 
 	target_file_Ext = get_fileExtension();
-
+	if (target_file_Ext == "")
+		return false;
 	for (size_t i = 0; conf_file_Ext != ""; i++)
 	{
 		conf_file_Ext = _config.get(_server, _location, "cgi_ext", i);
