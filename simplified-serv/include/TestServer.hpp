@@ -19,6 +19,7 @@
 # include <algorithm>    // std::search
 
 # include <poll.h>
+# include <inttypes.h>
 # include "Socket.hpp"
 # include "ClientSocket.hpp"
 # include "ListeningSocket.hpp"
@@ -59,6 +60,9 @@ class TestServer{
 
             std::vector<pollfd>				_sockets_for_poll;
 
+        //CONECTING CONFIG TO A SERVER
+        void    _logPortInfo();
+
 		int 	_saveResponseToAFile(Socket &socket, std::string response);
 		int		checkPollAction(short revents, int fd);
 	    void	_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket);
@@ -77,6 +81,7 @@ class TestServer{
         int		_checkPostForBoundary(Socket &socket);
 
         int		_setErrorResponseStr(Socket &socket, int Error_Code);
+        void    _checkTimeout(Socket &socket);
 
         void	_acceptConnection(int index);
 };
