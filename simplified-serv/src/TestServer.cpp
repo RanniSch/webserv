@@ -283,7 +283,7 @@ int	TestServer::_checkForMethods(Socket &socket, std::string &strBuffer)
 //!!!! LETS IMPLEMENT MAXES FUNCTION!
 void	TestServer::_checkIfItIsACGI(Socket &socket)
 {
-	ResponseMessage	tmp_obj(socket.getRequestHeaderStr());
+	ResponseMessage	tmp_obj(socket.getRequestHeaderStr(), socket.getServerNbr());
 	socket.setCGI(tmp_obj.is_Cgi(socket.getCGI()));
 
 }
@@ -404,7 +404,7 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 	else if (socket.getRequestHeader() == true && socket.getRequestMethod() == "GET")
 	{
 		std::cout << RED << "PREPARING RESPONSE 1" BLANK << std::endl;
-		ResponseMessage responseObj((char *)socket.getRequestHeaderStr().c_str()); // GET
+		ResponseMessage responseObj(socket.getRequestHeaderStr(), socket.getServerNbr()); // GET
 		std::cout << RED << "PREPARING RESPONSE 2" BLANK << std::endl;
 
 		if (_saveResponseToAFile(socket, responseObj.createResponse()) != 0)
@@ -533,7 +533,6 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 
 			//_saveResponseToAFile(socket, rm.createResponse(cgi.getScriptString()));
 			//socket.setSocketRequest(true);
-
 			if (cgiReturn == 0)
 			{
 				if (_saveResponseToAFile(socket, rm.createResponse(cgi.getScriptString())) != 0)
