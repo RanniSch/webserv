@@ -14,10 +14,18 @@ Socket::Socket()
 	_content_len = 0;
 	_client_addr_len = 0;
 	_payload_size_CGI = 0;
+	error_code = 0;
 
 	_port = -2;
 	_socket_fd = -2;
 	file_pos = 0;
+
+	//TIMEOUTS
+	_start_time = 0;
+	_client_timeout = 0;
+
+	_max_body_size = 0;
+	_server_nbr = 0;
 
 	_request_method.clear();
 	_request_header.clear();
@@ -135,6 +143,11 @@ void	Socket::clearSocketInfo(void)
 
 }
 
+void	Socket::logStartTime()
+{
+	_start_time = time(NULL);
+}
+
 //SETTERS
 void	Socket::setErrorFlag(bool error) { _error = error;}
 void	Socket::setSocketFd(int value) { _socket_fd = value;}
@@ -156,6 +169,10 @@ void	Socket::setSecondHeaderFound(bool secondHeaderFound){ _second_header_found 
 void	Socket::setSecondHeader(std::string second_header) { _second_header = second_header;}
 void	Socket::setFileName(std::string file_name) { _file_name = file_name;}
 void	Socket::setResponseFile(std::string response_file_name) {_response_file_name = response_file_name;}
+void	Socket::setStartTime(time_t time){ _start_time = time;}
+void	Socket::setClientTimeout(double timeout){ _client_timeout = timeout;}
+void	Socket::setServerNbr(size_t nbr) { _server_nbr = nbr;}
+void	Socket::setMaxBodySize(__int64_t max_body_size) { _max_body_size = max_body_size;}
 
 //GETTERS
 bool			Socket::getErrorFlag(void) { return (_error);}
@@ -179,3 +196,7 @@ bool			Socket::getSecondHeaderFound(void){ return (_second_header_found);}
 std::string		Socket::getSecondHeader(void) { return (_second_header);}
 std::string		Socket::getFileName(void){ return (_file_name);}
 std::string		Socket::getResponseFile(void){ return (_response_file_name);}
+time_t			Socket::getStartTime(void){ return (_start_time);}
+double			Socket::getClientTimeout(void) { return (_client_timeout);}
+size_t			Socket::getServerNbr(void) {return (_server_nbr);}
+__int64_t		Socket::getMaxBodySize(void) { return (_max_body_size);}

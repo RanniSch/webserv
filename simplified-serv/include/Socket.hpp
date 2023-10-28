@@ -10,6 +10,7 @@
 # include <vector>
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <time.h>
 
 class Socket
 {
@@ -17,15 +18,17 @@ class Socket
 		Socket();
 		~Socket();
 
-
+		int				error_code;
 		std::streampos	file_pos;
 
 		void			startListening(void);
 
 		void			acceptConnection(int fd);
 		void			clearSocketInfo(void);
+		void			logStartTime();
 
 		//SETTERS
+		void			setStartTime(time_t time);
 		void			setErrorFlag(bool error);
 		void			setPort(int port);
 		void			setSocketFd(int value);
@@ -47,6 +50,9 @@ class Socket
 		void			setSecondHeader(std::string second_header);
 		void			setFileName(std::string fileName);
 		void			setResponseFile(std::string response_file_name);
+		void			setServerNbr(size_t nbr);
+		void			setClientTimeout(double	timeout);
+		void			setMaxBodySize(__int64_t max_body_size);
 
 		//GETTERS
 		bool			getErrorFlag(void);
@@ -72,8 +78,19 @@ class Socket
 		std::string		getBoundaryStr(void);
 		std::string		getFileName(void);
 		std::string		getResponseFile(void);
+		time_t			getStartTime(void);
+		size_t			getServerNbr(void);
+		double			getClientTimeout(void);
+		__int64_t		getMaxBodySize(void);
 
 	private:
+		//TIMEOUTS
+		time_t			_start_time;
+		double          _client_timeout;
+		//CONFIG
+		__int64_t		_max_body_size;
+		size_t			_server_nbr;
+
 		bool			_error;
 		bool			_CGI;
 		bool			_multiform;

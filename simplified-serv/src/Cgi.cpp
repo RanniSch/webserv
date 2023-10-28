@@ -18,6 +18,12 @@ void	Cgi::setRequestChar(unsigned char* requestC)
 	//std::cout << "_request:" << _request << std::endl;	// Ranja for testing
 }
 
+void	Cgi::setRequest( std::string request, size_t server)
+{
+	_server_nbr = server;
+	_requestStr = request;
+}
+
 void	Cgi::setRequestBody(std::string requestBody)
 {
 	_requestBody = requestBody;
@@ -37,8 +43,9 @@ int Cgi::runCgi()
 	// To save the exit status of the child process.
 	int status;
 
-	char* cRequest = reinterpret_cast<char*>(_request);
-	ResponseMessage findRequest(cRequest);
+	// char* cRequest = reinterpret_cast<char*>(_request);
+	// ResponseMessage findRequest(cRequest);
+	ResponseMessage findRequest(_requestStr, _server_nbr);
 	std::string cgiPath = findRequest.get_cgi_path();
 	//std::cout << "_cgiPath_" << cgiPath << std::endl;
 

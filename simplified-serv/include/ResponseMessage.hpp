@@ -27,6 +27,7 @@ class ResponseMessage {
 	public:
 		ResponseMessage( char* request_cstr );
 		ResponseMessage( std::string request );
+		ResponseMessage( std::string request, size_t server );
 		ResponseMessage( void );
 		~ResponseMessage( void );
 		std::string	createResponse( size_t status_code );

@@ -432,7 +432,7 @@ void	Config::_checkParametersWhereOnlyOneValueIsAllowed()
 	size_t	 		count_server;
 	size_t	 		count_location;
 	const int 		count_para = 4;
-	std::string		parameters[count_para] = {"listen", "return"}; // set the right ones
+	std::string		parameters[count_para] = {"return"}; // set the right ones
 
 	// for the common config
 	for ( size_t i = 0; i < count_para; i++ )

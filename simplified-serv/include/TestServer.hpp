@@ -19,6 +19,7 @@
 # include <algorithm>    // std::search
 
 # include <poll.h>
+# include <inttypes.h>
 # include "Socket.hpp"
 # include "ClientSocket.hpp"
 # include "ListeningSocket.hpp"
@@ -48,7 +49,6 @@ class TestServer{
             void	launch();
         
         private:
-            int	_loop_counter;
 			std::vector<uint8_t> _buffer_vector;
 
             int    							_nbr_of_ports;
@@ -58,6 +58,9 @@ class TestServer{
             std::map<int, Socket>           _socket_arr;
 
             std::vector<pollfd>				_sockets_for_poll;
+
+        //CONECTING CONFIG TO A SERVER
+        void    _logPortInfo();
 
 		int 	_saveResponseToAFile(Socket &socket, std::string response);
 		int		checkPollAction(short revents, int fd);
@@ -69,7 +72,7 @@ class TestServer{
 		int		_readAndParseHeader(Socket &socket, std::string strBuffer);
         int		_checkForBoundaryStr(std::string &boundary_to_find);
 
-		void	_POST(Socket &socket, std::string &stringBuffer);
+		void	_POST(Socket &socket, std::string &stringBuffer, int &bytes_read);
 		void	_POSTrequestSaveBodyToFile(Socket &socket, std::string &stringBuffer);
 
         void    _checkIfItIsACGI(Socket &socket);
@@ -77,9 +80,29 @@ class TestServer{
         int		_checkPostForBoundary(Socket &socket);
 
         int		_setErrorResponseStr(Socket &socket, int Error_Code);
+        void    _checkTimeout(Socket &socket);
 
         void	_acceptConnection(int index);
 };
+
+
+# define    OK                  200
+# define    CREATED             201
+# define    MOVED_PERMANETLY    301
+# define    BAD_REQUEST         400
+# define    FORBIDDEN           403
+# define    NOT_FOUND           404
+# define    METHOD_NOT_ALLOWED  405
+# define    NOT_ACCEPTABLE      406 //WHEN METHOD IS NOT ACCEPTHED BUT KNOWN
+# define    REQUEST_TIMEOUT     408
+# define    LENGTH_REQUIRED     411
+# define    PAYLOAD_TOO_LARGE   413
+# define    URI_TOO_LONG        414
+# define    INTERNAL_SERVER_ERR 500
+# define    NOT_IMPLEMENTED     501
+# define    LOOP_DETECTED       508
+
+# define    CHUNK_SIZE      9216 
 
 # define    DEBUG	1
 

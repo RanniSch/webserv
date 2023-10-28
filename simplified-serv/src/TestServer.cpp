@@ -2,23 +2,11 @@
 #include "../include/TestServer.hpp"
 
 // Constructor
-TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3), _nbr_of_client_sockets(0), _nbr_of_sockets_in_poll(0)
+TestServer::TestServer():_nbr_of_client_sockets(0), _nbr_of_sockets_in_poll(0)
 {
     std::cout << "TestServer constructor called!" << std::endl;
-	_ports.push_back(8000); // REMEMBER WHICH CONTAINER SORTS BY SIZE!
-	_ports.push_back(8080);
-	_ports.push_back(8090);
-
-	Socket	tmp_listening_socket;
-
-	for(int i = 0; i < _nbr_of_ports; i++)
-	{
-		tmp_listening_socket.setPort(_ports[i]);
-		tmp_listening_socket.startListening();
-		tmp_listening_socket.setType("Listening socket");
-		_socket_arr.insert(std::pair<int, Socket>(tmp_listening_socket.getSocketFd(), tmp_listening_socket));
-	}
-
+	_logPortInfo();
+	std::cout << "ALL GOOD" << std::endl;
 	//Creating Pollfd stuct
 	struct pollfd	tmp_pollfd;
 	for (std::map<int, Socket>::iterator it_tmp = _socket_arr.begin(); it_tmp != _socket_arr.end(); it_tmp++)
@@ -27,10 +15,9 @@ TestServer::TestServer():_loop_counter(0), _nbr_of_ports(3), _nbr_of_client_sock
 		tmp_pollfd.events = POLLIN | POLLHUP | POLLERR;
 		tmp_pollfd.revents = 0;
 		_sockets_for_poll.push_back(tmp_pollfd);
+		_nbr_of_sockets_in_poll++;
 	}
-	_nbr_of_sockets_in_poll += 3;
 
-	(void)_loop_counter; // Lukas: delete _loop_counter?
 }
 
 // Destructor
@@ -48,6 +35,73 @@ TestServer::~TestServer(void)
 	exit(-1);
 }
 
+
+void	TestServer::_logPortInfo(void)
+{
+	int			port_number;
+	__int64_t	max_body_size;
+	double		client_timeout;
+	std::string	return_timeout;
+	std::string	max_body_sizeStr;
+	Socket	tmp_listening_socket;
+
+	size_t	server_ammount = g_config->size("server");
+	for (size_t	server_nbr = 0; server_nbr < server_ammount; server_nbr++)
+	{
+		std::string	return_value = "beggining";
+		for (size_t port = 0; return_value != ""; port++)
+		{
+			//Getting ports for each Server
+			return_value = g_config->get(server_nbr, "listen", port);
+			if (return_value == "")
+				break ;
+			std::stringstream ss;
+			ss << return_value;
+			ss >> port_number;
+			ss.clear();
+			_ports.push_back(port_number);
+			tmp_listening_socket.setPort(port_number);
+			tmp_listening_socket.startListening();
+			tmp_listening_socket.setType("Listening socket");
+			_nbr_of_ports++;
+			
+
+			//Getting timeout value for each client
+			return_timeout = g_config->get(server_nbr, "timeout", 0);
+			if (return_timeout == "")
+			{
+				tmp_listening_socket.setClientTimeout(60);
+			}
+			else
+			{
+				ss << return_timeout;
+				ss >> client_timeout;
+				ss.clear();
+				tmp_listening_socket.setClientTimeout(client_timeout);
+			}
+
+			//Setting serverNumber
+			tmp_listening_socket.setServerNbr(server_nbr);
+
+			//Client max body size
+			max_body_sizeStr = g_config->get(server_nbr, "max_body_size", 0);
+			if (max_body_sizeStr == "")
+			{
+				//5MB
+				tmp_listening_socket.setMaxBodySize(5000000);
+			}
+			else
+			{
+				ss << max_body_sizeStr;
+				ss >> max_body_size;
+				ss.clear();
+				tmp_listening_socket.setMaxBodySize(max_body_size);
+			}
+			_socket_arr.insert(std::pair<int, Socket>(tmp_listening_socket.getSocketFd(), tmp_listening_socket));
+		}
+	}
+}
+
 int		TestServer::_setErrorResponseStr(Socket &socket, int Error_Code)
 {
 	socket.setErrorFlag(true);
@@ -55,7 +109,8 @@ int		TestServer::_setErrorResponseStr(Socket &socket, int Error_Code)
 	socket.setRequestHeader(true);
 	ResponseMessage 	ResponseObj;
 
-	socket.setResponseStr(ResponseObj.createResponse(Error_Code));
+	if (_saveResponseToAFile(socket, ResponseObj.createResponse(Error_Code)) != 0)
+			std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
 	return (-1);
 }
 
@@ -82,10 +137,13 @@ int	TestServer::_saveResponseToAFile(Socket &socket, std::string response)
 			return (0);
         } else {
             std::cerr << "Error occurred while writing to the file." << std::endl;
+			socket.setErrorFlag(true);
+			socket.error_code = INTERNAL_SERVER_ERR;
 			return (-1);
         }
     } else {
 		std::cerr << "Error occurred while opening the file." << std::endl;
+		socket.error_code = INTERNAL_SERVER_ERR;
         return (-1);
     }
 
@@ -97,14 +155,20 @@ void    TestServer::_acceptConnection(int fd)
 	Socket tmp;
 	tmp.acceptConnection(fd);
 
+
+
 	struct pollfd tmp_pollfd;
 
 	tmp.setType("Client socket");
 	tmp.setPort(_socket_arr.find(fd)->second.getPort());
+	tmp.setServerNbr(_socket_arr.find(fd)->second.getServerNbr());
+	tmp.setClientTimeout(_socket_arr.find(fd)->second.getClientTimeout());
+	tmp.setMaxBodySize(_socket_arr.find(fd)->second.getMaxBodySize());
 	tmp.setRequestMethod("NOTHING");
 	tmp.setRequestBodyStr("");
 	tmp.setBoundaryStr("");
 	tmp.setRequestHeaderStr("");
+	tmp.logStartTime();
 	tmp_pollfd.fd = tmp.getSocketFd();
 	tmp_pollfd.events = POLLIN | POLLOUT | POLLHUP | POLLERR; // POLLERR POLLHUP
 	tmp_pollfd.revents = 0;
@@ -121,6 +185,8 @@ void    TestServer::_acceptConnection(int fd)
 
 int		TestServer::checkPollAction(short revents, int fd)
 {
+	if ( _socket_arr.find(fd)->second.getErrorFlag() == true)
+		return (2);
 	if (revents & POLLIN)
 		return (1);
 	if (revents & POLLOUT && _socket_arr.find(fd)->second.getSocketRequest() == true && _socket_arr.find(fd)->second.getRequestHeader() == true)
@@ -146,13 +212,23 @@ int		TestServer::checkPollAction(short revents, int fd)
 
 void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket)
 {
+	std::cout << "WRITING back to the socket: " << socket.getSocketFd() << " fd: " << _it->fd << " error:" << socket.error_code << std::endl;
 	std::ifstream	file;
 	file.open(socket.getResponseFile().c_str(), std::ios::binary);
 	if (!file)
-		std::cout << RED << "FILE WAS NOT BEEN OPEN!" << BLANK << std::endl;
-	char	chunk_str[9216];
+	{
+		std::cout << "REQUEST OF NOT ANSWERING:\n" << socket.getRequestHeaderStr() << std::endl;
+		ResponseMessage	tmp_obj;
+		if (_saveResponseToAFile(socket, tmp_obj.createResponse(500)) != 0)
+            std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
+        socket.setSocketRequest(true);
+		socket.setErrorFlag(true);
+		return ;
+		//std::cout << RED << "FILE WAS NOT BEEN OPEN! " << socket.getResponseFile() <<  BLANK << std::endl;
+	}
+	char	chunk_str[CHUNK_SIZE];
 	file.seekg(socket.file_pos);
-	file.read(chunk_str, 9216);
+	file.read(chunk_str, CHUNK_SIZE);
 	if (send(_it->fd, chunk_str, file.gcount(), 0) == -1)
 	{
 		std::cout << "SEND FAILED!" << std::endl;
@@ -214,44 +290,23 @@ int	TestServer::_checkForMethods(Socket &socket, std::string &strBuffer)
 }
 
 
-//!!!! LETS IMPLEMENT MAXES FUNCTION!
 void	TestServer::_checkIfItIsACGI(Socket &socket)
 {
-	std::string	header = socket.getRequestHeaderStr();
-
-	std::string	first_line = header.substr(0, header.find("\n"));
-	std::size_t	found_cgi_start = first_line.find("/cgi-bin/");
-	if (found_cgi_start != std::string::npos)
+	if (socket.getCGI() == true)
 	{
-		std::size_t	found_extension = first_line.find(".py");
-		if (found_extension != std::string::npos)
-		{
-			if (socket.getRequestMethod() == "POST")
-			{
-				std::size_t found_application = header.find("application/x-www-form-urlencoded");
-				if (found_application != std::string::npos)
-				{
-					socket.setCGI(true);
-				}
-				else
-				{
-					std::size_t found_multiform = header.find("multipart/form-data");
-					if (found_multiform != std::string::npos)
-					{
-						socket.setCGI(true);
-					}
-					else
-					{
-						socket.setCGI(false);
-					}
-				}
-			}
-			else if (socket.getRequestMethod() == "GET")
-			{
-				socket.setCGI(true);
-			}
-		}
+		std::cout << "WTF ARE YOU DOING?: BEGGINING" << std::endl;
 	}
+	else
+	{
+		std::cout << "CGI SET GOOD" << std::endl;
+	}
+	ResponseMessage	tmp_obj(socket.getRequestHeaderStr(), socket.getServerNbr());
+	socket.setCGI(tmp_obj.is_Cgi(socket.getCGI()));
+	if (socket.getCGI() == true)
+	{
+		std::cout << "WTF ARE YOU DOING?:\n" << socket.getRequestHeaderStr() << "\n server_nbr: " << socket.getServerNbr() << std::endl;
+	}
+
 }
 
 int	TestServer::_checkPostContenLen(Socket &socket)
@@ -361,12 +416,7 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 				return (_setErrorResponseStr(socket, 400));
 			}
 		}
-		else if (socket.getRequestHeaderStr().find("application/x-www-form-urlencoded") != std::string::npos)
-		{
-			socket.setCGI(true);
-			//MORE CHECKS FOR CGI
-		}
-		else
+		else if (socket.getRequestHeaderStr().find("application/x-www-form-urlencoded") == std::string::npos)
 		{
 			//ERROR 400 Bad Request
 			return (_setErrorResponseStr(socket, 400));
@@ -375,7 +425,7 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 	else if (socket.getRequestHeader() == true && socket.getRequestMethod() == "GET")
 	{
 		std::cout << RED << "PREPARING RESPONSE 1" BLANK << std::endl;
-		ResponseMessage responseObj((char *)socket.getRequestHeaderStr().c_str()); // GET
+		ResponseMessage responseObj(socket.getRequestHeaderStr(), socket.getServerNbr()); // GET
 		std::cout << RED << "PREPARING RESPONSE 2" BLANK << std::endl;
 
 		if (_saveResponseToAFile(socket, responseObj.createResponse()) != 0)
@@ -383,8 +433,6 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 		socket.setSocketRequest(true);
 		std::cout << GREEN << "CRAFTED GET RESPONSE STR" << BLANK << std::endl;
 	}
-	// ResponseMessage responseObj((char *)socket.getRequestHeaderStr().c_str()); // Max Testing weg!!!
-	// responseObj.createResponse(); // Max Testing weg!!!
 	return (0);
 }
 
@@ -461,7 +509,7 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuff
 }
 
 
-void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
+void	TestServer::_POST(Socket &socket, std::string &stringBuffer, int &bytes_read)
 {
 	if (socket.getMultiform() == true)
 	{
@@ -470,6 +518,13 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 			socket.setErrorFlag(true);
 			std::cout << RED "ERROR: we do not accept POST CGI with multipart/form Content-type!" BLANK << std::endl;
 			socket.setSocketRequest(true);
+
+			ResponseMessage	tmp_obj;
+			if (_saveResponseToAFile(socket, tmp_obj.createResponse(501)) != 0)
+				std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
+			socket.setSocketRequest(true);
+			socket.setRequestHeader(true);
+			socket.setErrorFlag(true);
 			return ;
 		}
 		_POSTrequestSaveBodyToFile(socket, stringBuffer);
@@ -488,10 +543,16 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 			//curr_socket.setSocketRequest(true);
 			//EXECUTE POST CGI HERE
 			Cgi cgi;
+
+			//DANGEROUS!
+			std::string strCgiBuffer(reinterpret_cast<const char*>(_buffer_vector.data()), bytes_read);
+			cgi.setRequest(strCgiBuffer, socket.getServerNbr());
+
 			cgi.setRequestChar(_buffer_vector.data());
 			cgi.setRequestBody(socket.getRequestBodyStr());  //socket.getRequestBodyStr() // the string contains everything which is in the body
 
 			//cgi.runCgi();
+
 			int cgiReturn;
 			cgiReturn = cgi.runCgi();
 
@@ -499,7 +560,6 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 
 			//_saveResponseToAFile(socket, rm.createResponse(cgi.getScriptString()));
 			//socket.setSocketRequest(true);
-
 			if (cgiReturn == 0)
 			{
 				if (_saveResponseToAFile(socket, rm.createResponse(cgi.getScriptString())) != 0)
@@ -522,12 +582,41 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 	}
 }
 
+void	TestServer::_checkTimeout(Socket &socket)
+{
+	double	seconds = difftime(time(NULL), socket.getStartTime());
+
+	std::ofstream file("checking.txt", std::ios::out | std::ios::app);
+
+    std::ostringstream oss;
+    oss << seconds;
+	std::string	double_str = oss.str();
+	oss.clear();
+	oss << socket.getSocketFd();
+	std::string	str = oss.str();
+	oss.clear();
+	std::string tmp = "CHECKING second difference: "  + double_str + " FD: " + str + "\n";
+	file << tmp;
+	file.close();
+	if (seconds >= socket.getClientTimeout())
+	{
+		std::cout << RED << "ERROR: Client " << socket.getSocketFd() << "Socket has timeout: " << seconds << BLANK << std::endl;
+		ResponseMessage	rm;
+		if (_saveResponseToAFile(socket, rm.createResponse(500)) != 0)
+			std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
+		socket.setSocketRequest(true);
+		socket.setRequestHeader(true);
+		socket.setErrorFlag(true);
+		socket.error_code = 500;
+	}
+}
+
 void    TestServer::launch()
 {
 	// DEBUGGING
 	std::cout <<GREEN "Finished creating the ports:" BLANK << std::endl;		
 	for (std::map<int, Socket>::iterator it_tmp = _socket_arr.begin(); it_tmp != _socket_arr.end(); it_tmp++)
-		std::cout << GREY "Listening Socket onject for Port: " << it_tmp->second.getPort() << "fd: " << it_tmp->first << " succesfully created!" BLANK << std::endl;
+		std::cout << GREY << "Server [" << it_tmp->second.getServerNbr() <<  "] listening Socket onject for Port: " << it_tmp->second.getPort() << " Host: " << g_config->get(it_tmp->second.getServerNbr(), "host", 0) << " fd: " << it_tmp->first << " client_timeout: " << it_tmp->second.getClientTimeout() << " client_max_body_size: " << it_tmp->second.getMaxBodySize()  << GREEN " succesfully created!" BLANK << std::endl;
 	// DEBUGGING
 
 	int	ready = 0;
@@ -561,15 +650,21 @@ void    TestServer::launch()
 							}
 							else
 							{
-								char  readData[9216];
+								char  readData[CHUNK_SIZE];
 								int bytes_read = recv(it->fd, readData, sizeof(readData), 0);
 								if (bytes_read == -1)
 								{
 									std::cout << RED "ERROR: recv has failed!" << BLANK << std::endl;
 									perror("CHECK RECV ERROR: ");
 								}
-								else 
+								else if (bytes_read > 0)
 								{
+									_checkTimeout(_socket_arr.find(it->fd)->second);
+									if (_socket_arr.find(it->fd)->second.getErrorFlag() == true)
+									{
+										std::cout << RED "WE ARE BREAKING" BLANK << std::endl;
+										break;
+									}
 									_buffer_vector.clear();
 									_buffer_vector.reserve(bytes_read);
 									Socket	*curr_socket = &_socket_arr.find(it->fd)->second;
@@ -583,16 +678,20 @@ void    TestServer::launch()
 									{
 										if (_readAndParseHeader(*curr_socket, stringBuffer) == -1)
 											std::cout << RED "ERROR withing _readAndParseHeader" BLANK << std::endl;
+										std::cout << "HEADER: " << curr_socket->getRequestHeaderStr() << std::endl;
 									}
 									if (curr_socket->getRequestMethod() == "POST")
 									{
-										_POST(*curr_socket, stringBuffer);
+										_POST(*curr_socket, stringBuffer, bytes_read);
 									}
 									else if (curr_socket->getRequestMethod() == "GET" && curr_socket->getCGI() == true)
 									{
 										//EXECUTE GET METHOD CGI HERE
 										Cgi cgi;
-										cgi.setRequestChar(_buffer_vector.data());
+										
+										//DANGEROUS!
+										std::string strCgiBuffer(reinterpret_cast<const char*>(_buffer_vector.data()), bytes_read);
+										cgi.setRequest(strCgiBuffer, curr_socket->getServerNbr());
 
 										int	cgiReturn;
 										cgiReturn = cgi.runCgi(); // Ranja
@@ -603,7 +702,8 @@ void    TestServer::launch()
 										{
 											if (_saveResponseToAFile(*curr_socket, rm.createResponse(cgi.getScriptString())) != 0)
             									std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
-        									curr_socket->setSocketRequest(true); // Also set the socket to be ready for writing with so that the checkPollAction would know that it is okay to write.
+        									curr_socket->setSocketRequest(true);
+											//_pollWriting(it, *curr_socket);
 										}
 										else
 										{
@@ -611,8 +711,11 @@ void    TestServer::launch()
             									std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
         									curr_socket->setSocketRequest(true);
 											curr_socket->setErrorFlag(true);
+											_pollWriting(it, _socket_arr.find(it->fd)->second);
 										}
 									}
+									else
+										std::cout << "NOTHING 0" << std::endl;
 								}
 							}
 							it->revents = 0;

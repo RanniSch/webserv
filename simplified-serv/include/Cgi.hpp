@@ -42,6 +42,7 @@ class Cgi
             };
 
             void            setRequestChar(unsigned char* requestC);
+			void			setRequest( std::string request, size_t server);
             void            setRequestBody(std::string requestBody);
             std::string     getScriptString(void);
     
@@ -49,6 +50,8 @@ class Cgi
             // something like a static bool to handle the timeouts
             bool                        _python3Installed();
             unsigned char*              _request;
+			std::string					_requestStr;
+			size_t						_server_nbr;
             std::string                 _requestBody;
             std::vector<std::string>	_environmentals;
             std::string                 _scriptOutput;
