@@ -24,7 +24,7 @@ if 'form_field' in form:
     form_data = form['form_field'].value
 
 # Read input from CGI environment (the message body)
-input_data = os.environ.get("QUERY_STRING")
+input_data = os.environ.get("QUERY_STRING") # Name = Body
 
 if input_data == "Hi":
     answer = "<html><body><h1>Hi, how are you?</h1></body></html>"

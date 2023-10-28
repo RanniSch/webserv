@@ -25,6 +25,11 @@ void	Cgi::setRequestChar(unsigned char* requestC)
 	std::cout << "_request:" << _request << std::endl;	// Ranja for testing
 }
 
+void	Cgi::setRequestBody(std::string requestBody)
+{
+	_requestBody = requestBody;
+	std::cout << "_requestBody:" << _requestBody << std::endl;	// Ranja for testing
+}
 
 int Cgi::runCgi()
 {
