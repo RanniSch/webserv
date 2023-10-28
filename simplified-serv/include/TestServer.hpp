@@ -49,7 +49,6 @@ class TestServer{
             void	launch();
         
         private:
-            int	_loop_counter;
 			std::vector<uint8_t> _buffer_vector;
 
             int    							_nbr_of_ports;

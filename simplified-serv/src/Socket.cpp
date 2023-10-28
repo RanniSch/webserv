@@ -164,7 +164,7 @@ void	Socket::setResponseFile(std::string response_file_name) {_response_file_nam
 void	Socket::setStartTime(time_t time){ _start_time = time;}
 void	Socket::setClientTimeout(double timeout){ _client_timeout = timeout;}
 void	Socket::setServerNbr(size_t nbr) { _server_nbr = nbr;}
-void	Socket::setMaxBodySize(__int64_t max_body_size) { _max_body_size = _max_body_size;}
+void	Socket::setMaxBodySize(__int64_t max_body_size) { _max_body_size = max_body_size;}
 
 //GETTERS
 bool			Socket::getErrorFlag(void) { return (_error);}

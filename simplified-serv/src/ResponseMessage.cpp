@@ -70,6 +70,13 @@ ResponseMessage::ResponseMessage( std::string request )
 	// }
 }
 
+ResponseMessage::ResponseMessage( std::string request, size_t server )
+:_statusCode(0), _config(*g_config), _server(server)
+{
+	_parse_request( request );
+}
+
+
 ResponseMessage::ResponseMessage( void ):_config(*g_config)//, _config_old(_config_for_compiler) // get rid of global variable and of config old
 {
 	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
