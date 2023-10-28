@@ -10,7 +10,7 @@ header = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CGI Output</title>
+    <title>CGI POST Output</title>
 </head>
 <body>
 """
@@ -24,12 +24,12 @@ if 'form_field' in form:
     form_data = form['form_field'].value
 
 # Read input from CGI environment (the message body)
-input_data = os.environ.get("QUERY_STRING") # Name = Body
+input_data = os.environ.get("say") # Name = Body
 
 if input_data == "Hi":
-    answer = "<html><body><h1>Hi, how are you?</h1></body></html>"
+    answer = "<h1>Thanks for saying Hi. I hope you are doing well!</h1>"
 else:
-    answer = "<html><body><h1>Sad, that you did not write hi!</h1></body></html>"
+    answer = "<h1>Sad, that you did not write Hi!</h1>"
 
 # End the HTML document
 footer = "</body></html>"
