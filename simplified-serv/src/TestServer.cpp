@@ -288,11 +288,19 @@ int	TestServer::_checkForMethods(Socket &socket, std::string &strBuffer)
 //!!!! LETS IMPLEMENT MAXES FUNCTION!
 void	TestServer::_checkIfItIsACGI(Socket &socket)
 {
+	if (socket.getCGI() == true)
+	{
+		std::cout << "WTF ARE YOU DOING?: BEGGINING" << std::endl;
+	}
+	else
+	{
+		std::cout << "CGI SET GOOD" << std::endl;
+	}
 	ResponseMessage	tmp_obj(socket.getRequestHeaderStr(), socket.getServerNbr());
 	socket.setCGI(tmp_obj.is_Cgi(socket.getCGI()));
 	if (socket.getCGI() == true)
 	{
-		std::cout << "WTF ARE YOU DOING?" << std::endl;
+		std::cout << "WTF ARE YOU DOING?:\n" << socket.getRequestHeaderStr() << "\n server_nbr: " << socket.getServerNbr() << std::endl;
 	}
 
 }
