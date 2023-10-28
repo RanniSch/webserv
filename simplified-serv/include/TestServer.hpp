@@ -72,7 +72,7 @@ class TestServer{
 		int		_readAndParseHeader(Socket &socket, std::string strBuffer);
         int		_checkForBoundaryStr(std::string &boundary_to_find);
 
-		void	_POST(Socket &socket, std::string &stringBuffer);
+		void	_POST(Socket &socket, std::string &stringBuffer, int &bytes_read);
 		void	_POSTrequestSaveBodyToFile(Socket &socket, std::string &stringBuffer);
 
         void    _checkIfItIsACGI(Socket &socket);

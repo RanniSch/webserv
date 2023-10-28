@@ -6,7 +6,7 @@ TestServer::TestServer():_nbr_of_client_sockets(0), _nbr_of_sockets_in_poll(0)
 {
     std::cout << "TestServer constructor called!" << std::endl;
 	_logPortInfo();
-
+	std::cout << "ALL GOOD" << std::endl;
 	//Creating Pollfd stuct
 	struct pollfd	tmp_pollfd;
 	for (std::map<int, Socket>::iterator it_tmp = _socket_arr.begin(); it_tmp != _socket_arr.end(); it_tmp++)
@@ -52,7 +52,7 @@ void	TestServer::_logPortInfo(void)
 		for (size_t port = 0; return_value != ""; port++)
 		{
 			//Getting ports for each Server
-			return_value = g_config->get(server_nbr, "listen");
+			return_value = g_config->get(server_nbr, "listen", port);
 			if (return_value == "")
 				break ;
 			std::stringstream ss;
@@ -67,7 +67,7 @@ void	TestServer::_logPortInfo(void)
 			
 
 			//Getting timeout value for each client
-			return_timeout = g_config->get(server_nbr, "timeout");
+			return_timeout = g_config->get(server_nbr, "timeout", 0);
 			if (return_timeout == "")
 			{
 				tmp_listening_socket.setClientTimeout(60);
@@ -84,7 +84,7 @@ void	TestServer::_logPortInfo(void)
 			tmp_listening_socket.setServerNbr(server_nbr);
 
 			//Client max body size
-			max_body_sizeStr = g_config->get(server_nbr, "max_body_size");
+			max_body_sizeStr = g_config->get(server_nbr, "max_body_size", 0);
 			if (max_body_sizeStr == "")
 			{
 				//5MB
@@ -151,10 +151,15 @@ void    TestServer::_acceptConnection(int fd)
 	Socket tmp;
 	tmp.acceptConnection(fd);
 
+
+
 	struct pollfd tmp_pollfd;
 
 	tmp.setType("Client socket");
 	tmp.setPort(_socket_arr.find(fd)->second.getPort());
+	tmp.setServerNbr(_socket_arr.find(fd)->second.getServerNbr());
+	tmp.setClientTimeout(_socket_arr.find(fd)->second.getClientTimeout());
+	tmp.setMaxBodySize(_socket_arr.find(fd)->second.getMaxBodySize());
 	tmp.setRequestMethod("NOTHING");
 	tmp.setRequestBodyStr("");
 	tmp.setBoundaryStr("");
@@ -285,6 +290,10 @@ void	TestServer::_checkIfItIsACGI(Socket &socket)
 {
 	ResponseMessage	tmp_obj(socket.getRequestHeaderStr(), socket.getServerNbr());
 	socket.setCGI(tmp_obj.is_Cgi(socket.getCGI()));
+	if (socket.getCGI() == true)
+	{
+		std::cout << "WTF ARE YOU DOING?" << std::endl;
+	}
 
 }
 
@@ -488,7 +497,7 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuff
 }
 
 
-void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
+void	TestServer::_POST(Socket &socket, std::string &stringBuffer, int &bytes_read)
 {
 	if (socket.getMultiform() == true)
 	{
@@ -522,10 +531,16 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer)
 			//curr_socket.setSocketRequest(true);
 			//EXECUTE POST CGI HERE
 			Cgi cgi;
+
+			//DANGEROUS!
+			std::string strCgiBuffer(reinterpret_cast<const char*>(_buffer_vector.data()), bytes_read);
+			cgi.setRequest(strCgiBuffer, socket.getServerNbr());
+
 			cgi.setRequestChar(_buffer_vector.data());
 			cgi.setRequestBody(socket.getRequestBodyStr());  //socket.getRequestBodyStr() // the string contains everything which is in the body
 
 			//cgi.runCgi();
+
 			int cgiReturn;
 			cgiReturn = cgi.runCgi();
 
@@ -578,7 +593,7 @@ void    TestServer::launch()
 	// DEBUGGING
 	std::cout <<GREEN "Finished creating the ports:" BLANK << std::endl;		
 	for (std::map<int, Socket>::iterator it_tmp = _socket_arr.begin(); it_tmp != _socket_arr.end(); it_tmp++)
-		std::cout << GREY "Listening Socket onject for Port: " << it_tmp->second.getPort() << "fd: " << it_tmp->first << " succesfully created!" BLANK << std::endl;
+		std::cout << GREY << "Server [" << it_tmp->second.getServerNbr() <<  "] listening Socket onject for Port: " << it_tmp->second.getPort() << " Host: " << g_config->get(it_tmp->second.getServerNbr(), "host", 0) << " fd: " << it_tmp->first << " client_timeout: " << it_tmp->second.getClientTimeout() << " client_max_body_size: " << it_tmp->second.getMaxBodySize()  << GREEN " succesfully created!" BLANK << std::endl;
 	// DEBUGGING
 
 	int	ready = 0;
@@ -643,13 +658,16 @@ void    TestServer::launch()
 									}
 									if (curr_socket->getRequestMethod() == "POST")
 									{
-										_POST(*curr_socket, stringBuffer);
+										_POST(*curr_socket, stringBuffer, bytes_read);
 									}
 									else if (curr_socket->getRequestMethod() == "GET" && curr_socket->getCGI() == true)
 									{
 										//EXECUTE GET METHOD CGI HERE
 										Cgi cgi;
-										cgi.setRequestChar(_buffer_vector.data());
+										
+										//DANGEROUS!
+										std::string strCgiBuffer(reinterpret_cast<const char*>(_buffer_vector.data()), bytes_read);
+										cgi.setRequest(strCgiBuffer, curr_socket->getServerNbr());
 
 										int	cgiReturn;
 										cgiReturn = cgi.runCgi(); // Ranja
