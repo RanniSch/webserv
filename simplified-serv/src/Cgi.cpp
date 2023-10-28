@@ -139,7 +139,7 @@ int Cgi::runCgi()
 
     	// Program only arrives here, if an error occurs at execve.
     	std::cerr << "Error: Executing CGI script" << std::endl;
-    	exit(1);
+    	return INTERNAL_ERROR;
 	}
 	else	// this is the main process; else if is the child process
 	{
