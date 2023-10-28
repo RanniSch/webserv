@@ -85,6 +85,25 @@ class TestServer{
         void	_acceptConnection(int index);
 };
 
+
+# define    OK                  200
+# define    CREATED             201
+# define    MOVED_PERMANETLY    301
+# define    BAD_REQUEST         400
+# define    FORBIDDEN           403
+# define    NOT_FOUND           404
+# define    METHOD_NOT_ALLOWED  405
+# define    NOT_ACCEPTABLE      406 //WHEN METHOD IS NOT ACCEPTHED BUT KNOWN
+# define    REQUEST_TIMEOUT     408
+# define    LENGTH_REQUIRED     411
+# define    PAYLOAD_TOO_LARGE   413
+# define    URI_TOO_LONG        414
+# define    INTERNAL_SERVER_ERR 500
+# define    NOT_IMPLEMENTED     501
+# define    LOOP_DETECTED       508
+
+# define    CHUNK_SIZE      9216 
+
 # define    DEBUG	1
 
 # define	ACCEPT_CLIENT	0

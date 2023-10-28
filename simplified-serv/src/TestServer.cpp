@@ -109,7 +109,8 @@ int		TestServer::_setErrorResponseStr(Socket &socket, int Error_Code)
 	socket.setRequestHeader(true);
 	ResponseMessage 	ResponseObj;
 
-	socket.setResponseStr(ResponseObj.createResponse(Error_Code));
+	if (_saveResponseToAFile(socket, ResponseObj.createResponse(Error_Code)) != 0)
+			std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
 	return (-1);
 }
 
@@ -136,10 +137,13 @@ int	TestServer::_saveResponseToAFile(Socket &socket, std::string response)
 			return (0);
         } else {
             std::cerr << "Error occurred while writing to the file." << std::endl;
+			socket.setErrorFlag(true);
+			socket.error_code = INTERNAL_SERVER_ERR;
 			return (-1);
         }
     } else {
 		std::cerr << "Error occurred while opening the file." << std::endl;
+		socket.error_code = INTERNAL_SERVER_ERR;
         return (-1);
     }
 
@@ -208,6 +212,7 @@ int		TestServer::checkPollAction(short revents, int fd)
 
 void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket)
 {
+	std::cout << "WRITING back to the socket: " << socket.getSocketFd() << " fd: " << _it->fd << " error:" << socket.error_code << std::endl;
 	std::ifstream	file;
 	file.open(socket.getResponseFile().c_str(), std::ios::binary);
 	if (!file)
@@ -221,9 +226,9 @@ void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket
 		return ;
 		//std::cout << RED << "FILE WAS NOT BEEN OPEN! " << socket.getResponseFile() <<  BLANK << std::endl;
 	}
-	char	chunk_str[9216];
+	char	chunk_str[CHUNK_SIZE];
 	file.seekg(socket.file_pos);
-	file.read(chunk_str, 9216);
+	file.read(chunk_str, CHUNK_SIZE);
 	if (send(_it->fd, chunk_str, file.gcount(), 0) == -1)
 	{
 		std::cout << "SEND FAILED!" << std::endl;
@@ -285,7 +290,6 @@ int	TestServer::_checkForMethods(Socket &socket, std::string &strBuffer)
 }
 
 
-//!!!! LETS IMPLEMENT MAXES FUNCTION!
 void	TestServer::_checkIfItIsACGI(Socket &socket)
 {
 	if (socket.getCGI() == true)
@@ -582,18 +586,29 @@ void	TestServer::_checkTimeout(Socket &socket)
 {
 	double	seconds = difftime(time(NULL), socket.getStartTime());
 
-	std::cout << YELL << "CHECKING second difference: " << seconds << BLANK << std::endl;
-	// if (seconds >= _client_timeout)
-	// {
-	// 	std::cout << RED << "ERROR: Client " << socket.getSocketFd() << "Socket has timeout: " << seconds << BLANK << std::endl;
-	// 	const char* timeoutResponse = "HTTP/1.1 408 Request Timeout\r\nContent-Type: text/plain\r\nContent-Length: 23\r\n\r\nFile upload has timed out\r\n";
-	// 	std::cout << "RESPONse:\n" << timeoutResponse << std::endl;
-	// 	if (_saveResponseToAFile(socket, timeoutResponse) != 0)
-	// 		std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
-	// 	socket.setSocketRequest(true);
-	// 	socket.setRequestHeader(true);
-	// 	socket.setErrorFlag(true);
-	// }
+	std::ofstream file("checking.txt", std::ios::out | std::ios::app);
+
+    std::ostringstream oss;
+    oss << seconds;
+	std::string	double_str = oss.str();
+	oss.clear();
+	oss << socket.getSocketFd();
+	std::string	str = oss.str();
+	oss.clear();
+	std::string tmp = "CHECKING second difference: "  + double_str + " FD: " + str + "\n";
+	file << tmp;
+	file.close();
+	if (seconds >= socket.getClientTimeout())
+	{
+		std::cout << RED << "ERROR: Client " << socket.getSocketFd() << "Socket has timeout: " << seconds << BLANK << std::endl;
+		ResponseMessage	rm;
+		if (_saveResponseToAFile(socket, rm.createResponse(500)) != 0)
+			std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
+		socket.setSocketRequest(true);
+		socket.setRequestHeader(true);
+		socket.setErrorFlag(true);
+		socket.error_code = 500;
+	}
 }
 
 void    TestServer::launch()
@@ -635,21 +650,21 @@ void    TestServer::launch()
 							}
 							else
 							{
-								_checkTimeout(_socket_arr.find(it->fd)->second);
-								if (_socket_arr.find(it->fd)->second.getErrorFlag() == true)
-								{
-									std::cout << RED "WE ARE BREAKING" BLANK << std::endl;
-									break;
-								}
-								char  readData[9216];
+								char  readData[CHUNK_SIZE];
 								int bytes_read = recv(it->fd, readData, sizeof(readData), 0);
 								if (bytes_read == -1)
 								{
 									std::cout << RED "ERROR: recv has failed!" << BLANK << std::endl;
 									perror("CHECK RECV ERROR: ");
 								}
-								else 
+								else if (bytes_read > 0)
 								{
+									_checkTimeout(_socket_arr.find(it->fd)->second);
+									if (_socket_arr.find(it->fd)->second.getErrorFlag() == true)
+									{
+										std::cout << RED "WE ARE BREAKING" BLANK << std::endl;
+										break;
+									}
 									_buffer_vector.clear();
 									_buffer_vector.reserve(bytes_read);
 									Socket	*curr_socket = &_socket_arr.find(it->fd)->second;
@@ -663,6 +678,7 @@ void    TestServer::launch()
 									{
 										if (_readAndParseHeader(*curr_socket, stringBuffer) == -1)
 											std::cout << RED "ERROR withing _readAndParseHeader" BLANK << std::endl;
+										std::cout << "HEADER: " << curr_socket->getRequestHeaderStr() << std::endl;
 									}
 									if (curr_socket->getRequestMethod() == "POST")
 									{
@@ -686,7 +702,8 @@ void    TestServer::launch()
 										{
 											if (_saveResponseToAFile(*curr_socket, rm.createResponse(cgi.getScriptString())) != 0)
             									std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
-        									curr_socket->setSocketRequest(true); // Also set the socket to be ready for writing with so that the checkPollAction would know that it is okay to write.
+        									curr_socket->setSocketRequest(true);
+											//_pollWriting(it, *curr_socket);
 										}
 										else
 										{
@@ -694,8 +711,11 @@ void    TestServer::launch()
             									std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
         									curr_socket->setSocketRequest(true);
 											curr_socket->setErrorFlag(true);
+											_pollWriting(it, _socket_arr.find(it->fd)->second);
 										}
 									}
+									else
+										std::cout << "NOTHING 0" << std::endl;
 								}
 							}
 							it->revents = 0;

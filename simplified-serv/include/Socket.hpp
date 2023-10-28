@@ -18,7 +18,7 @@ class Socket
 		Socket();
 		~Socket();
 
-
+		int				error_code;
 		std::streampos	file_pos;
 
 		void			startListening(void);
@@ -87,8 +87,8 @@ class Socket
 		//TIMEOUTS
 		time_t			_start_time;
 		double          _client_timeout;
-		__int64_t		_max_body_size;
 		//CONFIG
+		__int64_t		_max_body_size;
 		size_t			_server_nbr;
 
 		bool			_error;

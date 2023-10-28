@@ -14,10 +14,18 @@ Socket::Socket()
 	_content_len = 0;
 	_client_addr_len = 0;
 	_payload_size_CGI = 0;
+	error_code = 0;
 
 	_port = -2;
 	_socket_fd = -2;
 	file_pos = 0;
+
+	//TIMEOUTS
+	_start_time = 0;
+	_client_timeout = 0;
+
+	_max_body_size = 0;
+	_server_nbr = 0;
 
 	_request_method.clear();
 	_request_header.clear();
