@@ -32,8 +32,6 @@ Using telnet, curl, prepared files, demonstrate that the following features work
 Check with a browser
 • Look at the request header and response header.
 • It should be compatible to serve a fully static website.
-• Try to list a directory.
-• Try a redirected URL.
 • Try anything you want to.
 
 Port issues
