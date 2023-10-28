@@ -156,6 +156,7 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	_status_line.insert( std::pair<size_t, std::string>(403, "Forbidden") );
 	_status_line.insert( std::pair<size_t, std::string>(404, "Not Found") );
 	_status_line.insert( std::pair<size_t, std::string>(405, "Method Not Allowed") );
+	_status_line.insert( std::pair<size_t, std::string>(408, "Request Timeout") );
 	_status_line.insert( std::pair<size_t, std::string>(411, "Length Required") );
 	_status_line.insert( std::pair<size_t, std::string>(413, "Payload Too Large") );
 	_status_line.insert( std::pair<size_t, std::string>(414, "URI Too Long") );
@@ -173,6 +174,7 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	_default_error_page.insert( std::pair<size_t, std::string>(403, "<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body><h1>403 Forbidden</h1><p>You don't have permission to access this resource.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(404, "<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>Your browser sent a request for a file that this server could not find.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(405, "<!DOCTYPE html><html><head><title>405 Method Not Allowed</title></head><body><h1>405 Method Not Allowed</h1><p>The requested method is not allowed for this resource.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(408, "<!DOCTYPE html><html><head><title>408 Request Timeout</title></head><body><h1>408 Request Timeout</h1><p>In the time frame allowed by the server, no complete request from the client has been received.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(411, "<!DOCTYPE html><html><head><title>411 Length Required</title></head><body><h1>411 Length Required</h1><p>A valid Content-Length header is required for the request to be processed.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(413, "<!DOCTYPE html><html><head><title>413 Payload Too Large</title></head><body><h1>413 Payload Too Large</h1><p>The data you are trying to send in the request is too large and exceeds the server's limit.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(414, "<!DOCTYPE html><html><head><title>414 URI Too Long</title></head><body><h1>414 URI Too Long</h1><p>The URI (Uniform Resource Identifier) provided in the request is too long for the server to process.</p></body></html>") );
