@@ -11,7 +11,7 @@ header = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CGI Output</title>
+    <title>CGI GET Output</title>
 </head>
 <body>
 """
@@ -28,13 +28,16 @@ if 'form_field' in form:
 current_datetime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 date_time_output = f"<h1>Current Date and Time</h1><p>{current_datetime}</p>"
 
-# Create HTML for environment variables
-env_vars = os.environ
-env_output = "<h1>Environment Variables</h1><table border='1'><tr><th>Variable</th><th>Value</th></tr>"
-for key, value in env_vars.items():
-    if key != 'LC_CTYPE':
-        env_output += f"<tr><td>{key}</td><td>{value}</td></tr>"
-env_output += "</table>"
+# Create HTML for environment variables, if they exist (> 1 because of the NULL at the end)
+if len(os.environ) > 1:
+    env_vars = os.environ
+    env_output = "<h1>Environment Variables</h1><table border='1'><tr><th>Variable</th><th>Value</th></tr>"
+    for key, value in env_vars.items():
+        if key != 'LC_CTYPE':
+            env_output += f"<tr><td>{key}</td><td>{value}</td></tr>"
+    env_output += "</table>"
+else:
+    env_output = "<h1>No environment variables set!</h1>"
 
 # End the HTML document
 footer = "</body></html>"

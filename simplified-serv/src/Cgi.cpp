@@ -1,13 +1,6 @@
 #include "../include/Cgi.hpp"
 
-// Global flag to track if timeout occurred
-// variable timeoutOccurred is intended for use in signal processing.
-// Data type sig_atomic_t ensures that the variable is read and written atomically (uninterrupted). 
-// Keyword volatile signals to the compiler that the variable can change at runtime, especially in signal handling routines.
-// The initial value of the variable is set to 0 and it is used to indicate whether a timeout event has occurred (1 for yes, 0 for no).
-// volatile sig_atomic_t timeoutOccurred = 0;
 
-//Cgi::Cgi(ClientSocket & cl) : _client(cl)
 Cgi::Cgi()
 {
     std::cout << "Cgi parameterized constructor called!" << std::endl;
@@ -22,13 +15,13 @@ Cgi::~Cgi()
 void	Cgi::setRequestChar(unsigned char* requestC)
 {
 	_request = requestC;
-	std::cout << "_request:" << _request << std::endl;	// Ranja for testing
+	//std::cout << "_request:" << _request << std::endl;	// Ranja for testing
 }
 
 void	Cgi::setRequestBody(std::string requestBody)
 {
 	_requestBody = requestBody;
-	std::cout << "_requestBody:" << _requestBody << std::endl;	// Ranja for testing
+	//std::cout << "_requestBody:" << _requestBody << std::endl;	// Ranja for testing
 }
 
 int Cgi::runCgi()
@@ -40,9 +33,9 @@ int Cgi::runCgi()
 
 	// Pipe array pipefd with two elements is created. Array is used to create a pipe for communication between
 	// current process (parent process) and the future child process (in which the CGI script is executed).
-	int pipefd[2];	// new
+	int pipefd[2];
 	// To save the exit status of the child process.
-	int status;		// new
+	int status;
 
 	char* cRequest = reinterpret_cast<char*>(_request);
 	ResponseMessage findRequest(cRequest);
@@ -51,13 +44,13 @@ int Cgi::runCgi()
 
 	//create arguments for execve
 	std::string scriptPath = findRequest.get_target_path();
-	std::cout << "_path_" << scriptPath << std::endl;
+	//std::cout << "_path_" << scriptPath << std::endl;
 
 	std::string queryString = findRequest.get_query();
-	std::cout << "_query_" << queryString << std::endl;
+	//std::cout << "_query_" << queryString << std::endl;
 
 	std::string request_method = findRequest.request_method();
-	std::cout << "_request Method_ " << request_method << std::endl;
+	//std::cout << "_request Method_ " << request_method << std::endl;
 
 	// Pipe is created, where pipefd is the pipe array containing the pipe endpoints.
 	// The read end of the pipe is pipefd[0], and the write end is pipefd[1].
@@ -93,34 +86,41 @@ int Cgi::runCgi()
 		_args[1] = scriptPath.c_str();
 		_args[2] = NULL;
 
-		//_environmentals.push_back(messageBody);
-		
-		int	i = 0;
-
-		const char* queryPointer = const_cast<char*>(queryString.c_str());
-
-		// Delimites the query string into several strings in a vector, with "&" as deliminator
-		while (queryPointer)
+		// Only if there is a message body from POST request
+		if (!_requestBody.empty())
 		{
-			const char* nextDeliminiter = strchr(queryPointer, '&');
+			_environmentals.push_back(_requestBody);
+			//std::cout << "ONE" << std::endl;
+		}
+		else // only if there is a query string from GET request
+		{
+			const char* queryPointer = const_cast<char*>(queryString.c_str());
 
-			if (nextDeliminiter) 
+			// Delimites the query string into several strings in a vector, with "&" as deliminator
+			while (queryPointer)
 			{
-            	_environmentals.push_back(std::string(queryPointer, nextDeliminiter - queryPointer));
-            	queryPointer = nextDeliminiter + 1;
-        	} 
-			else
-			{
-            	_environmentals.push_back(std::string(queryPointer));
-            	break;
-        	}
-    	}
+				const char* nextDeliminiter = strchr(queryPointer, '&');
+
+				if (nextDeliminiter) 
+				{
+            		_environmentals.push_back(std::string(queryPointer, nextDeliminiter - queryPointer));
+            		queryPointer = nextDeliminiter + 1;
+        		} 
+				else
+				{
+            		_environmentals.push_back(std::string(queryPointer));
+            		break;
+        		}
+    		}
+		}
 
 		// Only for testing; Ranja
     	//for (size_t i = 0; i < _environmentals.size(); ++i) 
 		//{
-        //	std::cout << _environmentals[i] << std::endl;
+        //	std::cout << "two_" << _environmentals[i] << std::endl;
     	//}
+
+		int	i = 0;
 
 		const char *env[_environmentals.size() + 1];
 
