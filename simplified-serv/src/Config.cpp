@@ -246,7 +246,7 @@ void	Config::_checkMinMaxInSpecialValues()
 	const int 		count_para = 3;
 	std::string		parameters[count_para] = 	{"listen", 	"timeout", 	"max_body_size"	};
 	int				min[count_para] = 			{1025, 		10, 		0				};
-	int				max[count_para] = 			{65535, 	1000000, 	400000000		};
+	int				max[count_para] = 			{65535, 	200,	 	400000000		};
 	int				result;
 	std::string		result_str;
 
