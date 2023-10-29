@@ -109,14 +109,15 @@ class Config: protected ParseableObject {
 		void								_checkAllowedCharacters();
 		void								_checkAllowedCharactersInSpecialValues();
 		void								_checkMinMaxInSpecialValues();
+		void								_checkAllowedValuesForSpecialParameters();
 		bool								_checkCurlyBrackets( const std::string &input ) const;
 		void								_checkTokensInFrontOfLineBreak();
 		void								_checkTokensInFrontOf_One_LineBreak( std::list<std::string>::iterator it );
 		void								_checkTokensInFrontOfCurlyBrackets();
 		void								_checkTokensInFrontOf_One_CurlyBracket( std::list<std::string>::iterator it );
 		std::list<std::string>::iterator	_newServer( std::list<std::string>::iterator &start );
-		void								_checkParametersWhereOnlyOneValueIsAllowed( void );
-
+		void								_checkNumValuesOfSpecialParameters( void );
+		void								_throw_error_if_result_not_in_min_max( size_t result, size_t min_value, size_t max_value, std::string parameter );
 		
 
 };
