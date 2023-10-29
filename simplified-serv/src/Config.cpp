@@ -79,6 +79,7 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 			_commonConfig.insert(key);
 		}
 		_checkParametersWhereOnlyOneValueIsAllowed();
+		_checkMinMaxInSpecialValues();
 
 
 		// _commonConfig.print();
@@ -190,19 +191,21 @@ void	Config::_checkAllowedCharacters()
 }
 
 /**
- * @brief this function has to come after _checkTokensInFrontOf_One_LineBreak
- * 
+ * @brief checking for example that numbers have no other chars (in values in the config)
+ * this function has to come after _checkTokensInFrontOf_One_LineBreak
+ * that is to make sure that after every value or even parameter there is a ";"
  */
 void	Config::_checkAllowedCharactersInSpecialValues()
 {
-	const int 		count_para = 2;
-	std::string		parameters[count_para] = 	{"listen"}; // set the right ones
-	std::string		allowed_char[count_para] = 	{"0123456789"}; // set the right ones
+	const int 		count_para = 3;
+	std::string		num_chars = "0123456789";
+	std::string		parameters[count_para] = 	{"listen", "timeout", "max_body_size"}; // set the right ones
+	std::string		allowed_char[count_para] = 	{num_chars, num_chars, num_chars}; // set the right ones
 	size_t			result;
 
 	std::list<std::string>::iterator it;
 
-	int find_me_; // weg !!
+	int find_me_; // weg !! 
 
 	for ( int para = 0; para < count_para; para++ ) // go through parameter
 	{
@@ -217,6 +220,7 @@ void	Config::_checkAllowedCharactersInSpecialValues()
 			it++;
 			for ( ; *it != ";" ; it++ ) // go through _stapel till you hit ";" (look through the values)
 			{
+				// Here comes what should be checked for the values
 				result = it->find_first_not_of(allowed_char[para]);
 				if (result != std::string::npos)
 				{
@@ -225,6 +229,59 @@ void	Config::_checkAllowedCharactersInSpecialValues()
 					_error += ". Allowed chars are:'";
 					_error += allowed_char[para];
 					_error += "'";
+					throw _error;
+				}
+			}
+		}
+	}
+}
+
+/**
+ * @brief checking for example that numbers are in between min max (in values in the config)
+ * this function has to come after _checkTokensInFrontOf_One_LineBreak
+ * that is to make sure that after every value or even parameter there is a ";"
+ */
+void	Config::_checkMinMaxInSpecialValues()
+{
+	const int 		count_para = 3;
+	std::string		parameters[count_para] = 	{"listen", 	"timeout", 	"max_body_size"	};
+	int				min[count_para] = 			{1025, 		10, 		0				};
+	int				max[count_para] = 			{65535, 	1000000, 	400000000		};
+	int				result;
+	std::string		result_str;
+
+	std::list<std::string>::iterator it;
+
+	int find_me_; // weg !! 
+
+	for ( int para = 0; para < count_para; para++ ) // go through parameters ( here defined ) 
+	{
+		it = _stapel.begin(); // go through parameter in stapel
+		while (42) // you can have one parameter multiple times in _stapel
+		{
+			it = _find(parameters[para], it);
+			find_me_ = find_me(_stapel.begin(), it); // weg !!
+			(void) find_me_;
+			if (it == _stapel.end())
+				break;
+			it++;
+			for ( ; *it != ";" ; it++ ) // go through _stapel till you hit ";" (look through the values)
+			{
+				// Here comes what should be checked for the values
+				result_str = *it;
+				result = std::atoi(result_str.c_str());
+
+				if (result < min[para] || result > max[para])
+				{
+					std::stringstream ss;
+					ss << ": not allowed number in config file: ";
+					ss << *it;
+					ss << ". Number has to be ";
+					ss << min[para];
+					ss << " - ";
+					ss << max[para];
+					_error = ss.str();
+					ss.clear();
 					throw _error;
 				}
 			}
