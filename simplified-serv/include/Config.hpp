@@ -11,6 +11,7 @@
 #include <map>
 #include <vector>
 #include <fstream>
+# include <sstream>
 
 /* DATA STRUCTURES in Config
 
@@ -107,6 +108,7 @@ class Config: protected ParseableObject {
 		void								_deleteComments();
 		void								_checkAllowedCharacters();
 		void								_checkAllowedCharactersInSpecialValues();
+		void								_checkMinMaxInSpecialValues();
 		bool								_checkCurlyBrackets( const std::string &input ) const;
 		void								_checkTokensInFrontOfLineBreak();
 		void								_checkTokensInFrontOf_One_LineBreak( std::list<std::string>::iterator it );
