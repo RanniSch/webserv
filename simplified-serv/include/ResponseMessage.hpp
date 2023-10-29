@@ -95,6 +95,7 @@ class ResponseMessage {
 		std::string		_create_content_from_file( std::string filepath, std::string *content_type );
 		std::string		_return_default_status_code_html_if_needed( std::string filepath, std::string *content_type, size_t _statusCode);
 		std::string		_response_first_line( size_t status_code );
+		std::string		_response_moved_to_location( size_t status_code, std::string dir_listing_path );
 		std::string		_response_content_type( std::string content_type );
 		std::string		_response_content_length( const std::string &content );
 		// bool			_FileExists( const std::string &path );

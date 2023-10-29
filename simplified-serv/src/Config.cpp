@@ -706,6 +706,7 @@ size_t	Config::size( std::string parameter )
 std::string	Config::get( std::string parameter, size_t n )
 {
 	std::string ret;
+
 	try
 	{
 		ret = _commonConfig.get( parameter, n );
@@ -716,6 +717,12 @@ std::string	Config::get( std::string parameter, size_t n )
 			return ( "" );
 		if ( str == "value_not_found")
 			return ( "" );
+		return "";
+	}
+	catch ( ... )
+	{
+		std::cout << "config.get 1 is causing an unknown error" << std::endl;
+		return "";
 	}
 	return ( ret );
 }
@@ -770,7 +777,7 @@ std::string	Config::get( size_t server, std::string parameter, size_t n )
 	}
 	catch (...)
 	{
-		std::cout << "some unknown config.get is causing an error" << std::endl;
+		std::cout << "config.get 2 is causing an unknown error" << std::endl;
 		return ("");
 	}
 }
@@ -816,7 +823,7 @@ std::string	Config::get( size_t server, std::string location, std::string parame
 	}
 	catch (...)
 	{
-		std::cout << "some unknown config.get is causing an error" << std::endl;
+		std::cout << "config.get 3 is causing an unknown error" << std::endl;
 		return ("");
 	}
 }

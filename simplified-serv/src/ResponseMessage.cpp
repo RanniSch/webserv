@@ -548,8 +548,15 @@ std::string	ResponseMessage::createResponse( void )
 	// DirectoryListing DL;
 	// DL.create_listing_html(_target_path); // sinnvoll einbinden (überlegen was mit unsichtbaren Dateien passiert, links testen, nicht höher als root gehen testen)
 
-	
+	// try
+	// {
 	content += _check_create_dir_listing( _dir_listing_target_path, content_type, _statusCode );
+	// }
+	// catch( size_t status_code)
+	// {
+	// 	if ( status_code == 301 )
+
+	// }
 	content += _create_content_from_file( _target_path, content_type );
 	content += _return_default_status_code_html_if_needed( _target_path, content_type, _statusCode );
 	
@@ -576,6 +583,7 @@ std::string	ResponseMessage::_add_header( std::string content, std::string conte
 	output += _response_first_line( _statusCode );
 	if ( content == "" )
 		return output;  // warten bis Lukas DELETE fertig hat und dann nochmal testen ob das reicht an response
+	output += _response_moved_to_location( _statusCode, _dir_listing_target_path);
 	output += _response_content_type( content_type );
 	output += _response_content_length( content );
 
@@ -622,6 +630,12 @@ std::string		ResponseMessage::_check_create_dir_listing( std::string path, std::
 	if ( autoindex != "on" )
 	{
 		_statusCode = 403;
+		_target_path = _return_path_to_error_file( _statusCode );
+		return "";
+	}
+	if ( path.at(path.size() - 1) != '/' ) // check _response_moved_to_location()
+	{
+		_statusCode = 301;
 		_target_path = _return_path_to_error_file( _statusCode );
 		return "";
 	}
@@ -709,7 +723,7 @@ std::string		ResponseMessage::_return_default_status_code_html_if_needed( std::s
 
 	if (filepath != "")
 		return "";
-	if ( status_code == 200 )
+	if ( status_code == 200 ) // 200 has a body, that's why its special
 		return "";
 	it = _default_error_page.find(status_code);
 	if ( it == _default_error_page.end() )
@@ -746,6 +760,31 @@ std::string	ResponseMessage::_response_first_line( size_t status_code )
 	}
 	output.append(it->second);
 	output.append("\r\n");
+	return output;
+}
+
+std::string	ResponseMessage::_response_moved_to_location( size_t status_code, std::string dir_listing_path )
+{
+	std::string										output;
+	std::map<std::string, std::string>::iterator	it;
+
+	if ( status_code !=  301 )
+		return "";
+	if ( dir_listing_path.at( dir_listing_path.size() - 1 ) != '/' )
+	{
+		output = "";
+		output.append("Location: ");
+		it = _request_map.find("Host");
+		if ( it == _request_map.end() )
+			return "";
+		output += it->second;
+		it = _request_map.find("request_location");
+		if ( it == _request_map.end() )
+			return "";
+		output += it->second;
+		output += "/"; // important for directory listing -> browser has to know that it is a directory. see _check_create_dir_listing()
+		output.append("\r\n");
+	}
 	return output;
 }
 
