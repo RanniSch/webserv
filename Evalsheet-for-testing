@@ -23,11 +23,6 @@ In the configuration file, check whether you can do the following and test the r
 • Setup multiple servers with different hostnames (use something like: curl --resolve example.com:80:127.0.0.1 http://example.com/ (http://example.com/)).
 • Limit the client body (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit").
 
-Check with a browser
-• Look at the request header and response header.
-• It should be compatible to serve a fully static website.
-• Try anything you want to.
-
 Port issues
 • In the configuration file setup multiple ports and use different websites. Use the browser to ensure that the configuration works as expected and shows the right website.
 • In the configuration, try to setup the same port multiple times. It should not work.
