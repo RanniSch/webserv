@@ -527,6 +527,8 @@ std::string	ResponseMessage::createResponse( std::string content )  // still tes
 {
 	std::string		ct;
 
+	if (content == "")
+		return ( createResponse(500) );
 	ct = content_type(content); // returns html or plain
 	_statusCode = 200;
 	return (_add_header(content, ct));
