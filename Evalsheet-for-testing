@@ -24,7 +24,5 @@ Port issues
 • Launch multiple servers at the same time with different configurations but with common ports. Does it work? If it does, ask why the server should work if one of the configurations isn't functional. Keep going.
 
 Siege & stress test
-• Availability should be above 99.5% for a simple GET on an empty page with a siege -b on that page.
 • Verify there is no memory leak (Monitor the process memory usage. It should not go up indefinitely).
 • Check if there is no hanging connection.
-• You should be able to use siege indefinitely without having to restart the server (take a look at siege -b).
