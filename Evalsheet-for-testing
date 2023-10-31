@@ -1,8 +1,6 @@
 Introduction...
 Guidelines
 - Only grade the work that was turned in the Git repository of the evaluated student or group.
-- You must also verify the absence of memory leaks. Any memory allocated on the heap must be properly freed before the end of execution. You are allowed to use any of the different tools available on the computer,
-  such as leaks, valgrind, or e_fence. In case of memory leaks, tick the appropriate flag.
 
 Mandatory Part
 Check the code and ask questions
