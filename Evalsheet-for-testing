@@ -18,9 +18,6 @@ Configuration
 In the configuration file, check whether you can do the following and test the result:
 • Limit the client body (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit").
 
-Port issues
-• Launch multiple servers at the same time with different configurations but with common ports. Does it work? If it does, ask why the server should work if one of the configurations isn't functional. Keep going.
-
 Siege & stress test
 • Verify there is no memory leak (Monitor the process memory usage. It should not go up indefinitely).
 • Check if there is no hanging connection.
