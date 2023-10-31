@@ -121,6 +121,11 @@ void	Config::_read_in_config_file()
 {
 	try
 	{
+		if(!file_exists(_path_config_file))
+		{
+			_error = "Information: cannot open your config file. Will take default Config.";
+			throw _error;
+		}
 		std::ifstream conf_file(_path_config_file);
 		if (!conf_file.is_open())
 		{
