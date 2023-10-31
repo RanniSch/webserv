@@ -4,7 +4,6 @@ Guidelines
 
 Mandatory Part
 Check the code and ask questions
-• Launch the installation of siege with homebrew.
 • Ask what function the group used for I/O Multiplexing.
 • Ask if they use only one select() (or equivalent) and how they've managed the server to accept and the client to read/write.
 • The select() (or equivalent) should be in the main loop and should check file descriptors for read and write AT THE SAME TIME. If not, the grade is 0 and the evaluation process ends now.
