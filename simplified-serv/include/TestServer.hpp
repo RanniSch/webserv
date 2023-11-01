@@ -39,6 +39,7 @@
 
 extern Config *g_config;
 extern int	g_server_shutdown;
+//extern volatile sig_atomic_t g_server_shutdown;
 
 class TestServer{
         public:
