@@ -64,9 +64,9 @@ class TestServer{
         void    _logPortInfo();
 
 		void 	_saveResponseToAFile(Socket &socket, std::string response);
-		int		checkPollAction(short revents, int fd);
+		int		checkPollAction(pollfd &pollfd);
 
-        void	_CGI(Socket &curr_socket, int &bytes_read);
+        void	_CGI(Socket &curr_socket, int &bytes_read, std::vector<pollfd>::iterator &it);
         void	_pollReading(std::vector<pollfd>::iterator &_it);
 		void	_pollWritingError(std::vector<pollfd>::iterator &_it, Socket &socket);
 	    void	_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket);
@@ -75,22 +75,22 @@ class TestServer{
 		int		_readAndParseHeader(Socket &socket, std::string strBuffer);
         int		_checkForBoundaryStr(std::string &boundary_to_find);
 
-		void	_POST(Socket &socket, std::string &stringBuffer, int &bytes_read);
-		void	_POSTrequestSaveBodyToFile(Socket &socket, std::string &stringBuffer);
+		void	_POST(Socket &socket, std::string &stringBuffer, int &bytes_read, std::vector<pollfd>::iterator &it);
+		void	_POSTrequestSaveBodyToFile(Socket &socket, std::string &stringBuffer, std::vector<pollfd>::iterator &it);
 
         void    _checkIfItIsACGI(Socket &socket);
         void	_checkPostContenLen(Socket &socket);
         void	_checkPostForBoundary(Socket &socket);
 
         //void	_setErrorResponseStr(Socket &socket, int Error_Code);
-        void    _checkTimeout(Socket &socket);
+        void    _checkTimeout(Socket &socket, pollfd &pollfd);
 
         void	_acceptConnection(int index);
 
 		void	_killClient(std::vector<pollfd>::iterator &it);
 
 		//Exceptions =========================================================
-		void	setExeptionErrorReading(Socket &socket, std::vector<pollfd>::iterator &it, const std::exception& e);
+		void	setExeptionErrorReading(Socket &socket, const std::exception& e);
 
 		//301	Moved Permanetly
 		class	MovedPermanently: public std::exception

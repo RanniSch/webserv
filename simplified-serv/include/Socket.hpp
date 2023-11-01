@@ -25,8 +25,9 @@ class Socket
 		int				error_code;
 		std::streampos	file_pos;
 		__int64_t		_payload_of_POST;
+		bool			kill_socket;
 
-		void			startListening(std::string &port);
+		void			startListening(void);
 
 		void			acceptConnection(int fd);
 		void			clearSocketInfo(void);
