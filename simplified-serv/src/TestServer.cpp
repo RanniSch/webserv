@@ -6,13 +6,12 @@ TestServer::TestServer():_nbr_of_client_sockets(0), _nbr_of_sockets_in_poll(0)
 {
     std::cout << "TestServer constructor called!" << std::endl;
 	_logPortInfo();
-	std::cout << "ALL GOOD" << std::endl;
 	//Creating Pollfd stuct
 	struct pollfd	tmp_pollfd;
 	for (std::map<int, Socket>::iterator it_tmp = _socket_arr.begin(); it_tmp != _socket_arr.end(); it_tmp++)
 	{
 		tmp_pollfd.fd = it_tmp->first;
-		tmp_pollfd.events = POLLIN | POLLHUP | POLLERR;
+		tmp_pollfd.events = POLLIN;
 		tmp_pollfd.revents = 0;
 		_sockets_for_poll.push_back(tmp_pollfd);
 		_nbr_of_sockets_in_poll++;
@@ -61,7 +60,7 @@ void	TestServer::_logPortInfo(void)
 			ss.clear();
 			_ports.push_back(port_number);
 			tmp_listening_socket.setPort(port_number);
-			tmp_listening_socket.startListening();
+			tmp_listening_socket.startListening(return_value);
 			tmp_listening_socket.setType("Listening socket");
 			_nbr_of_ports++;
 			
@@ -102,21 +101,9 @@ void	TestServer::_logPortInfo(void)
 	}
 }
 
-int		TestServer::_setErrorResponseStr(Socket &socket, int Error_Code)
-{
-	socket.setErrorFlag(true);
-	socket.setSocketRequest(true);
-	socket.setRequestHeader(true);
-	ResponseMessage 	ResponseObj;
-
-	if (_saveResponseToAFile(socket, ResponseObj.createResponse(Error_Code)) != 0)
-			std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
-	return (-1);
-}
-
 //Takes responseStr that was created by Maxes function ResponseMessage::createResponse()
 //And just writes it into a file.
-int	TestServer::_saveResponseToAFile(Socket &socket, std::string response)
+void	TestServer::_saveResponseToAFile(Socket &socket, std::string response)
 {
     std::string number;
 	std::stringstream ss;
@@ -134,28 +121,24 @@ int	TestServer::_saveResponseToAFile(Socket &socket, std::string response)
         file << response;
         file.close();
         if (file.good()) {
-			return (0);
+			return ;
         } else {
-            std::cerr << "Error occurred while writing to the file." << std::endl;
-			socket.setErrorFlag(true);
+            std::cerr << RED "[Error]: " BLANK << "occurred while writing to the file." << std::endl;
 			socket.error_code = INTERNAL_SERVER_ERR;
-			return (-1);
+			throw(InternalServerError());
         }
     } else {
 		std::cerr << "Error occurred while opening the file." << std::endl;
 		socket.error_code = INTERNAL_SERVER_ERR;
-        return (-1);
+        throw(InternalServerError());
     }
-
-    return 0;
 }
 
 void    TestServer::_acceptConnection(int fd)
 {
+	std::cout << YELL  "Accept connection: " << fd <<  BLANK << std::endl;
 	Socket tmp;
 	tmp.acceptConnection(fd);
-
-
 
 	struct pollfd tmp_pollfd;
 
@@ -169,6 +152,7 @@ void    TestServer::_acceptConnection(int fd)
 	tmp.setBoundaryStr("");
 	tmp.setRequestHeaderStr("");
 	tmp.logStartTime();
+	std::cout << GREEN << "Socket with file descriptor: " << tmp.getSocketFd() << BLANK << std::endl;
 	tmp_pollfd.fd = tmp.getSocketFd();
 	tmp_pollfd.events = POLLIN | POLLOUT | POLLHUP | POLLERR; // POLLERR POLLHUP
 	tmp_pollfd.revents = 0;
@@ -178,7 +162,7 @@ void    TestServer::_acceptConnection(int fd)
 
 	_nbr_of_sockets_in_poll++;
 	_nbr_of_client_sockets++;
-
+	std::cout << YELL  " DONE" BLANK << std::endl << std::endl;
 }
 
 
@@ -189,11 +173,13 @@ int		TestServer::checkPollAction(short revents, int fd)
 		return (2);
 	if (revents & POLLIN)
 		return (1);
+	// if (revents & POLLOUT)
+	// 	return (2);
 	if (revents & POLLOUT && _socket_arr.find(fd)->second.getSocketRequest() == true && _socket_arr.find(fd)->second.getRequestHeader() == true)
 		return (2);
 	if (revents & POLLOUT && _socket_arr.find(fd)->second.getErrorFlag() == true)
 	{
-		std::cout << "ERROR FLAG IS SET" << std::endl;
+		std::cout << RED "USED" BLANK << std::endl;
 		return (2);
 	}
 	if (revents & POLLHUP)
@@ -206,66 +192,14 @@ int		TestServer::checkPollAction(short revents, int fd)
 		std::cout << RED "closing the socket  eeeeee" BLANK << std::endl;
 		return (4);
 	}
+	// if (_socket_arr.find(fd)->second.getType() == "Client socket")
+	// {
+	// 	return (3);
+	// } 
 	return (-1);
 }
 
-
-void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket)
-{
-	std::cout << "WRITING back to the socket: " << socket.getSocketFd() << " fd: " << _it->fd << " error:" << socket.error_code << std::endl;
-	std::ifstream	file;
-	file.open(socket.getResponseFile().c_str(), std::ios::binary);
-	if (!file)
-	{
-		std::cout << "REQUEST OF NOT ANSWERING:\n" << socket.getRequestHeaderStr() << std::endl;
-		ResponseMessage	tmp_obj;
-		if (_saveResponseToAFile(socket, tmp_obj.createResponse(500)) != 0)
-            std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
-        socket.setSocketRequest(true);
-		socket.setErrorFlag(true);
-		return ;
-		//std::cout << RED << "FILE WAS NOT BEEN OPEN! " << socket.getResponseFile() <<  BLANK << std::endl;
-	}
-	char	chunk_str[CHUNK_SIZE];
-	file.seekg(socket.file_pos);
-	file.read(chunk_str, CHUNK_SIZE);
-	if (send(_it->fd, chunk_str, file.gcount(), 0) == -1)
-	{
-		std::cout << "SEND FAILED!" << std::endl;
-	}
-	if (file.eof())
-	{
-		std::cout << "WE HAVE FINISHED WRITING TO THE BROWSER" << std::endl;
-		//CLOSE THE SOCKET
-		file.close();
-		socket.file_pos = 0;
-		if (close(_it->fd) == 0)
-			std::cout << GREEN "Client Socket: " << _it->fd << " was closed successfuly" << std::endl;
-		else
-			std::cout << RED "ERROR: failed to close the client socket" << BLANK << std::endl;
-		if (std::remove(socket.getResponseFile().c_str()) == 0) {
-        // File was successfully deleted
-        	std::cout << "File deleted successfully: " << socket.getResponseFile() << std::endl;
-    	} else {
-        // An error occurred while deleting the file
-        	std::perror("Error deleting the file");
-    	}
-		_socket_arr.erase(_it->fd);
-		_sockets_for_poll.erase(_it);
-		_nbr_of_client_sockets--;
-		_nbr_of_sockets_in_poll--;
-		return ;
-	}
-	socket.file_pos = file.tellg();
-	file.close();
-}
-
-void	TestServer::_DeleteRequest(int fd)
-{
-	(void)fd;
-}
-
-int	TestServer::_checkForMethods(Socket &socket, std::string &strBuffer)
+void	TestServer::_checkForMethods(Socket &socket, std::string &strBuffer)
 {
 	std::string	tmp_method = strBuffer.substr(0, strBuffer.find(" "));
 	std::string	method = "";
@@ -276,17 +210,13 @@ int	TestServer::_checkForMethods(Socket &socket, std::string &strBuffer)
 	else if (tmp_method == "DELETE")
 		method = "DELETE";
 	else
-		method = "WRONG_REQUEST";
+	{
+		socket.error_code = NOT_IMPLEMENTED;
+		throw(NotImplemented());
+	}
 	std::cout << CYAN << "TMP_METHOD: [" BLANK << tmp_method << "]" << std::endl;
 	std::cout << CYAN << "CHOSEN METHOD: [" BLANK << method << "]" << std::endl;
-	
 	socket.setRequestMethod(method);
-	if (method == "WRONG_REQUEST")
-	{
-		//WE DO NOT KNOW THE METHOD
-		return (_setErrorResponseStr(socket, 501));
-	}
-	return (0);
 }
 
 
@@ -307,9 +237,12 @@ void	TestServer::_checkIfItIsACGI(Socket &socket)
 		std::cout << "WTF ARE YOU DOING?:\n" << socket.getRequestHeaderStr() << "\n server_nbr: " << socket.getServerNbr() << std::endl;
 	}
 
+	if (socket.getCGI() == true)
+		std::cout << RED << "CGI on socket: " << socket.getSocketFd() << BLANK << std::endl;
+
 }
 
-int	TestServer::_checkPostContenLen(Socket &socket)
+void	TestServer::_checkPostContenLen(Socket &socket)
 {
 	std::string	header = socket.getRequestHeaderStr();
 	std::size_t content_len_start = header.find("Content-Length: ");
@@ -321,35 +254,42 @@ int	TestServer::_checkPostContenLen(Socket &socket)
 			content_len_start += strlen("Content-Length: ");
 			std::string len = header.substr(content_len_start, len_end - content_len_start - 1);
 			std::cout << CYAN "len: [" BLANK << len << "]" << std::endl;
+			std::cout << CYAN "LEN of the header: " << socket.getRequestHeaderStr().length() << BLANK << std::endl;
 			std::istringstream ss(len);
-			int content_len;
+			long int content_len;
 			if (!(ss >> content_len))
 			{
 				std::cout << RED << "ERROR: CONVERTING STRING TO INT" BLANK << std::endl;
-				//411 Content len is not there
-				return (_setErrorResponseStr(socket, 411));
+				socket.error_code = LENGTH_REQUIRED;
+				throw (LengthRequired());
 			}
 			else
 			{
+				if (content_len > static_cast<long int>(std::numeric_limits<int>::max())) {
+					std::cerr << "ERRORContent-Length has overflowed!" << std::endl;
+					socket.error_code = PAYLOAD_TOO_LARGE;
+					throw(PayloadTooLarge());
+				}
 				socket.setContentLen(content_len);
 				std::cout << GREEN << "len_int: " BLANK << socket.getContentLen() << std::endl;
-				return (0);
 			}
 		}
 		else
 		{
 			//ERROR 411 Content len is not there
-			return (_setErrorResponseStr(socket, 411));
+			socket.error_code = LENGTH_REQUIRED;
+			throw (LengthRequired());
 		}
 	}
 	else
 	{
 		//ERROR 411 Content len is not there
-		return (_setErrorResponseStr(socket, 411));
+		socket.error_code = LENGTH_REQUIRED;
+		throw (LengthRequired());
 	}
 }
 
-int		TestServer::_checkPostForBoundary(Socket &socket)
+void	TestServer::_checkPostForBoundary(Socket &socket)
 {
 	socket.setMultiform(true);
 	std::string	header = socket.getRequestHeaderStr();
@@ -365,12 +305,9 @@ int		TestServer::_checkPostForBoundary(Socket &socket)
 	}
 	else
 	{
-		//ERROR 400 Bad Request
-		std::cout << YELL << "ERROR CHECK POST FOR BOUNDARY" BLANK << std::endl;
-		return (_setErrorResponseStr(socket, 400));
-		return	(-1);
+		socket.error_code = BAD_REQUEST;
+		throw(BadRequest());
 	}
-	return (0);
 }
 
 int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
@@ -378,8 +315,7 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 	std::cout << YELL << "READING AND PARSING! [" << socket.getRequestMethod() << "]" << BLANK << std::endl;
 	if (socket.getRequestMethod() == "NOTHING")
 	{
-		if (_checkForMethods(socket, strBuffer) == -1)
-			return -1;
+		_checkForMethods(socket, strBuffer);
 	}
 
 	// CHECK if request came in full
@@ -394,65 +330,44 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 		// SAVE HEADER
 		std::string	tmp_header = socket.getRequestHeaderStr().substr(0, header_end);
 		std::string	tmp_body = socket.getRequestHeaderStr().substr(header_end + 4);
-		socket.setRequestBodyStr(tmp_body);
 		socket.setRequestHeaderStr(tmp_header);
+		socket.setRequestBodyStr(tmp_body);
+		// CHECKING IF ITS CGI
+		if (socket.getRequestHeader() == true && (socket.getRequestMethod() == "POST" || socket.getRequestMethod() == "GET"))
+			_checkIfItIsACGI(socket);
 	}
-	// CHECKING IF ITS CGI
-	if (socket.getRequestHeader() == true && (socket.getRequestMethod() == "POST" || socket.getRequestMethod() == "GET"))
-		_checkIfItIsACGI(socket);
 	if (socket.getRequestHeader() == true && socket.getRequestMethod() == "POST")
 	{
-		if (_checkPostContenLen(socket) == -1)
-		{
-			std::cout << RED "ERROR: Impossible to retrieve Content len from POST request" BLANK << std::endl; // 411, "Length Required" is ready ask Max
-			return -1;
-		}
+		_checkPostContenLen(socket);
 		if (socket.getRequestHeaderStr().find("multipart/form-data;") != std::string::npos)
 		{
-			if (_checkPostForBoundary(socket) == -1)
-			{
-				std::cout << RED "ERROR: Boundary str not found!" BLANK << std::endl;
-				//ERROR 400 Bad Request
-				return (_setErrorResponseStr(socket, 400));
-			}
+			_checkPostForBoundary(socket);
 		}
 		else if (socket.getRequestHeaderStr().find("application/x-www-form-urlencoded") == std::string::npos)
 		{
-			//ERROR 400 Bad Request
-			return (_setErrorResponseStr(socket, 400));
+			socket.error_code = BAD_REQUEST;
+			throw(BadRequest());
 		}
 	}
 	else if (socket.getRequestHeader() == true && socket.getRequestMethod() == "GET")
 	{
 		std::cout << RED << "PREPARING RESPONSE 1" BLANK << std::endl;
 		ResponseMessage responseObj(socket.getRequestHeaderStr(), socket.getServerNbr()); // GET
-		std::cout << RED << "PREPARING RESPONSE 2" BLANK << std::endl;
 
-		if (_saveResponseToAFile(socket, responseObj.createResponse()) != 0)
-			std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
+		_saveResponseToAFile(socket, responseObj.createResponse());
 		socket.setSocketRequest(true);
 		std::cout << GREEN << "CRAFTED GET RESPONSE STR" << BLANK << std::endl;
 	}
+	else if (socket.getRequestHeader() == true && socket.getRequestMethod() == "DELETE")
+	{
+		std::cout << RED << "DELETE TEST" BLANK << std::endl;
+		ResponseMessage responseObj(socket.getRequestHeaderStr(), socket.getServerNbr()); // DELETE
+
+		_saveResponseToAFile(socket, responseObj.createResponse());
+		socket.setSocketRequest(true);
+		std::cout << GREEN << "CRAFTED DELETE RESPONSE STR" << BLANK << std::endl;
+	}
 	return (0);
-}
-
-
-int	TestServer::_checkForBoundaryStr(std::string &boundary_to_find)
-{
-	std::vector<uint8_t> boundary_vector;
-	
-	for (std::string::const_iterator it_tmp = boundary_to_find.begin(); it_tmp != boundary_to_find.end(); it_tmp++) {
-		boundary_vector.push_back(static_cast<uint8_t>(*it_tmp));
-	}
-
-	std::vector<uint8_t>::iterator it_t = std::search(_buffer_vector.begin(), _buffer_vector.end(), boundary_vector.begin(), boundary_vector.end());
-	if (it_t != _buffer_vector.end()) {
-		// Subarray found in the array
-		// 'it' points to the beginning of the found subarray
-		size_t index = it_t - _buffer_vector.begin();
-		return (index);
-	}
-	return -1;
 }
 
 void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuffer)
@@ -490,6 +405,15 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuff
 				socket.setFileName(strBuffer.substr(filename_start, filename_end - filename_start));
 			}
 		}
+		std::cout << CYAN "CHECK " << socket.getContentLen() << "BODY START: " << body_start << " " << end_boundary.length() <<  BLANK << std::endl;
+		__int64_t	tmp_check = socket.getContentLen() - (body_start + end_boundary.length());
+		if (tmp_check > socket.getMaxBodySize())
+		{
+			socket.error_code = PAYLOAD_TOO_LARGE;
+			throw(PayloadTooLarge());
+		}
+		std::cout << "CHECK PAYLOAD: " << socket._payload_of_POST << std::endl;
+		//std::cout << CYAN "CHECKING CONTENT LEN: " << socket.getContentLen() - (body_start - start_boundary_pos) - end_boundary.length() << BLANK << std::endl;
 	}
 
 	std::string	filename = "www/" + socket.getFileName();
@@ -498,10 +422,11 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuff
 	{
 		out << *it_t;
 	}
+
 	if (end_of_post == true)
 	{
-		if (_saveResponseToAFile(socket, "HTTP 201: Created") != 0)
-			std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
+		ResponseMessage	rm;
+		_saveResponseToAFile(socket, rm.createResponse(CREATED));
 		socket.setSocketRequest(true);
 		socket.setRequestHeader(true);
 		out.close();
@@ -515,33 +440,20 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer, int &bytes_rea
 	{
 		if (socket.getCGI() == true)
 		{
-			socket.setErrorFlag(true);
 			std::cout << RED "ERROR: we do not accept POST CGI with multipart/form Content-type!" BLANK << std::endl;
-			socket.setSocketRequest(true);
-
-			ResponseMessage	tmp_obj;
-			if (_saveResponseToAFile(socket, tmp_obj.createResponse(501)) != 0)
-				std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
-			socket.setSocketRequest(true);
-			socket.setRequestHeader(true);
-			socket.setErrorFlag(true);
-			return ;
+			socket.error_code =  NOT_IMPLEMENTED;
+			throw (NotImplemented());
 		}
 		_POSTrequestSaveBodyToFile(socket, stringBuffer);
 	}
 	else if (socket.getCGI() == true)
 	{
-		//PARSING CGI !!! NOT IMPLEMENTED YET // Put the stuff for Ranja here
-		std::cout << YELL "APPLICATION CGI HEADER:\n" BLANK << socket.getRequestHeaderStr() << std::endl;
-		//std::cout << GREEN "CHECK ALL: [" << stringBuffer << "]" << BLANK << std::endl;
-		std::cout << GREEN "APLLICATION CGI BODY:\n[" BLANK << socket.getRequestBodyStr() << "]" << std::endl;
+		//std::cout << YELL " DEBUG [APPLICATION CGI HEADER]:\n" BLANK << socket.getRequestHeaderStr() << GREEN "DONE" BLANK << std::endl;
+		//std::cout << GREEN "DEBUG [APLLICATION CGI BODY]:\n[" BLANK << socket.getRequestBodyStr() << "]" << GREEN "DONE" BLANK << std::endl;
 		socket.setPayloadSize(socket.getPayloadSize() + socket.getRequestBodyStr().length());
 		if (socket.getPayloadSize() == socket.getContentLen())
 		{
 			std::cout << GREEN "WE HAVE A FULL CGI BODY! LETS EXECUTE A CGI!" BLANK << std::endl;
-			//socket.setSocketRequest(true);
-			//curr_socket.setSocketRequest(true);
-			//EXECUTE POST CGI HERE
 			Cgi cgi;
 
 			//DANGEROUS!
@@ -562,16 +474,21 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer, int &bytes_rea
 			//socket.setSocketRequest(true);
 			if (cgiReturn == 0)
 			{
-				if (_saveResponseToAFile(socket, rm.createResponse(cgi.getScriptString())) != 0)
-            		std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
+				_saveResponseToAFile(socket, rm.createResponse(cgi.getScriptString()));
         		socket.setSocketRequest(true); // Also set the socket to be ready for writing with so that the checkPollAction would know that it is okay to write.
 			}
 			else
 			{
-				if (_saveResponseToAFile(socket, rm.createResponse(cgiReturn)) != 0)
-            		std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
-        		socket.setSocketRequest(true);
-				socket.setErrorFlag(true);
+				socket.error_code = cgiReturn;
+				std::cerr << RED << "CGI 2: " BLANK << cgiReturn << std::endl;
+				if (cgiReturn == INTERNAL_SERVER_ERR)
+				{
+					throw(InternalServerError());
+				}
+				if (cgiReturn == GATEWAY_TIMEOUT)
+				{
+					throw(GatewayTimeout());
+				}
 			}
 		}
 		else
@@ -585,29 +502,181 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer, int &bytes_rea
 void	TestServer::_checkTimeout(Socket &socket)
 {
 	double	seconds = difftime(time(NULL), socket.getStartTime());
-
-	std::ofstream file("checking.txt", std::ios::out | std::ios::app);
-
-    std::ostringstream oss;
-    oss << seconds;
-	std::string	double_str = oss.str();
-	oss.clear();
-	oss << socket.getSocketFd();
-	std::string	str = oss.str();
-	oss.clear();
-	std::string tmp = "CHECKING second difference: "  + double_str + " FD: " + str + "\n";
-	file << tmp;
-	file.close();
 	if (seconds >= socket.getClientTimeout())
 	{
-		std::cout << RED << "ERROR: Client " << socket.getSocketFd() << "Socket has timeout: " << seconds << BLANK << std::endl;
-		ResponseMessage	rm;
-		if (_saveResponseToAFile(socket, rm.createResponse(500)) != 0)
-			std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
 		socket.setSocketRequest(true);
 		socket.setRequestHeader(true);
 		socket.setErrorFlag(true);
-		socket.error_code = 500;
+		socket.error_code = REQUEST_TIMEOUT;
+		throw(Timeout());
+	}
+}
+
+void	TestServer::_CGI(Socket &curr_socket, int &bytes_read)
+{
+	//EXECUTE GET METHOD CGI HERE
+	Cgi cgi;
+										
+	//DANGEROUS!
+	std::string strCgiBuffer(reinterpret_cast<const char*>(_buffer_vector.data()), bytes_read);
+	cgi.setRequest(strCgiBuffer, curr_socket.getServerNbr());
+
+	int	cgi_return;
+	cgi_return = cgi.runCgi(); // Ranja
+
+	ResponseMessage rm;
+	if (cgi_return == 0)
+	{
+		_saveResponseToAFile(curr_socket, rm.createResponse(cgi.getScriptString()));
+    	curr_socket.setSocketRequest(true);
+	}
+	else
+	{
+		curr_socket.error_code = cgi_return;
+		std::cerr << RED << "CGI 1: " BLANK << cgi_return << std::endl;
+		if (cgi_return == INTERNAL_SERVER_ERR)
+		{
+			throw(InternalServerError());
+		}
+		if (cgi_return == GATEWAY_TIMEOUT)
+		{
+			throw(GatewayTimeout());
+		}
+	}
+}
+
+void	TestServer::_pollReading(std::vector<pollfd>::iterator &it)
+{
+	char  readData[CHUNK_SIZE];
+	int bytes_read = recv(it->fd, readData, sizeof(readData), 0);
+	if (bytes_read == -1)
+	{
+		std::cerr << RED "[ERROR]: " BLANK << "Receiving Bytes socket: " << it->fd << std::endl;   
+		throw(InternalServerError());
+	}
+	else if (bytes_read > 0)
+	{
+		std::cout << "WE RECEIVED: SOCKET: " << _socket_arr.find(it->fd)->second.getSocketFd() << std::endl;
+		_buffer_vector.clear();
+		_buffer_vector.reserve(bytes_read);
+		Socket	*curr_socket = &_socket_arr.find(it->fd)->second;
+	
+		for (int i = 0; i < bytes_read; ++i)
+		{
+			_buffer_vector.push_back(static_cast<uint8_t>(readData[i]));
+		}
+		std::string stringBuffer(readData, bytes_read);
+		if (curr_socket->getRequestHeader() == false)
+		{
+			if (_readAndParseHeader(*curr_socket, stringBuffer) == 2)
+			{
+				return ;
+			}
+		}
+		if (curr_socket->getRequestMethod() == "POST")
+		{
+			_POST(*curr_socket, stringBuffer, bytes_read);
+		}
+		else if (curr_socket->getRequestMethod() == "GET" && curr_socket->getCGI() == true)
+		{
+			_CGI(*curr_socket, bytes_read);
+		}
+	}
+	else
+	{
+		std::cout << RED "READING 0 Socket: " << _socket_arr.find(it->fd)->second.getSocketFd() << BLANK << std::endl;	
+		_killClient(it);
+		return ;
+	}
+	it->revents = 0; 
+}
+
+void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket)
+{
+	std::cout << "WRITING back to the socket: " << socket.getSocketFd() << " fd: " << _it->fd << " error:" << socket.error_code << std::endl;
+	std::cout << "ENTIRE POST LOAD: " << socket._payload_of_POST << std::endl;
+	std::ifstream	file;
+	file.open(socket.getResponseFile().c_str(), std::ios::binary);
+	if (!file)
+	{
+		std::cerr << RED << "ERROR: " BLANK << "FILE WAS NOT BEEN OPEN! " << socket.getResponseFile() <<  BLANK << std::endl;
+		throw (InternalServerError());
+	}
+	char	chunk_str[CHUNK_SIZE];
+	file.seekg(socket.file_pos);
+	file.read(chunk_str, CHUNK_SIZE);
+	//std::cout << CYAN << "CHUNK:" BLANK << chunk_str << CYAN "DONE" BLANK << std::endl;
+	if (send(_it->fd, chunk_str, file.gcount(), 0) == -1)
+	{
+		std::cerr << RED "[ERROR]: " BLANK << "SEND FAILED!" << std::endl;
+		throw(InternalServerError());
+	}
+	if (file.eof())
+	{
+		std::cout << GREEN "WE HAVE FINISHED WRITING TO THE BROWSER" BLANK << std::endl;
+		file.close();
+		socket.file_pos = 0;
+		if (std::remove(socket.getResponseFile().c_str()) == 0) 
+		{
+        	// File was successfully deleted
+        	std::cout << "File deleted successfully: " << socket.getResponseFile() << std::endl;
+    	} else {
+        	// An error occurred while deleting the file
+        	std::cerr << RED << "[Error]: " BLANK << "Deleting the file: " << socket.getResponseFile() << std::endl;
+			throw(InternalServerError());
+    	}
+		_killClient(_it);
+		return ;
+	}
+	socket.file_pos = file.tellg();
+	file.close();
+	_it->revents = 0;
+}
+
+void	TestServer::_pollWritingError(std::vector<pollfd>::iterator &_it, Socket &socket)
+{
+	std::cout << RED "[ERROR]: " BLANK << "Writing error." << std::endl;
+	ResponseMessage	rm;
+	std::string	response_error = rm.createResponse(socket.error_code);
+	if (send(_it->fd,	response_error.c_str(), response_error.length(), 0) == -1)
+	{
+		std::cerr << RED "[ERROR]: " BLANK << "SEND ERROR FAILED!" << std::endl;
+		throw(InternalServerError());
+	}
+	_killClient(_it);
+	std::cout << YELL << "ERROR WRITING DONE!" BLANK << std::endl;
+}
+
+void	TestServer::_killClient(std::vector<pollfd>::iterator &it)
+{
+	_socket_arr.find(it->fd)->second.clearClass();
+	std::cout << RED "Succesfull clear!: " BLANK << it->fd << std::endl;
+	if (close(it->fd) == 0)
+		std::cout << GREEN "Client Socket: " << it->fd << " was closed successfuly" BLANK << std::endl;
+	else
+	{
+		std::cout << RED "[ERROR]: " BLANK << "Failed to close the client socket fd: " << it->fd << BLANK << std::endl;
+		throw(InternalServerError());
+	}			
+	_socket_arr.erase(it->fd);
+	it = _sockets_for_poll.erase(it);
+	_nbr_of_client_sockets--;
+	_nbr_of_sockets_in_poll--;
+	std::cout << RED "Succesfull killed!: " BLANK << it->fd << std::endl;
+}
+
+void	TestServer::setExeptionErrorReading(Socket &socket, std::vector<pollfd>::iterator &it, const std::exception& e)
+{
+	std::cerr << RED << "[ERROR]: " BLANK << "Exception: " << e.what() << BLANK << std::endl;
+	it->revents = 0;
+	if (socket.error_code == 0)
+	{
+		socket.error_code = INTERNAL_SERVER_ERR;
+		socket.setErrorFlag(true);
+	}
+	else
+	{
+		socket.setErrorFlag(true);
 	}
 }
 
@@ -628,15 +697,15 @@ void    TestServer::launch()
 		switch (ready)
 		{
 			case(-1):
-				perror(RED "ERROR: poll() has failed: " BLANK);
+				std::cout << RED << "[ERROR]: Poll has completely failed! PANIC!!!!! ABORT!!!!!!" << BLANK << std::endl;
 				g_server_shutdown = 0;
 				break;
 		
 			case(0):
-				perror(RED "ERROR: poll() has timed out: " BLANK);
+				std::cout << YELL << "[MANAGABLE]: Poll has timed out" << std::endl;
 				break;
 			default:
-				for (std::vector<pollfd>::iterator it = _sockets_for_poll.begin(); it != _sockets_for_poll.end() && ready != 0; it++)
+				for (std::vector<pollfd>::iterator it = _sockets_for_poll.begin(); it != _sockets_for_poll.end() && ready > 0; it++)
 				{
 					int	action = checkPollAction(it->revents, it->fd);
 					switch(action)
@@ -644,90 +713,45 @@ void    TestServer::launch()
 						case(READING):
 							if (_socket_arr.find(it->fd)->second.getType() == "Listening socket")
 							{
-								std::cout << YELL "ACCEPT CONNECTION => " << it->fd;
 								_acceptConnection(it->fd);
-								std::cout << YELL "DONE" BLANK << std::endl << std::endl;
 							}
 							else
 							{
-								char  readData[CHUNK_SIZE];
-								int bytes_read = recv(it->fd, readData, sizeof(readData), 0);
-								if (bytes_read == -1)
+								try
 								{
-									std::cout << RED "ERROR: recv has failed!" << BLANK << std::endl;
-									perror("CHECK RECV ERROR: ");
-								}
-								else if (bytes_read > 0)
-								{
+									// std::cout << "Socket with fd: " << it->fd << std::endl;
 									_checkTimeout(_socket_arr.find(it->fd)->second);
-									if (_socket_arr.find(it->fd)->second.getErrorFlag() == true)
-									{
-										std::cout << RED "WE ARE BREAKING" BLANK << std::endl;
-										break;
-									}
-									_buffer_vector.clear();
-									_buffer_vector.reserve(bytes_read);
-									Socket	*curr_socket = &_socket_arr.find(it->fd)->second;
-
-									for (int i = 0; i < bytes_read; ++i)
-									{
-										_buffer_vector.push_back(static_cast<uint8_t>(readData[i]));
-									}
-									std::string stringBuffer(readData, bytes_read);
-									if (curr_socket->getRequestHeader() == false)
-									{
-										if (_readAndParseHeader(*curr_socket, stringBuffer) == -1)
-											std::cout << RED "ERROR withing _readAndParseHeader" BLANK << std::endl;
-										std::cout << "HEADER: " << curr_socket->getRequestHeaderStr() << std::endl;
-									}
-									if (curr_socket->getRequestMethod() == "POST")
-									{
-										_POST(*curr_socket, stringBuffer, bytes_read);
-									}
-									else if (curr_socket->getRequestMethod() == "GET" && curr_socket->getCGI() == true)
-									{
-										//EXECUTE GET METHOD CGI HERE
-										Cgi cgi;
-										
-										//DANGEROUS!
-										std::string strCgiBuffer(reinterpret_cast<const char*>(_buffer_vector.data()), bytes_read);
-										cgi.setRequest(strCgiBuffer, curr_socket->getServerNbr());
-
-										int	cgiReturn;
-										cgiReturn = cgi.runCgi(); // Ranja
-
-										ResponseMessage rm;
-
-										if (cgiReturn == 0)
-										{
-											if (_saveResponseToAFile(*curr_socket, rm.createResponse(cgi.getScriptString())) != 0)
-            									std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
-        									curr_socket->setSocketRequest(true);
-											//_pollWriting(it, *curr_socket);
-										}
-										else
-										{
-											if (_saveResponseToAFile(*curr_socket, rm.createResponse(cgiReturn)) != 0)
-            									std::cout << RED << "ERROR while saving Response to a file!" BLANK << std::endl;
-        									curr_socket->setSocketRequest(true);
-											curr_socket->setErrorFlag(true);
-											_pollWriting(it, _socket_arr.find(it->fd)->second);
-										}
-									}
-									else
-										std::cout << "NOTHING 0" << std::endl;
+									_pollReading(it);
 								}
+								catch(const std::exception& e) { setExeptionErrorReading(_socket_arr.find(it->fd)->second, it, e);}
 							}
-							it->revents = 0;
 							ready--;
 							break;
 						case(WRITING):
-							_pollWriting(it, _socket_arr.find(it->fd)->second);
+							try
+							{
+								if (_socket_arr.find(it->fd)->second.getErrorFlag() == true)
+									_pollWritingError(it, _socket_arr.find(it->fd)->second);
+								else
+									_pollWriting(it, _socket_arr.find(it->fd)->second);
+							}
+							catch(const std::exception& e)
+							{
+								std::cerr << RED << "[ERROR]: " << BLANK << "Writing to server failed! " << e.what() << std::endl;
+								_killClient(it);
+							}
 							ready--;
 							break;
-						case(KILLING_CLIENT):
-							break;
 						default:
+							if (_socket_arr.find(it->fd)->second.getType() == "Client socket")
+							{
+								try { _checkTimeout(_socket_arr.find(it->fd)->second);}
+								catch(const std::exception& e)
+								{
+									setExeptionErrorReading(_socket_arr.find(it->fd)->second, it, e);
+								}
+								
+							}
 							break;
 					}
 				}

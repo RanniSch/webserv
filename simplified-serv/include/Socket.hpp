@@ -1,6 +1,7 @@
 #ifndef	SOCKET_HPP
 # define SOCKET_HPP
 
+# include <cstdio>
 # include <stdio.h>
 # include <unistd.h>
 # include <stdlib.h>
@@ -8,6 +9,9 @@
 # include <iostream>
 # include <fcntl.h>
 # include <vector>
+# include <sys/types.h>
+# include <cstring>
+# include <netdb.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <time.h>
@@ -20,12 +24,14 @@ class Socket
 
 		int				error_code;
 		std::streampos	file_pos;
+		__int64_t		_payload_of_POST;
 
-		void			startListening(void);
+		void			startListening(std::string &port);
 
 		void			acceptConnection(int fd);
 		void			clearSocketInfo(void);
 		void			logStartTime();
+		void			clearClass();
 
 		//SETTERS
 		void			setStartTime(time_t time);
@@ -55,10 +61,12 @@ class Socket
 		void			setMaxBodySize(__int64_t max_body_size);
 
 		//GETTERS
-		bool			getErrorFlag(void);
 		sockaddr_in&	getSockAddr(void);
 		int				getPort(void);
+		bool			getCGI(void);
+		bool			getMultiform(void);
 		int				getSocketFd(void);
+		bool			getErrorFlag(void);
 		bool			getSocketRequest(void);
 		bool			getRequestHeader(void);
 		bool			getRequestTypeLogged(void);
@@ -71,8 +79,6 @@ class Socket
 		std::string		getResponseStr(void);
 		std::string		getRequestHeaderStr(void);
 		std::string		getRequestBodyStr(void);
-		bool			getCGI(void);
-		bool			getMultiform(void);
 		long int		getPayloadSize(void);
 		int				getContentLen(void);
 		std::string		getBoundaryStr(void);
@@ -92,6 +98,7 @@ class Socket
 		size_t			_server_nbr;
 
 		bool			_error;
+
 		bool			_CGI;
 		bool			_multiform;
 		bool			_request_type_is_logged;
@@ -99,7 +106,7 @@ class Socket
 		bool			_second_header_found;
 		bool			_boundary_end_found;
 		bool			_request_fully_received;
-		int				_content_len;
+		long int		_content_len;
 
 		long int		_payload_size_CGI;
 
@@ -111,16 +118,18 @@ class Socket
 		std::string		_file_name;
 		std::string		_response_file_name;
 		std::string		_request_body;
-		std::string		_response_str;
 
 		//Client socket
 		struct sockaddr_in	_server_addr_client;
 		int 				_client_addr_len;
 		int					_socket_fd;
+
 		//Listening socket
 		int					_port;
 		struct sockaddr_in	_server_addr_listening;
 };
+
+# define    INTERNAL_SERVER_ERR 500
 
 # define    GREY    "\033[90m"
 # define    GREEN   "\033[32m"
