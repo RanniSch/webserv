@@ -80,6 +80,7 @@ class ResponseMessage {
 		bool			_server_number_valid( void );
 		void			_check_URI_len( void );
 		void			_separate_query( void );
+		std::string		_replace_empty_spaces( std::string &path );
 		void			_check_for_allowed_request_method( void );
 		void			_check_and_set_location ( void );
 		void			_set_root_directory( void );

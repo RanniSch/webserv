@@ -135,6 +135,7 @@ void	ResponseMessage::_parse_request( std::string &request )
 		// the target path should be the file that will be send back, html, index, error page or picture...
 		// if the file does not exist target path should be empty
 		_target_path = _check_redirect_and_return_target_path();
+		_target_path = _replace_empty_spaces( _target_path );
 		_dir_listing_target_path = _target_path; // comes right before check index
 		_target_path = _check_index_and_return_target_path(); // hiervor aber erst redirect machen!!!
 		// special error codes to target path here permission denied or so... 
@@ -257,6 +258,25 @@ void	ResponseMessage::_separate_query( void )
 	buf = request_location.substr(0, query_start);
 	_request_map.erase ( it );
 	_request_map.insert( std::pair<std::string, std::string>("request_location", buf) );
+}
+
+std::string	ResponseMessage::_replace_empty_spaces( std::string &path )
+{
+	std::string out;
+	size_t		result;
+
+	if ( path == "")
+		return "";
+	out = path;
+	
+	while (42)
+	{
+		result = out.find("%20");
+		if ( result == std::string::npos )
+			break;
+		out.replace( result, 3, " ");
+	}
+	return out;
 }
 
 void	ResponseMessage::_check_for_allowed_request_method( void )
