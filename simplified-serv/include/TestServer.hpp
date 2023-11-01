@@ -17,6 +17,7 @@
 # include <exception>
 # include <netinet/in.h>
 # include <algorithm>    // std::search
+# include <limits>
 
 # include <poll.h>
 # include <inttypes.h>
@@ -29,7 +30,7 @@
 # include "utils.hpp"
 # include "Cgi.hpp"
 
-#include <map>
+
 
 // Global settings
 # define CGI_TIMEOUT		1000
@@ -49,7 +50,7 @@ class TestServer{
             void	launch();
         
         private:
-			std::vector<uint8_t> _buffer_vector;
+			std::vector<uint8_t>            _buffer_vector;
 
             int    							_nbr_of_ports;
             int                             _nbr_of_client_sockets;
@@ -62,13 +63,15 @@ class TestServer{
         //CONECTING CONFIG TO A SERVER
         void    _logPortInfo();
 
-		int 	_saveResponseToAFile(Socket &socket, std::string response);
+		void 	_saveResponseToAFile(Socket &socket, std::string response);
 		int		checkPollAction(short revents, int fd);
+
+        void	_CGI(Socket &curr_socket, int &bytes_read);
+        void	_pollReading(std::vector<pollfd>::iterator &_it);
+		void	_pollWritingError(std::vector<pollfd>::iterator &_it, Socket &socket);
 	    void	_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket);
 
-	    void	_DeleteRequest(int fd);
-
-        int		_checkForMethods(Socket &socket, std::string &strBuffer);
+        void	_checkForMethods(Socket &socket, std::string &strBuffer);
 		int		_readAndParseHeader(Socket &socket, std::string strBuffer);
         int		_checkForBoundaryStr(std::string &boundary_to_find);
 
@@ -76,13 +79,109 @@ class TestServer{
 		void	_POSTrequestSaveBodyToFile(Socket &socket, std::string &stringBuffer);
 
         void    _checkIfItIsACGI(Socket &socket);
-        int		_checkPostContenLen(Socket &socket);
-        int		_checkPostForBoundary(Socket &socket);
+        void	_checkPostContenLen(Socket &socket);
+        void	_checkPostForBoundary(Socket &socket);
 
-        int		_setErrorResponseStr(Socket &socket, int Error_Code);
+        //void	_setErrorResponseStr(Socket &socket, int Error_Code);
         void    _checkTimeout(Socket &socket);
 
         void	_acceptConnection(int index);
+
+		void	_killClient(std::vector<pollfd>::iterator &it);
+
+		//Exceptions =========================================================
+		void	setExeptionErrorReading(Socket &socket, std::vector<pollfd>::iterator &it, const std::exception& e);
+
+		//301	Moved Permanetly
+		class	MovedPermanently: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//400
+		class	BadRequest: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//403	Forbidden
+		class	Forbidden: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//404	Resource not found
+		class	NotFound: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//405	Method Not Allowed
+		class	MethodNotAllowed: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//408
+		class	Timeout: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//411	Content-Length required
+		class	LengthRequired: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//413	PayloadTooLarge
+		class	PayloadTooLarge: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//414	URI too long
+		class	URITooLong: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//500	Internal Server Error
+		class	InternalServerError: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//501	Not Implemented
+		class	NotImplemented: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//505	HTTP version not supported
+		class	HTTPVersionNotSupported: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
+
+		//508	Gateway timeout
+		class	GatewayTimeout: public std::exception
+		{
+			public:
+				virtual const char  *what() const throw();
+		};
 };
 
 
@@ -110,6 +209,8 @@ class TestServer{
 # define    READING			1
 # define    WRITING			2
 # define    KILLING_CLIENT	3
+
+# define	CLIENT_FALLING 5
 
 # define	GREY    "\033[90m"
 # define	GREEN   "\033[32m"

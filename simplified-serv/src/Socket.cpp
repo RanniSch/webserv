@@ -3,6 +3,7 @@
 Socket::Socket()
 {
 	//std::cout << "Socket constructor!" << std::endl;
+	_payload_of_POST = 0;
 	_request_type_is_logged = false;
 	_request_header_received = false;
 	_request_fully_received = false;
@@ -30,67 +31,118 @@ Socket::Socket()
 	_request_method.clear();
 	_request_header.clear();
 	_request_body.clear();
-	_response_str.clear();
 	
 }
 
 Socket::~Socket()
 {
 	//std::cout << "Socket destructor!" << std::endl;
+	clearClass();
 }
 
-void	Socket::startListening(void)
+void	Socket::clearClass()
+{
+	_payload_of_POST = 0;
+	error_code = 0;
+	file_pos = 0;
+	_start_time = 0;
+	_client_timeout = 0;
+	_max_body_size = 0;
+	_server_nbr = 0;
+	_error = false;
+	_CGI = false;
+	_multiform = false;
+	_request_type_is_logged = false;
+	_request_header_received = false;
+	_second_header_found = false;
+	_boundary_end_found = false;
+	_request_fully_received = false;
+	_content_len = 0;
+	_payload_size_CGI = 0;
+
+	_socket_type.clear();
+	_request_method.clear();
+	_request_header.clear();
+	_boundaryStr.clear();
+	_second_header.clear();
+	_file_name.clear();
+
+    if (access(_response_file_name.c_str(), F_OK) == 0) {
+        std::cout << "File exists." << std::endl;
+		if (std::remove(_response_file_name.c_str())  == 0) 
+		{
+        	// File was successfully deleted
+        	std::cout << "File deleted successfully: " << _response_file_name << std::endl;
+    	} else {
+        	// An error occurred while deleting the file
+        	std::cerr << RED << "[Error]: " BLANK << "Deleting the file: " << _response_file_name << std::endl;
+    	}
+    }
+	_response_file_name.clear();
+	_request_body.clear();
+	_client_addr_len = 0;
+	_socket_fd = 0;
+	_port = 0;
+}
+
+void	Socket::startListening(std::string &port)
 {
 	std::cout << "Start Listening...	" << std::endl;
 
-	//creating server socket
-	_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (_socket_fd < 0)
-	{
-		perror("listening socket failed... ");
-		exit(EXIT_FAILURE);
-	}
+	struct addrinfo	hints;
+	struct addrinfo	*result;	
+	
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
 
 	//config socket
 	_server_addr_listening.sin_family = AF_INET;
 	_server_addr_listening.sin_addr.s_addr = INADDR_ANY;
 	_server_addr_listening.sin_port = htons(_port);
 
-	//Making it reusable after we ctrl-c the server
+	if (getaddrinfo(NULL, port.c_str(), &hints, &result) != 0)
+	{
+		std::cerr << RED "Error: Getaddrinfo" BLANK << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	//creating server socket
+	_socket_fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+	if (_socket_fd < 0)
+	{
+		std::cerr << RED "Error: Creating Listening socket" BLANK << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
     int reuse = 1;
+	//Making it reusable after we ctrl-c the server
     if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
 	{
-		std::cerr << "Error setting server socket options" << std::endl;
+		std::cerr << RED "Error setting server socket options" BLANK << std::endl;
 		exit(EXIT_FAILURE);
+	}
+
+	if (fcntl(_socket_fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) < 0) 
+	{
+		std::cerr << RED "Error: Setting to NON Blockins" BLANK << std::endl;
+		exit(-1);
 	}
 
 	//bind socket
 	int bind_result = bind(_socket_fd, (struct sockaddr *)&_server_addr_listening, sizeof(_server_addr_listening));
 	if (bind_result < 0)
 	{
-		perror("bind failed... ");
+		std::cerr << RED "Error: Binding failed" BLANK << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-
-	int	flags = fcntl(_socket_fd, F_GETFL, 0);
-
-	if (flags == -1)
-	{
-		perror(RED "ERROR: fcntl() flags has failed: " BLANK);
-		exit(-1);
-	}
-	flags |= O_NONBLOCK;
-	if (fcntl(_socket_fd, F_SETFL, flags) < 0) 
-	{
-		perror(RED "ERROR: fcntl() setting has failed: " BLANK);
-		exit(-1);
-	}
-
 	//Listen for upcoming connections
-	if (listen(_socket_fd, 10) < 0)
+	if (listen(_socket_fd, 20) < 0)
 	{
-		perror(RED "ERROR: listening failed... " BLANK);
+		std::cerr << RED "Error: Listening Failed" BLANK << std::endl;
 		exit(EXIT_FAILURE);
 	}
 }
@@ -107,18 +159,21 @@ int	Socket::getPort(void)
 
 void	Socket::acceptConnection(int fd)
 {
-	_client_addr_len = sizeof(_server_addr_client);
+	struct sockaddr_in client_addr;
+	socklen_t client_addr_size = sizeof(client_addr);
 
-	_socket_fd = accept(fd, (struct sockaddr *)&_server_addr_client, (socklen_t *)&_client_addr_len);
+	_socket_fd = accept(fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_size);
 	if (_socket_fd < 0)
 	{
-		std::cout << _socket_fd << std::endl;
-		perror("Accepting connection failed");
+		std::cerr << RED << "[Error]: Accepting connection failed" << BLANK << std::endl;
+		error_code = INTERNAL_SERVER_ERR;
+		setErrorFlag(true);
 	}
 	if (fcntl(_socket_fd, F_SETFL, O_NONBLOCK) < 0) 
 	{
-		perror(RED "ERROR: fcntl() setting has failed in clientSocket: " BLANK);
-		exit(-1);
+		std::cerr << RED << "[Error]: Setting to non blocking failed" << BLANK << std::endl;
+		error_code = INTERNAL_SERVER_ERR;
+		setErrorFlag(true);
 	}
 }
 
@@ -128,7 +183,7 @@ void	Socket::clearSocketInfo(void)
 	//_request_method.clear();
 	_request_header.clear();
 	_request_body.clear();
-	_response_str.clear();
+	//_response_str.clear();
 	//_request_method.clear();
 	_boundaryStr.clear();
 	_request_type_is_logged = false;
@@ -155,7 +210,7 @@ void	Socket::setSocketRequest(bool value) { _request_fully_received = value;}
 void	Socket::setRequestHeader(bool value) { _request_header_received = value;}
 void	Socket::setType(std::string type) { _socket_type = type;}
 void	Socket::setRequestMethod(std::string method) { _request_method = method;}
-void	Socket::setResponseStr(std::string response) { _response_str = response;}
+//void	Socket::setResponseStr(std::string response) { _response_str = response;}
 void	Socket::setRequestHeaderStr(std::string request_header) { _request_header  = request_header;}
 void	Socket::setRequestBodyStr(std::string request_body) { _request_body = request_body;}
 void	Socket::setRequestTypeLogged(bool logged) { _request_type_is_logged = logged;}
@@ -182,7 +237,7 @@ bool			Socket::getRequestHeader(void) { return	(_request_header_received);}
 int				Socket::getSocketFd() { return (_socket_fd);}
 std::string		Socket::getType() { return (_socket_type);}
 std::string		Socket::getRequestMethod(void) { return (_request_method);}
-std::string		Socket::getResponseStr(void) { return (_response_str);}
+//std::string		Socket::getResponseStr(void) { return (_response_str);}
 std::string		Socket::getRequestHeaderStr(void) { return (_request_header);}
 bool			Socket::getRequestTypeLogged(void) { return (_request_type_is_logged);}
 std::string		Socket::getRequestBodyStr(void) { return (_request_body);}
