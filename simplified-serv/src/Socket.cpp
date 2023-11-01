@@ -3,6 +3,7 @@
 Socket::Socket()
 {
 	//std::cout << "Socket constructor!" << std::endl;
+	kill_socket = false;
 	_payload_of_POST = 0;
 	_request_type_is_logged = false;
 	_request_header_received = false;
@@ -42,6 +43,7 @@ Socket::~Socket()
 
 void	Socket::clearClass()
 {
+	kill_socket = false;
 	_payload_of_POST = 0;
 	error_code = 0;
 	file_pos = 0;
@@ -85,39 +87,23 @@ void	Socket::clearClass()
 	_port = 0;
 }
 
-void	Socket::startListening(std::string &port)
+void	Socket::startListening(void)
 {
 	std::cout << "Start Listening...	" << std::endl;
 
-	struct addrinfo	hints;
-	struct addrinfo	*result;	
-	
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-
+	//creating server socket
+	_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (_socket_fd < 0)
+	{
+		std::cerr << RED "Error: Creating Listening socket" BLANK << std::endl;
+		exit(EXIT_FAILURE);
+	}
 
 	//config socket
 	_server_addr_listening.sin_family = AF_INET;
 	_server_addr_listening.sin_addr.s_addr = INADDR_ANY;
 	_server_addr_listening.sin_port = htons(_port);
 
-	if (getaddrinfo(NULL, port.c_str(), &hints, &result) != 0)
-	{
-		std::cerr << RED "Error: Getaddrinfo" BLANK << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	//creating server socket
-	_socket_fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-	if (_socket_fd < 0)
-	{
-		freeaddrinfo(result);
-		std::cerr << RED "Error: Creating Listening socket" BLANK << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	freeaddrinfo(result);
     int reuse = 1;
 	//Making it reusable after we ctrl-c the server
     if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
@@ -126,7 +112,7 @@ void	Socket::startListening(std::string &port)
 		exit(EXIT_FAILURE);
 	}
 
-	if (fcntl(_socket_fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) < 0) 
+	if (fcntl(_socket_fd, F_SETFL, O_NONBLOCK) < 0) 
 	{
 		std::cerr << RED "Error: Setting to NON Blockins" BLANK << std::endl;
 		exit(-1);
@@ -141,7 +127,7 @@ void	Socket::startListening(std::string &port)
 	}
 
 	//Listen for upcoming connections
-	if (listen(_socket_fd, 20) < 0)
+	if (listen(_socket_fd, 10) < 0)
 	{
 		std::cerr << RED "Error: Listening Failed" BLANK << std::endl;
 		exit(EXIT_FAILURE);

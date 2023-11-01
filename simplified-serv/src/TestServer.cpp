@@ -60,7 +60,7 @@ void	TestServer::_logPortInfo(void)
 			ss.clear();
 			_ports.push_back(port_number);
 			tmp_listening_socket.setPort(port_number);
-			tmp_listening_socket.startListening(return_value);
+			tmp_listening_socket.startListening();
 			tmp_listening_socket.setType("Listening socket");
 			_nbr_of_ports++;
 			
@@ -154,7 +154,7 @@ void    TestServer::_acceptConnection(int fd)
 	tmp.logStartTime();
 	std::cout << GREEN << "Socket with file descriptor: " << tmp.getSocketFd() << BLANK << std::endl;
 	tmp_pollfd.fd = tmp.getSocketFd();
-	tmp_pollfd.events = POLLIN | POLLOUT | POLLHUP | POLLERR; // POLLERR POLLHUP
+	tmp_pollfd.events = POLLIN | POLLHUP | POLLERR; // POLLERR POLLHUP
 	tmp_pollfd.revents = 0;
 
 	this->_sockets_for_poll.push_back(tmp_pollfd);
@@ -167,29 +167,33 @@ void    TestServer::_acceptConnection(int fd)
 
 
 
-int		TestServer::checkPollAction(short revents, int fd)
+int		TestServer::checkPollAction(pollfd &pollfd)
 {
-	if ( _socket_arr.find(fd)->second.getErrorFlag() == true)
-		return (2);
-	if (revents & POLLIN)
-		return (1);
-	// if (revents & POLLOUT)
-	// 	return (2);
-	if (revents & POLLOUT && _socket_arr.find(fd)->second.getSocketRequest() == true && _socket_arr.find(fd)->second.getRequestHeader() == true)
-		return (2);
-	if (revents & POLLOUT && _socket_arr.find(fd)->second.getErrorFlag() == true)
+	if (_socket_arr.find(pollfd.fd)->second.getType() == "Client socket")
 	{
-		std::cout << RED "USED" BLANK << std::endl;
-		return (2);
+		_checkTimeout(_socket_arr.find(pollfd.fd)->second, pollfd);
+		if ( _socket_arr.find(pollfd.fd)->second.getErrorFlag() == true)
+			return (2);
+		if (_socket_arr.find(pollfd.fd)->second.kill_socket == true)
+			return (3);
+		if (pollfd.revents & POLLOUT && _socket_arr.find(pollfd.fd)->second.getSocketRequest() == true && _socket_arr.find(pollfd.fd)->second.getRequestHeader() == true)
+			return (2);
+		if (pollfd.revents & POLLOUT && _socket_arr.find(pollfd.fd)->second.getErrorFlag() == true)
+		{
+			std::cout << RED "USED" BLANK << std::endl;
+			return (2);
+		}
 	}
-	if (revents & POLLHUP)
+	if (pollfd.revents & POLLIN)
+		return (1);
+	if (pollfd.revents & POLLHUP)
 	{
-		std::cout << RED "closing the socket" BLANK << std::endl;
+		std::cout << RED "closing the socket" << pollfd.fd << BLANK << std::endl;
 		return (3);
 	}
-	if (revents & POLLERR)
+	if (pollfd.revents & POLLERR)
 	{
-		std::cout << RED "closing the socket  eeeeee" BLANK << std::endl;
+		std::cout << RED "closing the socket  eeeeee" << pollfd.fd << BLANK << std::endl;
 		return (4);
 	}
 	// if (_socket_arr.find(fd)->second.getType() == "Client socket")
@@ -356,6 +360,7 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 
 		_saveResponseToAFile(socket, responseObj.createResponse());
 		socket.setSocketRequest(true);
+		return (2);
 		std::cout << GREEN << "CRAFTED GET RESPONSE STR" << BLANK << std::endl;
 	}
 	else if (socket.getRequestHeader() == true && socket.getRequestMethod() == "DELETE")
@@ -365,12 +370,13 @@ int	TestServer::_readAndParseHeader(Socket &socket, std::string strBuffer)
 
 		_saveResponseToAFile(socket, responseObj.createResponse());
 		socket.setSocketRequest(true);
+		return (2);
 		std::cout << GREEN << "CRAFTED DELETE RESPONSE STR" << BLANK << std::endl;
 	}
 	return (0);
 }
 
-void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuffer)
+void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuffer, std::vector<pollfd>::iterator &it)
 {
 	std::string start_boundary = "--"+ socket.getBoundaryStr() +"\r\n";
 	std::string end_boundary = "\r\n--"+socket.getBoundaryStr()+"--";
@@ -429,12 +435,13 @@ void	TestServer::_POSTrequestSaveBodyToFile(Socket &socket, std::string &strBuff
 		_saveResponseToAFile(socket, rm.createResponse(CREATED));
 		socket.setSocketRequest(true);
 		socket.setRequestHeader(true);
+		it->events |= POLLOUT;
 		out.close();
 	}
 }
 
 
-void	TestServer::_POST(Socket &socket, std::string &stringBuffer, int &bytes_read)
+void	TestServer::_POST(Socket &socket, std::string &stringBuffer, int &bytes_read, std::vector<pollfd>::iterator &it)
 {
 	if (socket.getMultiform() == true)
 	{
@@ -444,7 +451,7 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer, int &bytes_rea
 			socket.error_code =  NOT_IMPLEMENTED;
 			throw (NotImplemented());
 		}
-		_POSTrequestSaveBodyToFile(socket, stringBuffer);
+		_POSTrequestSaveBodyToFile(socket, stringBuffer, it);
 	}
 	else if (socket.getCGI() == true)
 	{
@@ -476,6 +483,7 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer, int &bytes_rea
 			{
 				_saveResponseToAFile(socket, rm.createResponse(cgi.getScriptString()));
         		socket.setSocketRequest(true); // Also set the socket to be ready for writing with so that the checkPollAction would know that it is okay to write.
+				it->events |= POLLOUT;
 			}
 			else
 			{
@@ -499,20 +507,18 @@ void	TestServer::_POST(Socket &socket, std::string &stringBuffer, int &bytes_rea
 	}
 }
 
-void	TestServer::_checkTimeout(Socket &socket)
+void	TestServer::_checkTimeout(Socket &socket, pollfd &pollfd)
 {
 	double	seconds = difftime(time(NULL), socket.getStartTime());
 	if (seconds >= socket.getClientTimeout())
 	{
-		socket.setSocketRequest(true);
-		socket.setRequestHeader(true);
-		socket.setErrorFlag(true);
-		socket.error_code = REQUEST_TIMEOUT;
-		throw(Timeout());
+		(void)pollfd;
+		std::cout << CYAN "TIMEOUT " << socket.getSocketFd() << BLANK << std::endl;
+		socket.kill_socket = true;
 	}
 }
 
-void	TestServer::_CGI(Socket &curr_socket, int &bytes_read)
+void	TestServer::_CGI(Socket &curr_socket, int &bytes_read, std::vector<pollfd>::iterator &it)
 {
 	//EXECUTE GET METHOD CGI HERE
 	Cgi cgi;
@@ -529,6 +535,7 @@ void	TestServer::_CGI(Socket &curr_socket, int &bytes_read)
 	{
 		_saveResponseToAFile(curr_socket, rm.createResponse(cgi.getScriptString()));
     	curr_socket.setSocketRequest(true);
+		it->events |= POLLOUT;
 	}
 	else
 	{
@@ -570,31 +577,30 @@ void	TestServer::_pollReading(std::vector<pollfd>::iterator &it)
 		{
 			if (_readAndParseHeader(*curr_socket, stringBuffer) == 2)
 			{
+				it->events |= POLLOUT;
 				return ;
 			}
 		}
 		if (curr_socket->getRequestMethod() == "POST")
 		{
-			_POST(*curr_socket, stringBuffer, bytes_read);
+			_POST(*curr_socket, stringBuffer, bytes_read, it);
 		}
 		else if (curr_socket->getRequestMethod() == "GET" && curr_socket->getCGI() == true)
 		{
-			_CGI(*curr_socket, bytes_read);
+			_CGI(*curr_socket, bytes_read, it);
 		}
 	}
 	else
 	{
 		std::cout << RED "READING 0 Socket: " << _socket_arr.find(it->fd)->second.getSocketFd() << BLANK << std::endl;	
-		_killClient(it);
+		_socket_arr.find(it->fd)->second.kill_socket = true;
 		return ;
 	}
-	it->revents = 0; 
 }
 
 void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket)
 {
 	std::cout << "WRITING back to the socket: " << socket.getSocketFd() << " fd: " << _it->fd << " error:" << socket.error_code << std::endl;
-	std::cout << "ENTIRE POST LOAD: " << socket._payload_of_POST << std::endl;
 	std::ifstream	file;
 	file.open(socket.getResponseFile().c_str(), std::ios::binary);
 	if (!file)
@@ -625,17 +631,17 @@ void	TestServer::_pollWriting(std::vector<pollfd>::iterator &_it, Socket &socket
         	std::cerr << RED << "[Error]: " BLANK << "Deleting the file: " << socket.getResponseFile() << std::endl;
 			throw(InternalServerError());
     	}
-		_killClient(_it);
+		socket.kill_socket = true;
+		_it->events &= ~POLLOUT;
 		return ;
 	}
 	socket.file_pos = file.tellg();
 	file.close();
-	_it->revents = 0;
 }
 
 void	TestServer::_pollWritingError(std::vector<pollfd>::iterator &_it, Socket &socket)
 {
-	std::cout << RED "[ERROR]: " BLANK << "Writing error." << std::endl;
+	std::cout << RED "[ERROR]: " BLANK << "Writing error." << _it->fd  << "ERROR CODE " << socket.error_code << std::endl;
 	ResponseMessage	rm;
 	std::string	response_error = rm.createResponse(socket.error_code);
 	if (send(_it->fd,	response_error.c_str(), response_error.length(), 0) == -1)
@@ -643,7 +649,9 @@ void	TestServer::_pollWritingError(std::vector<pollfd>::iterator &_it, Socket &s
 		std::cerr << RED "[ERROR]: " BLANK << "SEND ERROR FAILED!" << std::endl;
 		throw(InternalServerError());
 	}
-	_killClient(_it);
+	_it->events &= ~POLLOUT;
+	socket.setErrorFlag(false);
+	socket.kill_socket = true;
 	std::cout << YELL << "ERROR WRITING DONE!" BLANK << std::endl;
 }
 
@@ -662,13 +670,11 @@ void	TestServer::_killClient(std::vector<pollfd>::iterator &it)
 	it = _sockets_for_poll.erase(it);
 	_nbr_of_client_sockets--;
 	_nbr_of_sockets_in_poll--;
-	std::cout << RED "Succesfull killed!: " BLANK << it->fd << std::endl;
 }
 
-void	TestServer::setExeptionErrorReading(Socket &socket, std::vector<pollfd>::iterator &it, const std::exception& e)
+void	TestServer::setExeptionErrorReading(Socket &socket, const std::exception& e)
 {
 	std::cerr << RED << "[ERROR]: " BLANK << "Exception: " << e.what() << BLANK << std::endl;
-	it->revents = 0;
 	if (socket.error_code == 0)
 	{
 		socket.error_code = INTERNAL_SERVER_ERR;
@@ -689,7 +695,7 @@ void    TestServer::launch()
 		std::string host = g_config->get(it_tmp->second.getServerNbr(), "host", 0);
 		if ( host == "" )
 			host = "localhost";
-		std::cout << GREY << "Server [" << it_tmp->second.getServerNbr() <<  "] listening Socket onject for Port: " << it_tmp->second.getPort() << " Host: " << host << " fd: " << it_tmp->first << " client_timeout: " << it_tmp->second.getClientTimeout() << " client_max_body_size: " << it_tmp->second.getMaxBodySize()  << GREEN " succesfully created!" BLANK << std::endl;
+    	std::cout << GREY << "Server [" << it_tmp->second.getServerNbr() << "] listening Socket onject for Port: " << it_tmp->second.getPort() << " Host: " << host << " fd: " << it_tmp->first << " client_timeout: " << it_tmp->second.getClientTimeout() << " client_max_body_size: " << it_tmp->second.getMaxBodySize()  << GREEN " succesfully created!" BLANK << std::endl;
 	}
 	// DEBUGGING
 
@@ -710,53 +716,57 @@ void    TestServer::launch()
 				std::cout << YELL << "[MANAGABLE]: Poll has timed out" << std::endl;
 				break;
 			default:
-				for (std::vector<pollfd>::iterator it = _sockets_for_poll.begin(); it != _sockets_for_poll.end() && ready > 0; it++)
+				for (size_t i = 0; i < _sockets_for_poll.size(); i++)
 				{
-					int	action = checkPollAction(it->revents, it->fd);
+					std::cout << "FOR SOCKET FD: " << _sockets_for_poll[i].fd << std::endl;
+					std::vector<pollfd>::iterator it_x;
+					int	action = checkPollAction(_sockets_for_poll[i]);
 					switch(action)
 					{
 						case(READING):
-							if (_socket_arr.find(it->fd)->second.getType() == "Listening socket")
+							if (_socket_arr.find(_sockets_for_poll[i].fd)->second.getType() == "Listening socket")
 							{
-								_acceptConnection(it->fd);
+								_acceptConnection(_sockets_for_poll[i].fd);
 							}
 							else
 							{
 								try
 								{
-									// std::cout << "Socket with fd: " << it->fd << std::endl;
-									_checkTimeout(_socket_arr.find(it->fd)->second);
-									_pollReading(it);
+									it_x = _sockets_for_poll.begin() + i;
+									_pollReading(it_x);
 								}
-								catch(const std::exception& e) { setExeptionErrorReading(_socket_arr.find(it->fd)->second, it, e);}
+								catch(const std::exception& e) {
+									_sockets_for_poll[i].events |= POLLOUT;
+									setExeptionErrorReading(_socket_arr.find(_sockets_for_poll[i].fd)->second, e);
+								}
 							}
-							ready--;
+							_sockets_for_poll[i].revents = 0;
 							break;
 						case(WRITING):
 							try
 							{
-								if (_socket_arr.find(it->fd)->second.getErrorFlag() == true)
-									_pollWritingError(it, _socket_arr.find(it->fd)->second);
+								it_x = _sockets_for_poll.begin() + i;
+								if (_socket_arr.find(_sockets_for_poll[i].fd)->second.getErrorFlag() == true)
+									_pollWritingError(it_x, _socket_arr.find(_sockets_for_poll[i].fd)->second);
 								else
-									_pollWriting(it, _socket_arr.find(it->fd)->second);
+								{
+									_pollWriting(it_x, _socket_arr.find(_sockets_for_poll[i].fd)->second);
+								}
 							}
 							catch(const std::exception& e)
 							{
 								std::cerr << RED << "[ERROR]: " << BLANK << "Writing to server failed! " << e.what() << std::endl;
-								_killClient(it);
+								_socket_arr.find(_sockets_for_poll[i].fd)->second.kill_socket = true;
 							}
-							ready--;
+							_sockets_for_poll[i].revents = 0;
+							break;
+						case(KILLING_CLIENT):
+							std::cout << "KILL CLIENT: " << _sockets_for_poll[i].fd << std::endl;
+							it_x = _sockets_for_poll.begin() + i;
+							_killClient(it_x);
+							std::cout << "STILL GOING: " << ready << std::endl;
 							break;
 						default:
-							if (_socket_arr.find(it->fd)->second.getType() == "Client socket")
-							{
-								try { _checkTimeout(_socket_arr.find(it->fd)->second);}
-								catch(const std::exception& e)
-								{
-									setExeptionErrorReading(_socket_arr.find(it->fd)->second, it, e);
-								}
-								
-							}
 							break;
 					}
 				}
