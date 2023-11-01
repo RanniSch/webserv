@@ -135,6 +135,44 @@ std::string	DirectoryListing::_last_modified( std::string path )
 	return timeString;
 }
 
+// std::string	DirectoryListing::_size( std::string path )
+// {
+// 	struct stat				fileStat;
+// 	long int				size;
+// 	long int				rest;
+// 	std::stringstream		ss;
+// 	int						i;
+
+// // if file if directory
+// 	if (stat(path.c_str(), &fileStat) != 0)
+// 		return "";
+// 	size = (long int)fileStat.st_size;
+// 	for ( i = 0; i < 3 && size > 1000; i++ )
+// 	{
+// 		rest = size % 1000;
+// 		size /= 1000;
+// 	}
+// 	if ( size < 0 )
+// 		return "";
+// 	ss << size;
+// 	if ( size < 10 )
+// 		ss << "." << rest / 100;
+// 	switch (i)
+// 	{
+// 		case (1):
+// 			ss << "K";
+// 			break;
+// 		case (2):
+// 			ss << "M";
+// 			break;
+// 		case (3):
+// 			ss << "G";
+// 			break;
+// 	}
+// 	return (ss.str());
+// }
+
+
 std::string	DirectoryListing::_size( std::string path )
 {
 	struct stat				fileStat;

@@ -255,4 +255,15 @@ std::string content_type(const std::string &content)
 // 	return ( list.end() );
 // }
 
+long int file_size( const std::string &path )
+{
+	struct stat				fileStat;
+	long int				size;
 
+	if (!file_exists(path))
+		return 0;
+	if (stat(path.c_str(), &fileStat) != 0)
+		return 0;
+	size = (long int)fileStat.st_size;
+		return size;
+}

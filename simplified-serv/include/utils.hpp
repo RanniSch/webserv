@@ -17,3 +17,4 @@ bool								file_exists( const std::string &filepath );
 bool								dir_exists( const std::string &filepath );
 std::string							to_lower_case(const std::string &input);
 std::string							content_type(const std::string &content);
+long int							file_size( const std::string &path );
