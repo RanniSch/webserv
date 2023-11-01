@@ -11,11 +11,9 @@ Cgi::~Cgi()
     std::cout << "Cgi destructor called!" << std::endl;
 }
 
-
 void	Cgi::setRequestChar(unsigned char* requestC)
 {
 	_request = requestC;
-	//std::cout << "_request:" << _request << std::endl;	// Ranja for testing
 }
 
 void	Cgi::setRequest( std::string request, size_t server)
@@ -27,7 +25,6 @@ void	Cgi::setRequest( std::string request, size_t server)
 void	Cgi::setRequestBody(std::string requestBody)
 {
 	_requestBody = requestBody;
-	//std::cout << "_requestBody:" << _requestBody << std::endl;	// Ranja for testing
 }
 
 int Cgi::runCgi()
@@ -43,21 +40,13 @@ int Cgi::runCgi()
 	// To save the exit status of the child process.
 	int status;
 
-	// char* cRequest = reinterpret_cast<char*>(_request);
-	// ResponseMessage findRequest(cRequest);
 	ResponseMessage findRequest(_requestStr, _server_nbr);
 	std::string cgiPath = findRequest.get_cgi_path();
-	//std::cout << "_cgiPath_" << cgiPath << std::endl;
 
 	//create arguments for execve
 	std::string scriptPath = findRequest.get_target_path();
-	//std::cout << "_path_" << scriptPath << std::endl;
-
 	std::string queryString = findRequest.get_query();
-	//std::cout << "_query_" << queryString << std::endl;
-
 	std::string request_method = findRequest.request_method();
-	//std::cout << "_request Method_ " << request_method << std::endl;
 
 	// Pipe is created, where pipefd is the pipe array containing the pipe endpoints.
 	// The read end of the pipe is pipefd[0], and the write end is pipefd[1].
@@ -97,7 +86,6 @@ int Cgi::runCgi()
 		if (!_requestBody.empty())
 		{
 			_environmentals.push_back(_requestBody);
-			//std::cout << "ONE" << std::endl;
 		}
 		else // only if there is a query string from GET request
 		{
@@ -121,12 +109,6 @@ int Cgi::runCgi()
     		}
 		}
 
-		// Only for testing; Ranja
-    	//for (size_t i = 0; i < _environmentals.size(); ++i) 
-		//{
-        //	std::cout << "two_" << _environmentals[i] << std::endl;
-    	//}
-
 		int	i = 0;
 
 		const char *env[_environmentals.size() + 1];
@@ -139,8 +121,6 @@ int Cgi::runCgi()
 		}
 		env[i] = NULL;
 		
-		//std::cout << "\nPrint ELSE IF\n" << std::endl;	// for testing Ranja
-		
 		// Executes the CGI-Script
 		execve(_args[0], const_cast<char* const*>(_args), const_cast<char* const*>(env));
 
@@ -150,8 +130,6 @@ int Cgi::runCgi()
 	}
 	else	// this is the main process; else if is the child process
 	{
-		//std::cout << "\nPrint ELSE\n" << std::endl;	// for testing Ranja
-		
 		// closes the writing end of the Pipe.
 		close(pipefd[1]);
 		waitpid(cgiPid, &status, 0);	// wait for a child process to stop or terminate
@@ -165,7 +143,6 @@ int Cgi::runCgi()
 
 		// closes the reading end of the Pipe
 		close(pipefd[0]);
-		std::cout << "ScriptOutput: " << _scriptOutput << std::endl;	// only for testing -> Ranja
 	}
 	
 	// Query status to see if a child process ended abnormally
@@ -184,7 +161,6 @@ std::string	Cgi::getScriptString(void)
 
 	return scriptOutput;
 }
-
 
 /*
 * int access(const char *path, int amode);
