@@ -113,10 +113,11 @@ void	Socket::startListening(std::string &port)
 	_socket_fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 	if (_socket_fd < 0)
 	{
+		freeaddrinfo(result);
 		std::cerr << RED "Error: Creating Listening socket" BLANK << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
+	freeaddrinfo(result);
     int reuse = 1;
 	//Making it reusable after we ctrl-c the server
     if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
