@@ -55,6 +55,7 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 		deleteChars("\t");
 		_checkTokensInFrontOfLineBreak();
 		_checkAllowedCharactersInSpecialValues();
+		_checkAllowedValuesForSpecialParameters();
 		deleteChars("\n");
 		_checkTokensInFrontOfCurlyBrackets();
 		start = _find("server");
@@ -78,7 +79,7 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 				_commonConfig.push(*start);
 			_commonConfig.insert(key);
 		}
-		_checkParametersWhereOnlyOneValueIsAllowed();
+		_checkNumValuesOfSpecialParameters();
 		_checkMinMaxInSpecialValues();
 
 
@@ -120,6 +121,11 @@ void	Config::_read_in_config_file()
 {
 	try
 	{
+		if(!file_exists(_path_config_file))
+		{
+			_error = "Information: cannot open your config file. Will take default Config.";
+			throw _error;
+		}
 		std::ifstream conf_file(_path_config_file);
 		if (!conf_file.is_open())
 		{
@@ -284,6 +290,59 @@ void	Config::_checkMinMaxInSpecialValues()
 					ss.clear();
 					throw _error;
 				}
+			}
+		}
+	}
+}
+
+void	Config::_checkAllowedValuesForSpecialParameters()
+{
+	const int 		count_para = 1;
+	std::string		parameters[count_para] = 	{"allowed_Methods"}; // set the right ones
+	std::string		allowed_Methods[3] = 	{"GET", "POST", "DELETE"}; // set the right ones
+
+	std::list<std::string>::iterator it;
+
+	int find_me_; // weg !! 
+
+	for ( int para = 0; para < count_para; para++ ) // go through parameter
+	{
+		it = _stapel.begin();
+		while (42) // you can have one parameter multiple times in _stapel
+		{
+			it = _find(parameters[para], it);
+			find_me_ = find_me(_stapel.begin(), it); // weg !!
+			(void) find_me_;
+			if (it == _stapel.end())
+				break;
+			it++;
+			for ( ; *it != ";" ; it++ ) // go through _stapel till you hit ";" (look through the values)
+			{
+				// Here comes what should be checked for the values
+				bool found_flag = false;
+				for ( size_t am = 0; am < 3; am++)
+				{
+					if ( *it == allowed_Methods[am] )
+						found_flag = true;
+				}
+				if (!found_flag)
+				{
+					_error = ": Value ";
+					_error += *it;
+					_error += " in allowed_Methods not valid.";
+					throw _error;
+				}
+
+				// result = it->find_first_not_of(allowed_char[para]);
+				// if (result != std::string::npos)
+				// {
+				// 	_error = ": not allowed character in config file, value: ";
+				// 	_error += *it;
+				// 	_error += ". Allowed chars are:'";
+				// 	_error += allowed_char[para];
+				// 	_error += "'";
+				// 	throw _error;
+				// }
 			}
 		}
 	}
@@ -483,63 +542,143 @@ std::list<std::string>::iterator	Config::_newServer( std::list<std::string>::ite
 
 }
 
-void	Config::_checkParametersWhereOnlyOneValueIsAllowed()
+void	Config::_checkNumValuesOfSpecialParameters( void ) //_checkParametersWhereOnlyOneValueIsAllowed()
 {
 	size_t			result;
 	size_t	 		count_server;
 	size_t	 		count_location;
-	const int 		count_para = 4;
-	std::string		parameters[count_para] = {"return"}; // set the right ones
 
-	// for the common config
-	for ( size_t i = 0; i < count_para; i++ )
+//  ------------------------------------------------
+// 				common Config
+//  ------------------------------------------------
+
+	const int 		count_para_cc = 5;
+	std::string		parameters_cc[count_para_cc] = {"return",	"root",	"listen",	"cgi_path",	"cgi_ext"	};
+	size_t			min_values_cc[count_para_cc] = {0,			0,		0,			0,			0,			};
+	size_t			max_values_cc[count_para_cc] = {0,			1,		0,			0,			0,			};
+
+	for ( size_t para = 0; para < count_para_cc; para++ )
 	{
-		result = _commonConfig.size(parameters[i]);
-		if ( result > 1)
-		{
-			_error = ": parameter '";
-			_error += parameters[i];
-			_error += "' should only have one value";
-			throw _error;
-		}
+		result = _commonConfig.size(parameters_cc[para]);
+		_throw_error_if_result_not_in_min_max( result, min_values_cc[para], max_values_cc[para], parameters_cc[para] );
 	}
+
+//  ------------------------------------------------
+// 				common Server Config
+//  ------------------------------------------------
+
+	const int 		count_para_csc = 5;
+	std::string		parameters_csc[count_para_csc] = {"return",	"root",	"listen",	"cgi_path", "cgi_ext"	};
+	size_t			min_values_csc[count_para_csc] = {0,		0,		1,			0,			0			};
+	size_t			max_values_csc[count_para_csc] = {0,		1,		5,			0,			0			};
+
 	// For the common Server configs
 	count_server = _server_vector.size();
 	for ( ; count_server > 0; count_server--)
 	{
-		for ( size_t i = 0; i < count_para; i++)
+		for ( size_t para = 0; para < count_para_csc; para++)
 		{
-			result = _server_vector.at(count_server-1).size(parameters[i]);
-			if ( result > 1)
-			{
-				_error = ": parameter '";
-				_error += parameters[i];
-				_error += "' should only have one value";
-				throw _error;
-			}
+			result = _server_vector.at(count_server-1).size(parameters_csc[para]);
+			_throw_error_if_result_not_in_min_max( result, min_values_csc[para], max_values_csc[para], parameters_csc[para] );
 		}
 	}
-	// For the parameters in the locations in the servers (be carefull, server and location will be counted backwarts)
+
+//  ------------------------------------------------
+// 				Server Location Config
+//  ------------------------------------------------
+
+	// For the parameters_slc in the locations in the servers (be carefull, server and location will be counted backwarts)
+	// and location is in a map -> different order then in the config
+
+	const int 		count_para_slc = 4;
+	std::string		parameters_slc[count_para_slc] = {"return",	"root",	"cgi_path", "cgi_ext"	};
+	size_t			min_values_slc[count_para_slc] = {0,		0,		0,			0			};
+	size_t			max_values_slc[count_para_slc] = {1,		1,		1,			1			};
+
 	count_server = _server_vector.size();
 	for ( ; count_server > 0; count_server--)
 	{
 		count_location = _server_vector.at(count_server-1).size("location");		
 		for ( ; count_location > 0; count_location--)
 		{
-			for ( size_t i = 0; i < count_para; i++)
+			for ( size_t para = 0; para < count_para_slc; para++)
 			{
-				result = _server_vector.at(count_server-1).size(count_location-1, parameters[i]);
-				if ( result > 1)
-				{
-					_error = ": parameter '";
-					_error += parameters[i];
-					_error += "' should only have one value";
-					throw _error;
-				}
+				result = _server_vector.at(count_server-1).size(count_location-1, parameters_slc[para]);
+				_throw_error_if_result_not_in_min_max( result, min_values_slc[para], max_values_slc[para], parameters_slc[para] );
 			}
-
 		}
 	}
+/*
+	// size_t			result;
+	// size_t	 		count_server;
+	// size_t	 		count_location;
+	// const int 		count_para = 4;
+	// std::string		parameters[count_para] = {"return"}; // set the right ones
+
+	// // for the common config
+	// for ( size_t i = 0; i < count_para; i++ )
+	// {
+	// 	result = _commonConfig.size(parameters[i]);
+	// 	if ( result > 1)
+	// 	{
+	// 		_error = ": parameter '";
+	// 		_error += parameters[i];
+	// 		_error += "' should only have one value";
+	// 		throw _error;
+	// 	}
+	// }
+	// // For the common Server configs
+	// count_server = _server_vector.size();
+	// for ( ; count_server > 0; count_server--)
+	// {
+	// 	for ( size_t i = 0; i < count_para; i++)
+	// 	{
+	// 		result = _server_vector.at(count_server-1).size(parameters[i]);
+	// 		if ( result > 1)
+	// 		{
+	// 			_error = ": parameter '";
+	// 			_error += parameters[i];
+	// 			_error += "' should only have one value";
+	// 			throw _error;
+	// 		}
+	// 	}
+	// }
+	// // For the parameters in the locations in the servers (be carefull, server and location will be counted backwarts)
+	// count_server = _server_vector.size();
+	// for ( ; count_server > 0; count_server--)
+	// {
+	// 	count_location = _server_vector.at(count_server-1).size("location");		
+	// 	for ( ; count_location > 0; count_location--)
+	// 	{
+	// 		for ( size_t i = 0; i < count_para; i++)
+	// 		{
+	// 			result = _server_vector.at(count_server-1).size(count_location-1, parameters[i]);
+	// 			if ( result > 1)
+	// 			{
+	// 				_error = ": parameter '";
+	// 				_error += parameters[i];
+	// 				_error += "' should only have one value";
+	// 				throw _error;
+	// 			}
+	// 		}
+
+	// 	}
+	// }*/
+}
+
+void	Config::_throw_error_if_result_not_in_min_max( size_t result, size_t min_value, size_t max_value, std::string parameter )
+{
+	std::string error;
+
+	if ( result < min_value || result > max_value )
+			{
+				std::stringstream ss;
+				ss << ": parameter '" << parameter << "' should only have between ";
+				ss << min_value << " and " << max_value << " values";
+				error = ss.str();
+				throw error;
+			}
+
 }
 
 //  ------------------------
@@ -572,6 +711,7 @@ size_t	Config::size( std::string parameter )
 std::string	Config::get( std::string parameter, size_t n )
 {
 	std::string ret;
+
 	try
 	{
 		ret = _commonConfig.get( parameter, n );
@@ -582,6 +722,12 @@ std::string	Config::get( std::string parameter, size_t n )
 			return ( "" );
 		if ( str == "value_not_found")
 			return ( "" );
+		return "";
+	}
+	catch ( ... )
+	{
+		std::cout << "config.get 1 is causing an unknown error" << std::endl;
+		return "";
 	}
 	return ( ret );
 }
@@ -636,7 +782,7 @@ std::string	Config::get( size_t server, std::string parameter, size_t n )
 	}
 	catch (...)
 	{
-		std::cout << "some unknown config.get is causing an error" << std::endl;
+		std::cout << "config.get 2 is causing an unknown error" << std::endl;
 		return ("");
 	}
 }
@@ -682,7 +828,7 @@ std::string	Config::get( size_t server, std::string location, std::string parame
 	}
 	catch (...)
 	{
-		std::cout << "some unknown config.get is causing an error" << std::endl;
+		std::cout << "config.get 3 is causing an unknown error" << std::endl;
 		return ("");
 	}
 }

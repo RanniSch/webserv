@@ -1,12 +1,9 @@
 Introduction...
 Guidelines
 - Only grade the work that was turned in the Git repository of the evaluated student or group.
-- You must also verify the absence of memory leaks. Any memory allocated on the heap must be properly freed before the end of execution. You are allowed to use any of the different tools available on the computer,
-  such as leaks, valgrind, or e_fence. In case of memory leaks, tick the appropriate flag.
 
 Mandatory Part
 Check the code and ask questions
-• Launch the installation of siege with homebrew.
 • Ask what function the group used for I/O Multiplexing.
 • Ask if they use only one select() (or equivalent) and how they've managed the server to accept and the client to read/write.
 • The select() (or equivalent) should be in the main loop and should check file descriptors for read and write AT THE SAME TIME. If not, the grade is 0 and the evaluation process ends now.
@@ -17,20 +14,6 @@ Check the code and ask questions
 • Writing or reading ANY file descriptor without going through the select() (or equivalent) is strictly FORBIDDEN.
 • If any point is unclear or is not correct, the evaluation stops.
 
-Configuration
-In the configuration file, check whether you can do the following and test the result:
-• Setup multiple servers with different ports.
-• Setup multiple servers with different hostnames (use something like: curl --resolve example.com:80:127.0.0.1 http://example.com/ (http://example.com/)).
-• Limit the client body (use: curl -X POST -H "Content-Type: plain/text" --data "BODY IS HERE write something shorter or longer than body limit").
-
-Port issues
-• In the configuration file setup multiple ports and use different websites. Use the browser to ensure that the configuration works as expected and shows the right website.
-• In the configuration, try to setup the same port multiple times. It should not work.
-• Launch multiple servers at the same time with different configurations but with common ports. Does it work? If it does, ask why the server should work if one of the configurations isn't functional. Keep going.
-
 Siege & stress test
-• Use Siege to run some stress tests.
-• Availability should be above 99.5% for a simple GET on an empty page with a siege -b on that page.
 • Verify there is no memory leak (Monitor the process memory usage. It should not go up indefinitely).
 • Check if there is no hanging connection.
-• You should be able to use siege indefinitely without having to restart the server (take a look at siege -b).

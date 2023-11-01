@@ -2,8 +2,6 @@
 
 RequestObj::RequestObj( std::string input): ParseableObject(input), _defaultDelimiter("\r\n"), _StartLineDelimiter(" \r\n"), _HeaderDelimiter(":"), _map(NULL)
 {
-	// methods = new std::string[8];
-	// methods[0] = "GET";
 }
 
 RequestObj::~RequestObj()

@@ -685,7 +685,12 @@ void    TestServer::launch()
 	// DEBUGGING
 	std::cout <<GREEN "Finished creating the ports:" BLANK << std::endl;		
 	for (std::map<int, Socket>::iterator it_tmp = _socket_arr.begin(); it_tmp != _socket_arr.end(); it_tmp++)
-		std::cout << GREY << "Server [" << it_tmp->second.getServerNbr() <<  "] listening Socket onject for Port: " << it_tmp->second.getPort() << " Host: " << g_config->get(it_tmp->second.getServerNbr(), "host", 0) << " fd: " << it_tmp->first << " client_timeout: " << it_tmp->second.getClientTimeout() << " client_max_body_size: " << it_tmp->second.getMaxBodySize()  << GREEN " succesfully created!" BLANK << std::endl;
+	{
+		std::string host = g_config->get(it_tmp->second.getServerNbr(), "host", 0);
+		if ( host == "" )
+			host = "localhost";
+		std::cout << GREY << "Server [" << it_tmp->second.getServerNbr() <<  "] listening Socket onject for Port: " << it_tmp->second.getPort() << " Host: " << host << " fd: " << it_tmp->first << " client_timeout: " << it_tmp->second.getClientTimeout() << " client_max_body_size: " << it_tmp->second.getMaxBodySize()  << GREEN " succesfully created!" BLANK << std::endl;
+	}
 	// DEBUGGING
 
 	int	ready = 0;
