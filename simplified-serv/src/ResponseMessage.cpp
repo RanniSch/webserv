@@ -183,7 +183,7 @@ void	ResponseMessage::_fill_status_line_and_default_error_page_and_status_code_h
 	_default_error_page.insert( std::pair<size_t, std::string>(405, "<!DOCTYPE html><html><head><title>405 Method Not Allowed</title></head><body><h1>405 Method Not Allowed</h1><p>The requested method is not allowed for this resource.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(408, "<!DOCTYPE html><html><head><title>408 Request Timeout</title></head><body><h1>408 Request Timeout</h1><p>In the time frame allowed by the server, no complete request from the client has been received.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(411, "<!DOCTYPE html><html><head><title>411 Length Required</title></head><body><h1>411 Length Required</h1><p>A valid Content-Length header is required for the request to be processed.</p></body></html>") );
-	_default_error_page.insert( std::pair<size_t, std::string>(413, "<!DOCTYPE html><html><head><title>413 Payload Too Large</title></head><body><h1>413 Payload Too Large</h1><p>The data you are trying to send in the request is too large and exceeds the server's limit.</p></body></html>") );
+	_default_error_page.insert( std::pair<size_t, std::string>(413, "<!DOCTYPE html><html><head><title>413 Payload Too Large</title></head><body><h1>413 Payload Too Large</h1><p>The data you are trying to send or receive is too large and exceeds the server's limit.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(414, "<!DOCTYPE html><html><head><title>414 URI Too Long</title></head><body><h1>414 URI Too Long</h1><p>The URI (Uniform Resource Identifier) provided in the request is too long for the server to process.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(500, "<!DOCTYPE html><html><head><title>500 Internal Server Error</title></head><body><h1>500 Internal Server Error</h1><p>An unexpected server error occurred. Please try again later.</p></body></html>") );
 	_default_error_page.insert( std::pair<size_t, std::string>(501, "<!DOCTYPE html><html><head><title>501 Not Implemented</title></head><body><h1>501 Not Implemented</h1><p>The requested functionality is not implemented on this server.</p></body></html>") );
@@ -432,22 +432,25 @@ std::string	ResponseMessage::_check_index_and_return_target_path()
  */
 std::string	ResponseMessage::_check_target_path_for_existence()//_replace_with_error_file()
 {
-	std::string	error_file_path;
+	std::string			error_file_path;
+	long int			size;
 
-	if(file_exists(_target_path))
+	size = 0;
+	if(!file_exists(_target_path))
 	{
-		_statusCode = _statusCodeHirarchy( _statusCode, 200 );
-		return _target_path;
+		_statusCode = 404;
+		throw _statusCode;
 	}
-	_statusCode = 404;
-	throw _statusCode;
+	size = file_size(_target_path);
+	if ( size > 500000000 )
+	{
+		_statusCode = 413;
+		throw _statusCode;
+	}
+	_statusCode = _statusCodeHirarchy( _statusCode, 200 );
+	return _target_path;	
 
-	// _statusCode = _statusCodeHirarchy( _statusCode, 404 );
-	// error_file_path = _config.get(_server, _location, "error404", 0);
-	// error_file_path = path_one_plus_path_two( _cwd, error_file_path );
-	// if(file_exists(error_file_path))
-	// 	return error_file_path;
-	// return "";
+
 }
 
 /**
@@ -623,15 +626,16 @@ std::string		ResponseMessage::_check_create_dir_listing( std::string path, std::
 	std::string			out;
 	std::string			show_path;
 	size_t				len;
+	
 
-	if ( status_code!= 404 )
+	if ( status_code != 404 ) // it has to not find a file to show directory listing
 		return "";
 	if ( !dir_exists(path) )
 		return "";
 	autoindex = _config.get( _server, _location, "autoindex", 0 );
 	if ( autoindex != "on" )
 	{
-		_statusCode = 403;
+		_statusCode = 403; // in the next steps look for the error file 403
 		_target_path = _return_path_to_error_file( _statusCode );
 		return "";
 	}
@@ -646,9 +650,9 @@ std::string		ResponseMessage::_check_create_dir_listing( std::string path, std::
 
 	DirectoryListing	DL;
 	out = DL.create_listing_html( path, show_path );
-	_target_path = "";
-	_statusCode = 200; // set private variable !
-	*content_type = "html";
+	_target_path = ""; 								// that the next functions don't look for another error file
+	_statusCode = 200; // set private variable ! -> because no error now
+	*content_type = "html"; // dir listing is in html form
 	return out;
 }
 
