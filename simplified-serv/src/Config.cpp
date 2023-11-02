@@ -81,6 +81,7 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 		}
 		_checkNumValuesOfSpecialParameters();
 		_checkMinMaxInSpecialValues();
+		_checkLocationNotEndsWithSlash();
 
 
 		// _commonConfig.print();
@@ -332,20 +333,53 @@ void	Config::_checkAllowedValuesForSpecialParameters()
 					_error += " in allowed_Methods not valid.";
 					throw _error;
 				}
-
-				// result = it->find_first_not_of(allowed_char[para]);
-				// if (result != std::string::npos)
-				// {
-				// 	_error = ": not allowed character in config file, value: ";
-				// 	_error += *it;
-				// 	_error += ". Allowed chars are:'";
-				// 	_error += allowed_char[para];
-				// 	_error += "'";
-				// 	throw _error;
-				// }
 			}
 		}
 	}
+}
+
+void	Config::_checkLocationNotEndsWithSlash( void )
+{
+	// const int 		count_para = 1;
+	// std::string		parameters[count_para] = 	{"allowed_Methods"}; // set the right ones
+	// std::string		allowed_Methods[3] = 	{"GET", "POST", "DELETE"}; // set the right ones
+
+	std::list<std::string>::iterator	it;
+	std::string							loca;
+
+	int find_me_; // weg !! 
+
+	// for ( int para = 0; para < count_para; para++ ) // go through parameter
+	// {
+		it = _stapel.begin();
+		while (42) // you can have one parameter multiple times in _stapel
+		{
+			it = _find("location", it);
+			find_me_ = find_me(_stapel.begin(), it); // weg !!
+			(void) find_me_;
+			if (it == _stapel.end())
+				break;
+			it++;
+			loca = *it;
+			if ( loca.size() == 0)
+				continue;
+			if ( loca == "/" )
+				continue;
+			if ( loca.at(0) !=  '/' )
+			{
+				_error = ": location ";
+				_error += *it;
+				_error += " has to have a / at the beginning";
+				throw _error;
+			}
+			if ( loca.at(loca.size() - 1) ==  '/' )
+			{
+				_error = ": location ";
+				_error += *it;
+				_error += " is not allowed to have a / at the end";
+				throw _error;
+			}
+		}
 }
 
 // returns true  when everything is allright
