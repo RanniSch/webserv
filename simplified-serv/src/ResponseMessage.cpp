@@ -2,7 +2,7 @@
 
 
 ResponseMessage::ResponseMessage( char* request_cstr )
-:_statusCode(0), _config(*g_config), _server(0)
+:_statusCode(0), _config(*g_config), _server(0), _slash_missing(false)
 {
 	std::string request;
 	request = request_cstr;
@@ -10,7 +10,7 @@ ResponseMessage::ResponseMessage( char* request_cstr )
 }
 
 ResponseMessage::ResponseMessage( std::string request )
-:_statusCode(0), _config(*g_config), _server(0)
+:_statusCode(0), _config(*g_config), _server(0), _slash_missing(false)
 {
 	_parse_request( request );
 
@@ -71,7 +71,7 @@ ResponseMessage::ResponseMessage( std::string request )
 }
 
 ResponseMessage::ResponseMessage( std::string request, size_t server )
-:_statusCode(0), _config(*g_config), _server(server)
+:_statusCode(0), _config(*g_config), _server(server), _slash_missing(false)
 {
 	_parse_request( request );
 }
@@ -80,6 +80,7 @@ ResponseMessage::ResponseMessage( std::string request, size_t server )
 ResponseMessage::ResponseMessage( void ):_config(*g_config)//, _config_old(_config_for_compiler) // get rid of global variable and of config old
 {
 	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
+	_slash_missing = false;
 }
 
 ResponseMessage::~ResponseMessage( void )
@@ -414,10 +415,16 @@ std::string	ResponseMessage::_check_redirect_and_return_target_path( void )
 		// _target_path = path_one_plus_path_two(_cwd, request_path);
 		return ( path_one_plus_path_two(_cwd, request_path) );
 	}
-
+	
+	// --------------------
 	request_path.replace( 0, len_old_sub_path, new_sub_path);
-	// _target_path = path_one_plus_path_two(_cwd, request_path);
-	return ( path_one_plus_path_two(_cwd, request_path) );
+	_dir_listing_target_path = path_one_plus_path_two("/", request_path);
+	// _dir_listing_target_path = new_sub_path;
+	_statusCode = 301;
+	throw _statusCode;
+	// --------------------
+	// request_path.replace( 0, len_old_sub_path, new_sub_path);
+	// return ( path_one_plus_path_two(_cwd, request_path) );
 }
 
 /**
@@ -569,35 +576,11 @@ std::string	ResponseMessage::createResponse( void )
 	_target_path = _check_and_execute_delete_request( _statusCode );
 
 	content = "";
-
-	// DirectoryListing DL;
-	// DL.create_listing_html(_target_path); // sinnvoll einbinden (überlegen was mit unsichtbaren Dateien passiert, links testen, nicht höher als root gehen testen)
-
-	// try
-	// {
 	content += _check_create_dir_listing( _dir_listing_target_path, content_type, _statusCode );
-	// }
-	// catch( size_t status_code)
-	// {
-	// 	if ( status_code == 301 )
-
-	// }
 	content += _create_content_from_file( _target_path, content_type );
 	content += _return_default_status_code_html_if_needed( _target_path, content_type, _statusCode );
 	
 	return (_add_header(content, ct));
-	// //
-	// output = "";
-	// output += _response_first_line( _statusCode );
-	// if ( content == "" )
-	// 	return output;  // warten bis Lukas DELETE fertig hat und dann nochmal testen ob das reicht an response
-	// output += _response_content_type( ct );
-	// output += _response_content_length( content );
-
-	// output.append("\r\n");
-	// output += content;
-	// output.append("\r\n");
-	// return output;
 }
 
 std::string	ResponseMessage::_add_header( std::string content, std::string content_type )
@@ -663,6 +646,7 @@ std::string		ResponseMessage::_check_create_dir_listing( std::string path, std::
 	{
 		_statusCode = 301;
 		_target_path = _return_path_to_error_file( _statusCode );
+		_slash_missing = true;
 		return "";
 	}
 	len = _cwd.size();
@@ -789,29 +773,101 @@ std::string	ResponseMessage::_response_first_line( size_t status_code )
 	return output;
 }
 
-std::string	ResponseMessage::_response_moved_to_location( size_t status_code, std::string dir_listing_path )
+std::string	ResponseMessage::_response_moved_to_location( size_t status_code, std::string moved_to_path )
 {
+	size_t											ret;
+	std::string										host;
 	std::string										output;
 	std::map<std::string, std::string>::iterator	it;
 
 	if ( status_code !=  301 )
 		return "";
-	if ( dir_listing_path.at( dir_listing_path.size() - 1 ) != '/' )
+
+	if (!_slash_missing)
 	{
 		output = "";
 		output.append("Location: ");
+		// get Host from request
 		it = _request_map.find("Host");
 		if ( it == _request_map.end() )
 			return "";
-		output += it->second;
+		host = it->second;
+		// look if http: is at the front
+		ret = host.find("http:");
+		if ( ret == 0 )
+			host.erase(0, 5);
+		// remove all / at the front, carefull with ""
+		while (42)
+		{
+			if ( host.size() == 0 )
+				return "";
+			if ( host.at(0) != '/')
+				break;
+			host.erase(0, 1);
+		}
+		// now should only be localhost::8000 or /lkdf/dfkh ?
+		output += "http://";
+		// moved_to_path could be /abc or abc
+		host = path_one_plus_path_two(host, moved_to_path);
+		output += host;
+		output.append("\r\n");
+		return output;
+	}
+	
+		output = "";
+		output.append("Location: ");
+		// get Host from request
+		it = _request_map.find("Host");
+		if ( it == _request_map.end() )
+			return "";
+		host = it->second;
+		// look if http: is at the front
+		ret = host.find("http:");
+		if ( ret == 0 )
+			host.erase(0, 5);
+		// remove all / at the front, carefull with ""
+		while (42)
+		{
+			if ( host.size() == 0 )
+				return "";
+			if ( host.at(0) != '/')
+				break;
+			host.erase(0, 1);
+		}
+		// now should only be localhost::8000 or /lkdf/dfkh ?
+		output += "http://";
+
 		it = _request_map.find("request_location");
 		if ( it == _request_map.end() )
 			return "";
-		output += it->second;
-		output += "/"; // important for directory listing -> browser has to know that it is a directory. see _check_create_dir_listing()
+
+
+		// moved_to_path could be /abc or abc
+		host = path_one_plus_path_two(host, it->second);
+		host = path_one_plus_path_two(host, "/");// important for directory listing -> browser has to know that it is a directory. see _check_create_dir_listing()
+		output += host;
 		output.append("\r\n");
-	}
-	return output;
+		return output;
+
+
+
+	// if ( moved_to_path.at( moved_to_path.size() - 1 ) != '/' )
+	// {
+	// 	output = "";
+	// 	output.append("Location: ");
+	// 	it = _request_map.find("Host");
+	// 	if ( it == _request_map.end() )
+	// 		return "";
+	// 	output += it->second;
+	// 	it = _request_map.find("request_location");
+	// 	if ( it == _request_map.end() )
+	// 		return "";
+
+	// 	output += it->second;
+	// 	output += "/"; // important for directory listing -> browser has to know that it is a directory. see _check_create_dir_listing()
+	// 	output.append("\r\n");
+	// }
+	// return output;
 }
 
 /**

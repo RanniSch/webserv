@@ -66,6 +66,7 @@ class ResponseMessage {
 		std::string		_target_path;
 		std::string		_dir_listing_target_path;
 		std::string		_error;
+		bool			_slash_missing;
 
 		std::map<size_t, std::string>								_status_line;
 		std::map<size_t, std::string>								_default_error_page;

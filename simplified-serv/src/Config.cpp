@@ -549,7 +549,9 @@ void	Config::_checkNumValuesOfSpecialParameters( void ) //_checkParametersWhereO
 	size_t	 		count_location;
 
 //  ------------------------------------------------
+
 // 				common Config
+
 //  ------------------------------------------------
 
 	const int 		count_para_cc = 5;
@@ -564,7 +566,9 @@ void	Config::_checkNumValuesOfSpecialParameters( void ) //_checkParametersWhereO
 	}
 
 //  ------------------------------------------------
+
 // 				common Server Config
+
 //  ------------------------------------------------
 
 	const int 		count_para_csc = 5;
@@ -584,7 +588,9 @@ void	Config::_checkNumValuesOfSpecialParameters( void ) //_checkParametersWhereO
 	}
 
 //  ------------------------------------------------
+
 // 				Server Location Config
+
 //  ------------------------------------------------
 
 	// For the parameters_slc in the locations in the servers (be carefull, server and location will be counted backwarts)
