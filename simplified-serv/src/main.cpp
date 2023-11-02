@@ -5,16 +5,21 @@
 
 
 Config *g_config;
+TestServer *g_server;
 int		g_server_shutdown = -1;
 
 
 void    signalHandler(int signum)
 {
-    if (signum == SIGINT || signum == SIGTERM)
-	{
+    // if (signum == SIGINT || signum == SIGTERM)
+	// {
+		(void) signum;
 		g_server_shutdown = 2;
+		g_server->~TestServer();
+		
 		delete g_config;
-	}
+		delete g_server;
+	// }
 }
 
 int main(int argc, char **argv)
@@ -29,11 +34,14 @@ int main(int argc, char **argv)
 	g_config = config; // raus
 
 	signal(SIGINT, signalHandler);
-    TestServer server;
+    TestServer *server = new TestServer;
 
-    server.launch();
-	server.~TestServer();
+	g_server = server;
 
+    server->launch();
+	server->~TestServer();
+	
+	delete server;
 	delete config;
 
     return (0);
