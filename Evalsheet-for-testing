@@ -13,7 +13,3 @@ Check the code and ask questions
 • If errno is checked after read/recv/write/send, the grade is 0 and the evaluation process ends now.
 • Writing or reading ANY file descriptor without going through the select() (or equivalent) is strictly FORBIDDEN.
 • If any point is unclear or is not correct, the evaluation stops.
-
-Siege & stress test
-• Verify there is no memory leak (Monitor the process memory usage. It should not go up indefinitely).
-• Check if there is no hanging connection.
