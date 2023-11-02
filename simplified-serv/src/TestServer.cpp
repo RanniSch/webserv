@@ -578,7 +578,7 @@ void	TestServer::_pollReading(std::vector<pollfd>::iterator &it)
 			if (_readAndParseHeader(*curr_socket, stringBuffer) == 2)
 			{
 				it->events |= POLLOUT;
-				return ;
+				// return ;
 			}
 		}
 		if (curr_socket->getRequestMethod() == "POST")

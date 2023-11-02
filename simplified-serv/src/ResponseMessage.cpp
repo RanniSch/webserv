@@ -903,6 +903,12 @@ size_t	ResponseMessage::_statusCodeHirarchy( size_t old_code, size_t new_code)
 	return new_code;
 }
 
+// **************************************************
+
+// 					getter Functions
+
+// **************************************************
+
 int	ResponseMessage::get_content_length()
 {
 	std::map<std::string, std::string>::iterator it;
