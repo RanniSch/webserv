@@ -110,6 +110,7 @@ class Config: protected ParseableObject {
 		void								_checkAllowedCharactersInSpecialValues();
 		void								_checkMinMaxInSpecialValues();
 		void								_checkAllowedValuesForSpecialParameters();
+		void								_checkLocationNotEndsWithSlash( void );
 		bool								_checkCurlyBrackets( const std::string &input ) const;
 		void								_checkTokensInFrontOfLineBreak();
 		void								_checkTokensInFrontOf_One_LineBreak( std::list<std::string>::iterator it );
