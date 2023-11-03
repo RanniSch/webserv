@@ -3,8 +3,26 @@
 StrVecMap::StrVecMap()
 {}
 
+StrVecMap::StrVecMap( const StrVecMap &conf )
+{
+	std::cout << "StrVecMap copy constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void)conf;
+}
+
 StrVecMap::~StrVecMap()
 {}
+
+StrVecMap & StrVecMap::operator = (const StrVecMap &conf)
+{
+	std::cout << "StrVecMap = overload operator called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void) conf;
+	return *this;
+}
+
 
 void	StrVecMap::push( std::string str )
 {

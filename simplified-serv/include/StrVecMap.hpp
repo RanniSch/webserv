@@ -8,9 +8,9 @@
 class StrVecMap {
 	public:
 		StrVecMap();
-		// StrVecMap();
-		// StrVecMap= overload();
+		StrVecMap( const StrVecMap &conf );
 		~StrVecMap();
+		StrVecMap & operator = (const StrVecMap &conf);
 		void			push( std::string str );
 		void			vec_clear();
 		void			insert( std::string key );
