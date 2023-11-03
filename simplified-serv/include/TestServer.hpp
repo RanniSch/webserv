@@ -44,8 +44,10 @@ class TestServer{
         public:
             // Constructor
             TestServer();
+			TestServer( const TestServer &conf );
             // Destructor
             ~TestServer (void);
+			TestServer & operator = (const TestServer &conf);
 
             void	launch();
         

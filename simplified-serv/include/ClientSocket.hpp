@@ -13,7 +13,9 @@ class ClientSocket
 {
 	public:
 		ClientSocket();
+		ClientSocket( const ClientSocket &conf );
 		~ClientSocket();
+		ClientSocket & operator = (const ClientSocket &conf);
 
 		void			acceptConnection();
 

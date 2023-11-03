@@ -5,9 +5,26 @@ ClientSocket::ClientSocket()
 	std::cout << "ClientSocket constructor!" << std::endl;
 }
 
+ClientSocket::ClientSocket( const ClientSocket &conf )
+{
+	std::cout << "ClientSocket copy constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void)conf;
+}
+
 ClientSocket::~ClientSocket()
 {
 	std::cout << "ClientSocket destructor!" << std::endl;
+}
+
+ClientSocket & ClientSocket::operator = (const ClientSocket &conf)
+{
+	std::cout << "ClientSocket = overload operator called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void) conf;
+	return *this;
 }
 
 void	ClientSocket::setListeningSocketPtr(ListeningSocket& listening_obj)

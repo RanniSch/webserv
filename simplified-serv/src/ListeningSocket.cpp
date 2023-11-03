@@ -5,9 +5,26 @@ ListeningSocket::ListeningSocket(void): _port(-2)
 	//std::cout << "Default Listening constructor!" << std::endl;
 }
 
+ListeningSocket::ListeningSocket( const ListeningSocket &conf )
+{
+	std::cout << "ListeningSocket copy constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void)conf;
+}
+
 ListeningSocket::~ListeningSocket(void)
 {
 	//std::cout << "ListeningSocket destructor... port: " << _port << std::endl;
+}
+
+ListeningSocket & ListeningSocket::operator = (const ListeningSocket &conf)
+{
+	std::cout << "ListeningSocket = overload operator called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void) conf;
+	return *this;
 }
 
 void	ListeningSocket::startListening(void)

@@ -15,7 +15,9 @@ class Cgi
 {
     public:
             Cgi();
+			Cgi( const Cgi &conf );
             ~Cgi();
+			Cgi & operator = (const Cgi &conf);
 
             int    runCgi();
 
