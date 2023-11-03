@@ -21,15 +21,16 @@
 #include "utils.hpp"
 
 extern Config *g_config;
-
 // canonnical form!!!
 class ResponseMessage {
 	public:
+		ResponseMessage( void );
+		ResponseMessage( const ResponseMessage &conf );
 		ResponseMessage( char* request_cstr );
 		ResponseMessage( std::string request );
 		ResponseMessage( std::string request, size_t server );
-		ResponseMessage( void );
 		~ResponseMessage( void );
+		ResponseMessage & operator = (const ResponseMessage &conf);
 		std::string	createResponse( size_t status_code );
 		std::string	createResponse( std::string content );
 		std::string	createResponse( void );
