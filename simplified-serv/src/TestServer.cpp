@@ -31,7 +31,7 @@ TestServer::~TestServer(void)
 		else
 			std::cout << GREEN "Listening socket closed succesfully." BLANK << std::endl;
 	}
-	exit(-1);
+	// exit(-1);
 }
 
 
@@ -657,7 +657,7 @@ void	TestServer::_pollWritingError(std::vector<pollfd>::iterator &_it, Socket &s
 
 void	TestServer::_killClient(std::vector<pollfd>::iterator &it)
 {
-	_socket_arr.find(it->fd)->second.clearClass();
+	// _socket_arr.find(it->fd)->second.clearClass();
 	std::cout << RED "Succesfull clear!: " BLANK << it->fd << std::endl;
 	if (close(it->fd) == 0)
 		std::cout << GREEN "Client Socket: " << it->fd << " was closed successfuly" BLANK << std::endl;
@@ -702,8 +702,10 @@ void    TestServer::launch()
 	int	ready = 0;
 	std::string	responseStr;
 
+	// size_t count = 0;
 	while (g_server_shutdown  == -1)
 	{
+		// count++;
 		ready = poll(&_sockets_for_poll[0], _sockets_for_poll.size(), 2000);
 		switch (ready)
 		{
@@ -773,9 +775,12 @@ void    TestServer::launch()
 			break;
 		}
 	}
-	if (g_server_shutdown != -1)
-	{
+	// if (g_server_shutdown != -1)
+	// {
+		
 		std::cout << GREEN "SHUTDOWN SERVER!" BLANK << std::endl; 
-		this->~TestServer();
-	}
+	// 	delete g_config;
+	// 	delete g_server;
+	// 	// this->~TestServer();
+	// }
 }
