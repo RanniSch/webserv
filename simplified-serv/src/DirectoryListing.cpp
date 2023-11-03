@@ -1,10 +1,27 @@
 #include "../include/DirectoryListing.hpp"
 
-DirectoryListing::DirectoryListing()
+DirectoryListing::DirectoryListing( )
 {}
+
+DirectoryListing::DirectoryListing( const DirectoryListing &conf )
+{
+	std::cout << "DirectoryListing copy constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void)conf;
+}
 
 DirectoryListing::~DirectoryListing()
 {}
+
+DirectoryListing & DirectoryListing::operator = (const DirectoryListing &conf)
+{
+	std::cout << "DirectoryListing = overload operator called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void) conf;
+	return *this;
+}
 
 std::string	DirectoryListing::create_listing_html( std::string dir_path, std::string show_path )
 {
