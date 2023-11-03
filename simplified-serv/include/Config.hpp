@@ -70,8 +70,11 @@ ConfigServer.cpp			StrVecMap						_commonServerConf
 
 class Config: protected ParseableObject {
 	public:
+		Config( void );
+		Config( const Config &conf );
 		Config( const char* path_config_file);//, std::map<std::string, std::vector<std::string> > &config_map );
 		~Config();
+		Config & operator = (const Config &conf);
 		std::string get_cwd();
 
 		//  ------------------------
