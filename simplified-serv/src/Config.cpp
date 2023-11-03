@@ -7,7 +7,7 @@ Config::Config( void )
 	// for the next project I will take care of that
 }
 
-Config::Config( const Config &conf )
+Config::Config( const Config &conf ): ParseableObject()
 {
 	std::cout << "Config copy constructor called" << std::endl;
 	std::cout << "please don't do that, it does not work proper" << std::endl;
