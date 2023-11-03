@@ -3,14 +3,6 @@
 StrVecMap::StrVecMap()
 {}
 
-// StrVecMap::StrVecMap( const StrVecMap &conf )
-// {
-// 	std::cout << "StrVecMap copy constructor called" << std::endl;
-// 	std::cout << "please don't do that, it does not work proper" << std::endl;
-// 	// for the next project I will take care of that
-// 	(void)conf;
-// }
-
 StrVecMap::~StrVecMap()
 {}
 

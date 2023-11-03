@@ -8,7 +8,6 @@
 class ConfigServer {
 	public:
 		ConfigServer();
-		// ConfigServer( const ConfigServer &conf );
 		~ConfigServer();
 		ConfigServer & operator = (const ConfigServer &conf);
 		void	push( std::string str );

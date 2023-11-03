@@ -8,7 +8,6 @@
 class StrVecMap {
 	public:
 		StrVecMap();
-		// StrVecMap( const StrVecMap &conf );
 		~StrVecMap();
 		StrVecMap & operator = (const StrVecMap &conf);
 		void			push( std::string str );

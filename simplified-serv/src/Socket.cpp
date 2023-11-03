@@ -35,14 +35,6 @@ Socket::Socket()
 	
 }
 
-// Socket::Socket( const Socket &conf )
-// {
-// 	std::cout << "Socket copy constructor called" << std::endl;
-// 	std::cout << "please don't do that, it does not work proper" << std::endl;
-// 	// for the next project I will take care of that
-// 	(void)conf;
-// }
-
 Socket::~Socket()
 {
 	//std::cout << "Socket destructor!" << std::endl;
