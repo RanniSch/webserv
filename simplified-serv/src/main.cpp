@@ -11,15 +11,17 @@ int		g_server_shutdown = -1;
 
 void    signalHandler(int signum)
 {
-    // if (signum == SIGINT || signum == SIGTERM)
-	// {
+    if (signum == SIGINT || signum == SIGTERM)
+	{
 		(void) signum;
 		g_server_shutdown = 2;
-		g_server->~TestServer();
-		
 		delete g_config;
+		g_config = NULL;
+		// g_server->~TestServer();
 		delete g_server;
-	// }
+		g_server = NULL;
+		exit(-1);
+	}
 }
 
 int main(int argc, char **argv)
@@ -39,10 +41,12 @@ int main(int argc, char **argv)
 	g_server = server;
 
     server->launch();
-	server->~TestServer();
 	
 	delete server;
 	delete config;
+
+	server = NULL;
+	config = NULL;
 
     return (0);
 }
