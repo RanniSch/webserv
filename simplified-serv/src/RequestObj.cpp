@@ -4,7 +4,7 @@ RequestObj::RequestObj( std::string input): ParseableObject(input), _defaultDeli
 {
 }
 
-RequestObj::RequestObj( const RequestObj &conf )
+RequestObj::RequestObj( const RequestObj &conf ): ParseableObject()
 {
 	std::cout << "RequestObj copy constructor called" << std::endl;
 	std::cout << "please don't do that, it does not work proper" << std::endl;
