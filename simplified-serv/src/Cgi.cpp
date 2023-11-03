@@ -6,9 +6,26 @@ Cgi::Cgi()
     std::cout << "Cgi parameterized constructor called!" << std::endl;
 }
 
+Cgi::Cgi( const Cgi &conf )
+{
+	std::cout << "Cgi copy constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void)conf;
+}
+
 Cgi::~Cgi()
 {
     std::cout << "Cgi destructor called!" << std::endl;
+}
+
+Cgi & Cgi::operator = (const Cgi &conf)
+{
+	std::cout << "Cgi = overload operator called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void) conf;
+	return *this;
 }
 
 void	Cgi::setRequestChar(unsigned char* requestC)

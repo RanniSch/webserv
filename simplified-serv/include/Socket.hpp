@@ -20,7 +20,9 @@ class Socket
 {
 	public:
 		Socket();
+		// Socket( const Socket &conf );
 		~Socket();
+		Socket & operator = (const Socket &conf);
 
 		int				error_code;
 		std::streampos	file_pos;

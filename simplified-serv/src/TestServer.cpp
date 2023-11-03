@@ -19,6 +19,14 @@ TestServer::TestServer():_nbr_of_client_sockets(0), _nbr_of_sockets_in_poll(0)
 
 }
 
+TestServer::TestServer( const TestServer &conf )
+{
+	std::cout << "TestServer copy constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void)conf;
+}
+
 // Destructor
 TestServer::~TestServer(void)
 {
@@ -34,6 +42,14 @@ TestServer::~TestServer(void)
 	// exit(-1);
 }
 
+TestServer & TestServer::operator = (const TestServer &conf)
+{
+	std::cout << "TestServer = overload operator called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void) conf;
+	return *this;
+}
 
 void	TestServer::_logPortInfo(void)
 {

@@ -13,7 +13,9 @@ class ListeningSocket
 {
 	public:
 		ListeningSocket();
+		ListeningSocket( const ListeningSocket &conf );
 		~ListeningSocket();
+		ListeningSocket & operator = (const ListeningSocket &conf);
 
 		void	startListening(void);
 
