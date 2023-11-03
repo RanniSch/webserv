@@ -8,8 +8,10 @@
 class ParseableObject {
 	public:
 		ParseableObject();
+		ParseableObject( const ParseableObject &conf );
 		ParseableObject( std::string input);
 		~ParseableObject();
+		ParseableObject & operator = (const ParseableObject &conf);
 		void lexer( const std::string &delimiter );
 		void	deleteChars( const std::string &chars);
 		void	setInput(std::string input);

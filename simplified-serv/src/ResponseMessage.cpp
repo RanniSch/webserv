@@ -1,6 +1,15 @@
 #include "../include/ResponseMessage.hpp"
 
 
+
+ResponseMessage::ResponseMessage( const ResponseMessage &conf ):_config(*g_config)
+{
+	std::cout << "ResponseMessage copy constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void)conf;
+}
+
 ResponseMessage::ResponseMessage( char* request_cstr )
 :_statusCode(0), _config(*g_config), _server(0), _slash_missing(false)
 {
@@ -77,7 +86,7 @@ ResponseMessage::ResponseMessage( std::string request, size_t server )
 }
 
 
-ResponseMessage::ResponseMessage( void ):_config(*g_config)//, _config_old(_config_for_compiler) // get rid of global variable and of config old
+ResponseMessage::ResponseMessage( void ):_config(*g_config)
 {
 	_fill_status_line_and_default_error_page_and_status_code_hirarchy();
 	_slash_missing = false;
@@ -86,6 +95,15 @@ ResponseMessage::ResponseMessage( void ):_config(*g_config)//, _config_old(_conf
 ResponseMessage::~ResponseMessage( void )
 {
 
+}
+
+ResponseMessage & ResponseMessage::operator = (const ResponseMessage &conf)
+{
+	std::cout << "ResponseMessage = overload operator called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void) conf;
+	return *this;
 }
 
 void	ResponseMessage::_parse_request( std::string &request )

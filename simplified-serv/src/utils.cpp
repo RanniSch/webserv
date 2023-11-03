@@ -243,18 +243,6 @@ std::string content_type(const std::string &content)
 	return "plain";
 }
 
-// std::list<std::string>::iterator find_str_in_list( std::list<std::string> list, std::string str, int start)
-// {
-// 	std::list<std::string>::iterator 	it;
-
-// 	for (it =list.begin(); it != list.end(); it++)
-// 	{
-// 		if (it->find(str) != std::string::npos && str.length() == it->length())
-// 			return it;
-// 	}
-// 	return ( list.end() );
-// }
-
 long int file_size( const std::string &path )
 {
 	struct stat				fileStat;

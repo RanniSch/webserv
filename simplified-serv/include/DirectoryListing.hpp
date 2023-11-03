@@ -11,8 +11,10 @@
 
 class DirectoryListing {
 	public:
-		DirectoryListing( );
+		DirectoryListing();
+		DirectoryListing( const DirectoryListing &conf );
 		~DirectoryListing();
+		DirectoryListing & operator = (const DirectoryListing &conf);
 		std::string	create_listing_html( std::string dir_path, std::string show_path );
 
 

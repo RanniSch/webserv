@@ -8,7 +8,9 @@
 class ConfigServer {
 	public:
 		ConfigServer();
+		ConfigServer( const ConfigServer &conf );
 		~ConfigServer();
+		ConfigServer & operator = (const ConfigServer &conf);
 		void	push( std::string str );
 		void	vec_clear();
 		void	insert( std::string key );

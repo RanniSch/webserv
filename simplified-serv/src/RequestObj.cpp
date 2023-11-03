@@ -4,8 +4,25 @@ RequestObj::RequestObj( std::string input): ParseableObject(input), _defaultDeli
 {
 }
 
+RequestObj::RequestObj( const RequestObj &conf )
+{
+	std::cout << "RequestObj copy constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void)conf;
+}
+
 RequestObj::~RequestObj()
 {}
+
+RequestObj & RequestObj::operator = (const RequestObj &conf)
+{
+	std::cout << "RequestObj = overload operator called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void) conf;
+	return *this;
+}
 
 void	RequestObj::_parseStartLine( void )
 {

@@ -1,5 +1,20 @@
 #include "../include/Config.hpp"
 
+Config::Config( void )
+{
+	std::cout << "Config default constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+}
+
+Config::Config( const Config &conf )
+{
+	std::cout << "Config copy constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void)conf;
+}
+
 Config::Config( const char* path_config_file)//, std::map<std::string, std::vector<std::string> > &config_map )
 : _commentDelimiter("#"), _contentDelimiter("\t "), _path_config_file(path_config_file) //, _config_map(config_map), _input(""), _defaultDelimiter("\r\n")
 
@@ -112,6 +127,15 @@ Config::Config( const char* path_config_file)//, std::map<std::string, std::vect
 
 Config::~Config()
 {}
+
+Config & Config::operator = (const Config &conf)
+{
+	std::cout << "Config = overload operator called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void) conf;
+	return *this;
+}
 
 std::string Config::get_cwd()
 {

@@ -8,7 +8,9 @@
 class RequestObj: protected ParseableObject {
 	public:
 		RequestObj( std::string input);
+		RequestObj( const RequestObj &conf );
 		~RequestObj();
+		RequestObj & operator = (const RequestObj &conf);
 		std::map<std::string, std::string> *ParseIntoMap(std::map<std::string, std::string> &map);
 
 

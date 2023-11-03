@@ -3,6 +3,14 @@
 ParseableObject::ParseableObject()
 {}
 
+ParseableObject::ParseableObject( const ParseableObject &conf )
+{
+	std::cout << "ParseableObject copy constructor called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void)conf;
+}
+
 ParseableObject::ParseableObject( std::string input): _input(input)
 {
 	// _input
@@ -15,6 +23,15 @@ void	ParseableObject::setInput(std::string input)
 
 ParseableObject::~ParseableObject()
 {}
+
+ParseableObject & ParseableObject::operator = (const ParseableObject &conf)
+{
+	std::cout << "ParseableObject = overload operator called" << std::endl;
+	std::cout << "please don't do that, it does not work proper" << std::endl;
+	// for the next project I will take care of that
+	(void) conf;
+	return *this;
+}
 
 // was lexer already before?
 void	ParseableObject::deleteChars( const std::string &chars)
