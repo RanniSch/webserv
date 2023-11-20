@@ -12,3 +12,19 @@ Client can access the webserver using a localhost and the port that is specified
 ```bash
 git clone git@github.com:RanniSch/Webserv.git ./the_name_of_your_choice
 ```
+2. CD into the repository.
+```bash
+cd the_name_of_your_choice
+```
+3. CD into the simplified-serv.
+```bash
+cd simplified-serv
+```
+4. Run make.
+```bash
+make
+```
+4. Run webserver.
+```bash
+./webserv
+```
