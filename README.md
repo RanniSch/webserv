@@ -24,7 +24,7 @@ cd simplified-serv
 ```bash
 make
 ```
-4. Run webserver.
+5. Run webserver.
 ```bash
 ./webserv
 ```
