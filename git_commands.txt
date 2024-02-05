@@ -16,6 +16,7 @@ git branch -d <local-branch>                    -> delete branch locally
 git rm -rf --cached .                           -> when added .gitignore after the other files
 git fetch origin full_SHA_key                   -> fetch a specific commit 
 git chekout FETCH_HEAD                          -> checkout that specific commit
+git log --oneline --graph --simplify-by-decoration <branch_a> <branch_b>    -> see how the branches are correlated (leave away --simplify... for details)
 
 Force pull request:
 git fetch --all                                 -> update all origin/<branch> refs to latest; downloads the latest from remote without trying to merge or rebase anything.
