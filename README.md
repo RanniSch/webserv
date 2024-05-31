@@ -8,14 +8,14 @@ The web browser initiates communication by requesting a specific resource using 
 ## How does the Client acces the webserver?
 Client can access the webserver using a localhost and the port that is specified by the webserver. For it to work the webserver first has to be running in the background.
 
-## How to run the Webserver?
+## How to run the webserver
 * Clone the repository ```git clone git@github.com:RanniSch/Webserv.git ./the_name_of_your_choice```
 * ```cd``` into the repository ```cd the_name_of_your_choice```
 * ```cd``` into the simplified-serv ```cd simplified-serv```
 * Run the command ```make```
-* Run webserver ```./webserv [path of config file```
+* Run webserver ```./webserv [path of config file]```
 * Open the browser and type in **localhost:8000**
-* You can test different scenarios by adding **localhost:8000/[different scenarios]** f.e. **localhost:8000/**
+* You can test different scenarios by **localhost:8000/[different scenarios]** f.e. **localhost:8000/upload.html**
 
 ## Prerequisites
 - The server is serving a fully static website
