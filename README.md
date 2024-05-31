@@ -53,5 +53,3 @@ Various configuration files and default base files for testing and demonstrating
 
 
 ![webserv-5](https://github.com/RanniSch/webserv/assets/104382315/dd955b01-b31b-4bbe-9e70-9ab85af1f3a5)
-
-
