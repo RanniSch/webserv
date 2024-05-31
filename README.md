@@ -9,26 +9,27 @@ The web browser initiates communication by requesting a specific resource using 
 Client can access the webserver using a localhost and the port that is specified by the webserver. For it to work the webserver first has to be running in the background.
 
 ## How to run the Webserver?
-1. Clone the repository.
+1. Clone the repository
 ```bash
 git clone git@github.com:RanniSch/Webserv.git ./the_name_of_your_choice
 ```
-2. CD into the repository.
+2. CD into the repository
 ```bash
 cd the_name_of_your_choice
 ```
-3. CD into the simplified-serv.
+3. CD into the simplified-serv
 ```bash
 cd simplified-serv
 ```
-4. Run make.
+4. Run make
 ```bash
 make
 ```
-5. Run webserver.
+5. Run webserver
 ```bash
 ./webserv
 ```
+6. Open the browser and type in localhost
 
 ## Prerequisites
 - The server is serving a fully static website
